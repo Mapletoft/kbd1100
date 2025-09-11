@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>KBD1100 – Teacher Dashboard</title>
+  <link rel="stylesheet" href="styles.css" />
+
+  <!-- Firebase SDKs (compat) + your config -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <style>
+    /* quick table style; you can move to styles.css */
+    .toolbar{display:flex;gap:.5rem;align-items:center;margin:1rem 0;}
+    table{width:100%;border-collapse:collapse}
+    th,td{border:1px solid #ddd;padding:.5rem;text-align:left;font-size:.95rem}
+    th{background:#f5f5f5}
+    .right{margin-left:auto}
+    .pill{font-size:.8rem;border:1px solid #ddd;border-radius:999px;padding:.1rem .5rem}
+  </style>
+</head>
+<body>
+  <header class="toolbar">
+    <h1>Teacher Dashboard</h1>
+    <span id="me" class="pill"></span>
+    <button id="signOut" class="right">Sign out</button>
+  </header>
+
+  <section class="toolbar">
+    <input id="filterText" type="text" placeholder="Filter by email/name/exercise…" />
+    <button id="refresh">Refresh</button>
+    <span id="count" class="pill"></span>
+  </section>
+
+  <section>
+    <table id="progressTable">
+      <thead>
+        <tr>
+          <th>Email</th>
+          <th>Name</th>
+          <th>UID</th>
+          <th>Exercise</th>
+          <th>Status</th>
+          <th>Best WPM</th>
+          <th>Best Accuracy</th>
+          <th>Attempts</th>
+          <th>Last Attempt</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+
+  <!-- Optional: add a tab for tests later if you want -->
+  <!--
+  <h2>Tests</h2>
+  <table id="testsTable"> ... </table>
+  -->
+
+  <script>
+    // Replace with your teacher UID
+    const TEACHER_UID = "PUT_YOUR_TEACHER_UID_HERE";
+
+    // Gate access: only the teacher UID may view
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { location.href = 'index.html'; return; }
+      document.getElementById('me').textContent = user.email;
+      if (user.uid !== TEACHER_UID) {
+        // If a student somehow navigates here, kick them to the student app
+        location.href = 'typing.html';
+        return;
+      }
+      await loadProgress();
+    });
+
+    document.getElementById('signOut').onclick = () => auth.signOut().then(() => location.href='index.html');
+    document.getElementById('refresh').onclick = () => loadProgress();
+    document.getElementById('filterText').addEventListener('input', () => renderRows(window.__rows || []));
+
+    async function loadProgress() {
+      // Query ALL progress documents across users (rules allow only teacher)
+      const snap = await db.collectionGroup('progress').get();
+
+      // Collect all UIDs to fetch profile docs (for email/name)
+      const rows = snap.docs.map(d => {
+        const data = d.data();
+        const pathParts = d.ref.path.split('/'); // users/{uid}/progress/{exerciseId}
+        const uid = pathParts[1];
+        return {
+          uid,
+          exerciseId: d.id,
+          status: data.status || '',
+          bestWPM: data.bestWPM ?? '',
+          bestAccuracy: data.bestAccuracy ?? '',
+          attempts: data.attempts ?? '',
+          lastAttemptAt: data.lastAttemptAt?.toDate ? data.lastAttemptAt.toDate() : null
+        };
+      });
+
+      // Fetch profiles in parallel
+      const uniqueUids = [...new Set(rows.map(r => r.uid))];
+      const profiles = {};
+      await Promise.all(uniqueUids.map(async uid => {
+        const p = await db.collection('users').doc(uid).get();
+        profiles[uid] = p.exists ? p.data() : {};
+      }));
+
+      // Enrich rows
+      rows.forEach(r => {
+        const p = profiles[r.uid] || {};
+        r.email = p.email || '';
+        const fn = (p.firstName || '').trim();
+        const ln = (p.lastName || '').trim();
+        r.name = (fn || ln) ? `${fn} ${ln}`.trim() : '';
+      });
+
+      window.__rows = rows;
+      renderRows(rows);
+    }
+
+    function renderRows(rows) {
+      const tbody = document.querySelector('#progressTable tbody');
+      tbody.innerHTML = '';
+      const q = document.getElementById('filterText').value.toLowerCase().trim();
+
+      const filtered = rows.filter(r => {
+        if (!q) return true;
+        return (
+          (r.email||'').toLowerCase().includes(q) ||
+          (r.name||'').toLowerCase().includes(q) ||
+          (r.uid||'').toLowerCase().includes(q) ||
+          (r.exerciseId||'').toLowerCase().includes(q)
+        );
+      });
+
+      filtered.sort((a,b) => (b.lastAttemptAt?.getTime?.()||0) - (a.lastAttemptAt?.getTime?.()||0));
+
+      for (const r of filtered) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${escapeHtml(r.email || '')}</td>
+          <td>${escapeHtml(r.name || '')}</td>
+          <td>${escapeHtml(r.uid)}</td>
+          <td>${escapeHtml(r.exerciseId)}</td>
+          <td>${escapeHtml(r.status || '')}</td>
+          <td>${r.bestWPM ?? ''}</td>
+          <td>${r.bestAccuracy ?? ''}</td>
+          <td>${r.attempts ?? ''}</td>
+          <td>${r.lastAttemptAt ? r.lastAttemptAt.toLocaleString() : ''}</td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      document.getElementById('count').textContent = `${filtered.length} rows`;
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll('&','&amp;')
+        .replaceAll('<','&lt;')
+        .replaceAll('>','&gt;')
+        .replaceAll('"','&quot;')
+        .replaceAll("'","&#39;");
+    }
+  </script>
+</body>
+</html>

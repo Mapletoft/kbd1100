@@ -1,732 +1,746 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KBD1100 - Typing Practice | Cambrian College</title>
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KBD1100 - Typing Practice | Cambrian College</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
 </head>
 <body>
-    <div class="app-container">
-        <!-- Header -->
-        <div class="app-header">
-            <div class="app-title">
-                <h1>⌨️ KBD1100 - Computer Keyboarding Skills</h1>
-                <p>Cambrian College | Instructor: Charles Mapletoft</p>
-            </div>
-            <div class="user-info">
-                <span>👤 <strong id="userName">Student Name</strong></span>
-                <span>📊 <strong id="userProgress">0/12 Complete</strong></span>
-                <button class="logout-btn" onclick="logout()">Sign Out</button>
-            </div>
-        </div>
-
-        <!-- Navigation Tabs -->
-        <div class="nav-tabs">
-            <button class="tab active" onclick="switchTab('lessons', this)">📚 Skill Building</button>
-            <button class="tab" onclick="switchTab('progress', this)">📊 My Progress</button>
-            <button class="tab" onclick="switchTab('tests', this)" id="testsTab" disabled>🔒 Timed Tests</button>
-        </div>
-
-        <!-- Main Content -->
-        <div class="main-content">
-            
-            <!-- Lessons Tab -->
-            <div id="lessons" class="tab-content active">
-                <h2>Skill Building Lessons</h2>
-                <p>Complete all stages in each skill to unlock the next level. Focus on accuracy first, speed will follow!</p>
-                
-                <div class="lesson-grid" id="lessonGrid">
-                    <!-- Lessons will be generated here by JavaScript -->
-                </div>
-            </div>
-
-            <!-- Progress Tab -->
-            <div id="progress" class="tab-content">
-                <h2>Your Progress Report</h2>
-                
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <div class="stat-label">Average WPM</div>
-                        <div class="stat-value" id="avgWpm">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Average Accuracy</div>
-                        <div class="stat-value" id="avgAccuracy">0%</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Total Backspaces</div>
-                        <div class="stat-value" id="totalBackspaces">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Stages Complete</div>
-                        <div class="stat-value" id="stagesComplete">0</div>
-                    </div>
-                </div>
-
-                <h3 style="margin-top: 30px;">Recent Activity</h3>
-                <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-                    <thead>
-                        <tr style="background: #f5f5f5;">
-                            <th style="padding: 12px; text-align: left;">Date</th>
-                            <th style="padding: 12px; text-align: left;">Lesson</th>
-                            <th style="padding: 12px; text-align: left;">Stage</th>
-                            <th style="padding: 12px; text-align: left;">WPM</th>
-                            <th style="padding: 12px; text-align: left;">Accuracy</th>
-                            <th style="padding: 12px; text-align: left;">Backspaces</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTable">
-                        <!-- History will be populated here -->
-                    </tbody>
-                </table>
-
-                <div class="control-buttons">
-                    <button class="btn btn-primary" onclick="exportProgress()">📥 Export Report</button>
-                </div>
-            </div>
-
-            <!-- Tests Tab (Locked Initially) -->
-            <div id="tests" class="tab-content">
-                <h2>🔒 Timed Tests - Locked</h2>
-                <p>Complete all skill building lessons to unlock timed tests!</p>
-            </div>
-        </div>
+  <div class="app-container">
+    <!-- Header -->
+    <div class="app-header">
+      <div class="app-title">
+        <h1>⌨️ KBD1100 - Computer Keyboarding Skills</h1>
+        <p>Cambrian College | Instructor: Charles Mapletoft</p>
+      </div>
+      <div class="user-info">
+        <span>👤 <strong id="userName">Student</strong></span>
+        <span>📊 <strong id="userProgress">0/12 Stages</strong></span>
+        <button class="logout-btn" onclick="signOut()">Sign Out</button>
+      </div>
     </div>
 
-    <!-- Stage Practice Modal -->
-    <div class="modal" id="practiceModal">
-        <div class="modal-content" style="max-width: 900px;">
-            <h2 id="modalTitle">Lesson Title</h2>
-            <p id="stageInfo" style="margin-bottom: 20px; color: #666;">Stage 1 of 5</p>
-            
-            <div class="typing-area">
-                <div class="prompt-text" id="promptText">
-                    Press "Start" when you're ready to begin
-                </div>
-                
-                <input type="text" class="typing-input" id="typingInput" 
-                       placeholder="Click Start, then type here..." disabled>
-                
-                <div class="stats-row">
-                    <div class="stat-box">
-                        <div class="stat-label">WPM</div>
-                        <div class="stat-value" id="currentWpm">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Accuracy</div>
-                        <div class="stat-value" id="currentAccuracy">100%</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Backspaces</div>
-                        <div class="stat-value" id="backspaceCount">0</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-label">Time</div>
-                        <div class="stat-value" id="elapsedTime">0:00</div>
-                    </div>
-                </div>
-
-                <div class="control-buttons">
-                    <button class="btn btn-success" id="startBtn" onclick="startStage()">▶️ Start</button>
-                    <button class="btn btn-danger" onclick="closeModal()">✖️ Close</button>
-                </div>
-            </div>
-        </div>
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs">
+      <button class="tab active" onclick="switchTab('lessons', this)">📚 Skill Building</button>
+      <button class="tab" onclick="switchTab('progress', this)">📊 My Progress</button>
+      <button class="tab" onclick="switchTab('tests', this)" id="testsTab" disabled>🔒 Timed Tests</button>
     </div>
 
-    <!-- Results Modal -->
-    <div class="modal" id="resultsModal">
-        <div class="modal-content">
-            <h2 id="resultTitle">Stage Complete!</h2>
-            <div id="resultContent" style="margin: 20px 0;">
-                <!-- Results will be shown here -->
-            </div>
-            <div class="control-buttons">
-                <button class="btn btn-primary" onclick="nextStage()">Next Stage ➡️</button>
-                <button class="btn btn-success" onclick="retryStage()">🔄 Retry</button>
-                <button class="btn btn-danger" onclick="closeResults()">Close</button>
-            </div>
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Lessons Tab -->
+      <div id="lessons" class="tab-content active">
+        <h2>Skill Building Lessons</h2>
+        <p>Complete all stages in each skill to unlock the next level. Focus on accuracy first, speed will follow!</p>
+        <div class="lesson-grid" id="lessonGrid"></div>
+      </div>
+
+      <!-- Progress Tab -->
+      <div id="progress" class="tab-content">
+        <h2>Your Progress Report</h2>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-label">Average WPM</div>
+            <div class="stat-value" id="avgWpm">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Average Accuracy</div>
+            <div class="stat-value" id="avgAccuracy">0%</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Total Backspaces</div>
+            <div class="stat-value" id="totalBackspaces">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Stages Complete</div>
+            <div class="stat-value" id="stagesComplete">0</div>
+          </div>
         </div>
+
+        <h3 style="margin-top: 30px;">Recent Activity</h3>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+          <thead>
+            <tr style="background: #f5f5f5;">
+              <th style="padding: 12px; text-align: left;">Date</th>
+              <th style="padding: 12px; text-align: left;">Lesson</th>
+              <th style="padding: 12px; text-align: left;">Stage</th>
+              <th style="padding: 12px; text-align: left;">WPM</th>
+              <th style="padding: 12px; text-align: left;">Accuracy</th>
+              <th style="padding: 12px; text-align: left;">Backspaces</th>
+            </tr>
+          </thead>
+          <tbody id="historyTable"></tbody>
+        </table>
+
+        <div class="control-buttons">
+          <button class="btn btn-primary" onclick="exportProgress()">📥 Export Report</button>
+        </div>
+      </div>
+
+      <!-- Tests Tab (Locked Initially) -->
+      <div id="tests" class="tab-content">
+        <h2>🔒 Timed Tests - Locked</h2>
+        <p>Complete all skill building lessons to unlock timed tests!</p>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // Lesson Definitions with Multiple Stages
-        const lessons = [
-            {
-                id: 1,
-                title: "Home Row",
-                icon: "🏠",
-                description: "Master the foundation: ASDF JKL;",
-                stages: [
-                    { text: "fff jjj fff jjj ff jj ff jj fjfj fjfj", minWpm: 20, minAccuracy: 90 },
-                    { text: "ddd kkk ddd kkk dd kk dd kk dkdk dkdk", minWpm: 25, minAccuracy: 90 },
-                    { text: "aaa ;;; aaa ;;; aa ;; aa ;; a;a; a;a;", minWpm: 25, minAccuracy: 90 },
-                    { text: "asdf jkl; asdf jkl; fdsa ;lkj fdsa ;lkj", minWpm: 30, minAccuracy: 92 },
-                    { text: "sad flask jak lads fall salad flask dad", minWpm: 35, minAccuracy: 95 }
-                ]
-            },
-            {
-                id: 2,
-                title: "Top Row",
-                icon: "⬆️",
-                description: "Reach for QWERT YUIOP",
-                stages: [
-                    { text: "qqq ppp qqq ppp qq pp qq pp qpqp qpqp", minWpm: 20, minAccuracy: 90 },
-                    { text: "www ooo www ooo ww oo ww oo wowo wowo", minWpm: 25, minAccuracy: 90 },
-                    { text: "eee iii eee iii ee ii ee ii eiei eiei", minWpm: 25, minAccuracy: 90 },
-                    { text: "qwert yuiop qwert yuiop werty uiop qwe", minWpm: 30, minAccuracy: 92 },
-                    { text: "power query write poetry tower quite proper", minWpm: 35, minAccuracy: 95 }
-                ]
-            },
-            {
-                id: 3,
-                title: "Bottom Row",
-                icon: "⬇️",
-                description: "Complete the alphabet: ZXCVB NM",
-                stages: [
-                    { text: "zzz mmm zzz mmm zz mm zz mm zmzm zmzm", minWpm: 20, minAccuracy: 90 },
-                    { text: "xxx nnn xxx nnn xx nn xx nn xnxn xnxn", minWpm: 25, minAccuracy: 90 },
-                    { text: "ccc vvv bbb ccc vvv bbb cv vb cv vb", minWpm: 25, minAccuracy: 90 },
-                    { text: "zxcvb nm,. zxcvb nm,. xcvb nm,. zxc", minWpm: 30, minAccuracy: 92 },
-                    { text: "zebra venom combat maximum bronze exam", minWpm: 35, minAccuracy: 95 }
-                ]
-            },
-            {
-                id: 4,
-                title: "Numbers",
-                icon: "🔢",
-                description: "Master the number row: 1234567890",
-                stages: [
-                    { text: "111 222 333 111 222 333 123 123 123", minWpm: 20, minAccuracy: 90 },
-                    { text: "444 555 666 444 555 666 456 456 456", minWpm: 25, minAccuracy: 90 },
-                    { text: "777 888 999 000 777 888 999 000 7890", minWpm: 25, minAccuracy: 90 },
-                    { text: "1234567890 0987654321 1357924680 2468", minWpm: 30, minAccuracy: 92 },
-                    { text: "My phone is 555-1234 and zip is 90210", minWpm: 35, minAccuracy: 95 }
-                ]
-            },
-            {
-                id: 5,
-                title: "Shift Keys",
-                icon: "⬆️",
-                description: "Capital letters with Shift",
-                stages: [
-                    { text: "Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk", minWpm: 20, minAccuracy: 85 },
-                    { text: "The Quick Fox The Quick Fox The", minWpm: 25, minAccuracy: 88 },
-                    { text: "Hello World Hello World Hello World", minWpm: 30, minAccuracy: 90 },
-                    { text: "John Smith Lives In New York City Today", minWpm: 35, minAccuracy: 92 },
-                    { text: "The Quick Brown Fox Jumps Over The Lazy Dog", minWpm: 40, minAccuracy: 95 }
-                ]
-            },
-            {
-                id: 6,
-                title: "Caps Lock",
-                icon: "🔠",
-                description: "Toggle CAPS LOCK efficiently",
-                stages: [
-                    { text: "ABC DEF GHI JKL MNO PQR STU VWX YZ", minWpm: 20, minAccuracy: 85 },
-                    { text: "HELLO WORLD HELLO WORLD HELLO", minWpm: 25, minAccuracy: 88 },
-                    { text: "TYPE THIS IN ALL CAPS PLEASE OK", minWpm: 30, minAccuracy: 90 },
-                    { text: "WARNING: DO NOT ENTER THIS AREA", minWpm: 35, minAccuracy: 92 },
-                    { text: "IMPORTANT NOTICE: MEETING CANCELLED TODAY", minWpm: 40, minAccuracy: 95 }
-                ]
-            },
-            {
-                id: 7,
-                title: "Symbols Level 1",
-                icon: "⚡",
-                description: "Basic punctuation and symbols",
-                stages: [
-                    { text: "... ,,, ... ,,, ... ,,, .,., .,.,", minWpm: 20, minAccuracy: 85 },
-                    { text: "!!! ??? !!! ??? !?!? !?!? !? !? !?", minWpm: 20, minAccuracy: 85 },
-                    { text: ": ; : ; : ; :; :; :; ';' ';' ';'", minWpm: 25, minAccuracy: 88 },
-                    { text: "Hello! How are you? I'm fine, thanks.", minWpm: 30, minAccuracy: 90 },
-                    { text: "Wait! Don't go; I'm not done yet: okay?", minWpm: 35, minAccuracy: 92 }
-                ]
-            },
-            {
-                id: 8,
-                title: "Symbols Level 2",
-                icon: "💎",
-                description: "Advanced symbols and special characters",
-                stages: [
-                    { text: "@@@ ### $$$ %%% @@@ ### $$$ %%%", minWpm: 20, minAccuracy: 85 },
-                    { text: "((( ))) [[[ ]]] {{{ }}} ((( )))", minWpm: 20, minAccuracy: 85 },
-                    { text: "+++ === --- ___ +++ === --- ___", minWpm: 25, minAccuracy: 88 },
-                    { text: "user@email.com costs $99.99 (50% off)", minWpm: 30, minAccuracy: 90 },
-                    { text: "Call (555) 123-4567 or visit www.site.com", minWpm: 35, minAccuracy: 92 }
-                ]
-            },
-            {
-                id: 9,
-                title: "Mixed Practice",
-                icon: "🎯",
-                description: "Combine all skills",
-                stages: [
-                    { text: "abc 123 ABC !@# abc 123 ABC !@#", minWpm: 25, minAccuracy: 85 },
-                    { text: "The price is $50.00 (plus tax).", minWpm: 30, minAccuracy: 88 },
-                    { text: "Email me at: john@example.com NOW!", minWpm: 35, minAccuracy: 90 },
-                    { text: "Meeting at 3:30 PM in Room #204-B", minWpm: 40, minAccuracy: 92 },
-                    { text: "Save 25% TODAY! Visit www.sale.com or call (800) 555-DEAL", minWpm: 45, minAccuracy: 95 }
-                ]
-            },
-            {
-                id: 10,
-                title: "Speed Builder",
-                icon: "🚀",
-                description: "Common words for speed",
-                stages: [
-                    { text: "the the the and and and for for", minWpm: 40, minAccuracy: 95 },
-                    { text: "that with have this will your from", minWpm: 45, minAccuracy: 95 },
-                    { text: "they what about which their would", minWpm: 50, minAccuracy: 95 },
-                    { text: "the quick brown fox jumps over the lazy", minWpm: 55, minAccuracy: 95 },
-                    { text: "pack my box with five dozen liquor jugs now", minWpm: 60, minAccuracy: 95 }
-                ]
-            },
-            {
-                id: 11,
-                title: "Accuracy Focus",
-                icon: "🎪",
-                description: "Precision over speed",
-                stages: [
-                    { text: "Slow and steady wins the race.", minWpm: 20, minAccuracy: 100 },
-                    { text: "Precision is the key to success.", minWpm: 25, minAccuracy: 98 },
-                    { text: "Every keystroke must be perfect.", minWpm: 30, minAccuracy: 98 },
-                    { text: "Accuracy first, then speed will follow.", minWpm: 35, minAccuracy: 98 },
-                    { text: "Perfect practice makes perfect performance.", minWpm: 40, minAccuracy: 100 }
-                ]
-            },
-            {
-                id: 12,
-                title: "Numeric Keypad",
-                icon: "🔟",
-                description: "Master the number pad",
-                stages: [
-                    { text: "789 789 789 456 456 456 123 123", minWpm: 25, minAccuracy: 90 },
-                    { text: "741 852 963 741 852 963 741 852", minWpm: 30, minAccuracy: 90 },
-                    { text: "147 258 369 147 258 369 147 258", minWpm: 35, minAccuracy: 92 },
-                    { text: "7410 8520 9630 1470 2580 3690", minWpm: 40, minAccuracy: 95 },
-                    { text: "98765 43210 13579 24680 11235", minWpm: 45, minAccuracy: 95 }
-                ]
-            }
-        ];
+  <!-- Stage Practice Modal -->
+  <div class="modal" id="practiceModal">
+    <div class="modal-content" style="max-width: 900px;">
+      <h2 id="modalTitle">Lesson Title</h2>
+      <p id="stageInfo" style="margin-bottom: 20px; color: #666;">Stage 1 of 5</p>
 
-        // Global variables
-        let currentUser = null;
-        let currentLesson = null;
-        let currentStage = 0;
-        let startTime = null;
-        let timerInterval = null;
-        let backspaceCount = 0;
-        let userProgress = {
-            completedStages: {}, // {lessonId: [stageNumbers]}
-            history: []
-        };
+      <div class="typing-area">
+        <div class="prompt-text" id="promptText">
+          Press "Start" when you're ready to begin
+        </div>
 
-        // Load user data on page load
-        window.onload = function() {
-            loadUserData();
-            renderLessons();
-            updateProgressDisplay();
-        };
+        <input type="text" class="typing-input" id="typingInput"
+               placeholder="Click Start, then type here..." disabled>
 
-        function loadUserData() {
-            // Get user from sessionStorage (set by login page)
-            const userData = sessionStorage.getItem('currentUser');
-            if (!userData) {
-                window.location.href = 'index.html';
-                return;
-            }
-            
-            currentUser = JSON.parse(userData);
-            document.getElementById('userName').textContent = 
-                `${currentUser.firstName} ${currentUser.lastName}`;
-            
-            // Load progress from localStorage
-            const savedProgress = localStorage.getItem(`progress_${currentUser.username}`);
-            if (savedProgress) {
-                userProgress = JSON.parse(savedProgress);
-            }
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-label">WPM</div>
+            <div class="stat-value" id="currentWpm">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Accuracy</div>
+            <div class="stat-value" id="currentAccuracy">100%</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Backspaces</div>
+            <div class="stat-value" id="backspaceCount">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Time</div>
+            <div class="stat-value" id="elapsedTime">0:00</div>
+          </div>
+        </div>
+
+        <div class="control-buttons">
+          <button class="btn btn-success" id="startBtn" onclick="startStage()">▶️ Start</button>
+          <button class="btn btn-danger" onclick="closeModal()">✖️ Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Modal -->
+  <div class="modal" id="resultsModal">
+    <div class="modal-content">
+      <h2 id="resultTitle">Stage Complete!</h2>
+      <div id="resultContent" style="margin: 20px 0;"></div>
+      <div class="control-buttons">
+        <button class="btn btn-primary" onclick="nextStage()">Next Stage ➡️</button>
+        <button class="btn btn-success" onclick="retryStage()">🔄 Retry</button>
+        <button class="btn btn-danger" onclick="closeResults()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /***************
+     * CONFIG / STATE
+     ***************/
+    const TEACHER_UID = "CVBEuoweirfSPLhjfm499puLrcn2";
+
+    // Lessons & stages (unchanged)
+    const lessons = [
+      { id: 1, title: "Home Row", icon: "🏠", description: "Master the foundation: ASDF JKL;",
+        stages: [
+          { text: "fff jjj fff jjj ff jj ff jj fjfj fjfj", minWpm: 20, minAccuracy: 90 },
+          { text: "ddd kkk ddd kkk dd kk dd kk dkdk dkdk", minWpm: 25, minAccuracy: 90 },
+          { text: "aaa ;;; aaa ;;; aa ;; aa ;; a;a; a;a;", minWpm: 25, minAccuracy: 90 },
+          { text: "asdf jkl; asdf jkl; fdsa ;lkj fdsa ;lkj", minWpm: 30, minAccuracy: 92 },
+          { text: "sad flask jak lads fall salad flask dad", minWpm: 35, minAccuracy: 95 }
+        ]
+      },
+      { id: 2, title: "Top Row", icon: "⬆️", description: "Reach for QWERT YUIOP",
+        stages: [
+          { text: "qqq ppp qqq ppp qq pp qq pp qpqp qpqp", minWpm: 20, minAccuracy: 90 },
+          { text: "www ooo www ooo ww oo ww oo wowo wowo", minWpm: 25, minAccuracy: 90 },
+          { text: "eee iii eee iii ee ii ee ii eiei eiei", minWpm: 25, minAccuracy: 90 },
+          { text: "qwert yuiop qwert yuiop werty uiop qwe", minWpm: 30, minAccuracy: 92 },
+          { text: "power query write poetry tower quite proper", minWpm: 35, minAccuracy: 95 }
+        ]
+      },
+      { id: 3, title: "Bottom Row", icon: "⬇️", description: "Complete the alphabet: ZXCVB NM",
+        stages: [
+          { text: "zzz mmm zzz mmm zz mm zz mm zmzm zmzm", minWpm: 20, minAccuracy: 90 },
+          { text: "xxx nnn xxx nnn xx nn xx nn xnxn xnxn", minWpm: 25, minAccuracy: 90 },
+          { text: "ccc vvv bbb ccc vvv bbb cv vb cv vb", minWpm: 25, minAccuracy: 90 },
+          { text: "zxcvb nm,. zxcvb nm,. xcvb nm,. zxc", minWpm: 30, minAccuracy: 92 },
+          { text: "zebra venom combat maximum bronze exam", minWpm: 35, minAccuracy: 95 }
+        ]
+      },
+      { id: 4, title: "Numbers", icon: "🔢", description: "Master the number row: 1234567890",
+        stages: [
+          { text: "111 222 333 111 222 333 123 123 123", minWpm: 20, minAccuracy: 90 },
+          { text: "444 555 666 444 555 666 456 456 456", minWpm: 25, minAccuracy: 90 },
+          { text: "777 888 999 000 777 888 999 000 7890", minWpm: 25, minAccuracy: 90 },
+          { text: "1234567890 0987654321 1357924680 2468", minWpm: 30, minAccuracy: 92 },
+          { text: "My phone is 555-1234 and zip is 90210", minWpm: 35, minAccuracy: 95 }
+        ]
+      },
+      { id: 5, title: "Shift Keys", icon: "⬆️", description: "Capital letters with Shift",
+        stages: [
+          { text: "Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk", minWpm: 20, minAccuracy: 85 },
+          { text: "The Quick Fox The Quick Fox The", minWpm: 25, minAccuracy: 88 },
+          { text: "Hello World Hello World Hello World", minWpm: 30, minAccuracy: 90 },
+          { text: "John Smith Lives In New York City Today", minWpm: 35, minAccuracy: 92 },
+          { text: "The Quick Brown Fox Jumps Over The Lazy Dog", minWpm: 40, minAccuracy: 95 }
+        ]
+      },
+      { id: 6, title: "Caps Lock", icon: "🔠", description: "Toggle CAPS LOCK efficiently",
+        stages: [
+          { text: "ABC DEF GHI JKL MNO PQR STU VWX YZ", minWpm: 20, minAccuracy: 85 },
+          { text: "HELLO WORLD HELLO WORLD HELLO", minWpm: 25, minAccuracy: 88 },
+          { text: "TYPE THIS IN ALL CAPS PLEASE OK", minWpm: 30, minAccuracy: 90 },
+          { text: "WARNING: DO NOT ENTER THIS AREA", minWpm: 35, minAccuracy: 92 },
+          { text: "IMPORTANT NOTICE: MEETING CANCELLED TODAY", minWpm: 40, minAccuracy: 95 }
+        ]
+      },
+      { id: 7, title: "Symbols Level 1", icon: "⚡", description: "Basic punctuation and symbols",
+        stages: [
+          { text: "... ,,, ... ,,, ... ,,, .,., .,.,", minWpm: 20, minAccuracy: 85 },
+          { text: "!!! ??? !!! ??? !?!? !?!? !? !? !?", minWpm: 20, minAccuracy: 85 },
+          { text: ": ; : ; : ; :; :; :; ';' ';' ';'", minWpm: 25, minAccuracy: 88 },
+          { text: "Hello! How are you? I'm fine, thanks.", minWpm: 30, minAccuracy: 90 },
+          { text: "Wait! Don't go; I'm not done yet: okay?", minWpm: 35, minAccuracy: 92 }
+        ]
+      },
+      { id: 8, title: "Symbols Level 2", icon: "💎", description: "Advanced symbols and special characters",
+        stages: [
+          { text: "@@@ ### $$$ %%% @@@ ### $$$ %%%", minWpm: 20, minAccuracy: 85 },
+          { text: "((( ))) [[[ ]]] {{{ }}} ((( )))", minWpm: 20, minAccuracy: 85 },
+          { text: "+++ === --- ___ +++ === --- ___", minWpm: 25, minAccuracy: 88 },
+          { text: "user@email.com costs $99.99 (50% off)", minWpm: 30, minAccuracy: 90 },
+          { text: "Call (555) 123-4567 or visit www.site.com", minWpm: 35, minAccuracy: 92 }
+        ]
+      },
+      { id: 9, title: "Mixed Practice", icon: "🎯", description: "Combine all skills",
+        stages: [
+          { text: "abc 123 ABC !@# abc 123 ABC !@#", minWpm: 25, minAccuracy: 85 },
+          { text: "The price is $50.00 (plus tax).", minWpm: 30, minAccuracy: 88 },
+          { text: "Email me at: john@example.com NOW!", minWpm: 35, minAccuracy: 90 },
+          { text: "Meeting at 3:30 PM in Room #204-B", minWpm: 40, minAccuracy: 92 },
+          { text: "Save 25% TODAY! Visit www.sale.com or call (800) 555-DEAL", minWpm: 45, minAccuracy: 95 }
+        ]
+      },
+      { id: 10, title: "Speed Builder", icon: "🚀", description: "Common words for speed",
+        stages: [
+          { text: "the the the and and and for for", minWpm: 40, minAccuracy: 95 },
+          { text: "that with have this will your from", minWpm: 45, minAccuracy: 95 },
+          { text: "they what about which their would", minWpm: 50, minAccuracy: 95 },
+          { text: "the quick brown fox jumps over the lazy", minWpm: 55, minAccuracy: 95 },
+          { text: "pack my box with five dozen liquor jugs now", minWpm: 60, minAccuracy: 95 }
+        ]
+      },
+      { id: 11, title: "Accuracy Focus", icon: "🎪", description: "Precision over speed",
+        stages: [
+          { text: "Slow and steady wins the race.", minWpm: 20, minAccuracy: 100 },
+          { text: "Precision is the key to success.", minWpm: 25, minAccuracy: 98 },
+          { text: "Every keystroke must be perfect.", minWpm: 30, minAccuracy: 98 },
+          { text: "Accuracy first, then speed will follow.", minWpm: 35, minAccuracy: 98 },
+          { text: "Perfect practice makes perfect performance.", minWpm: 40, minAccuracy: 100 }
+        ]
+      },
+      { id: 12, title: "Numeric Keypad", icon: "🔟", description: "Master the number pad",
+        stages: [
+          { text: "789 789 789 456 456 456 123 123", minWpm: 25, minAccuracy: 90 },
+          { text: "741 852 963 741 852 963 741 852", minWpm: 30, minAccuracy: 90 },
+          { text: "147 258 369 147 258 369 147 258", minWpm: 35, minAccuracy: 92 },
+          { text: "7410 8520 9630 1470 2580 3690", minWpm: 40, minAccuracy: 95 },
+          { text: "98765 43210 13579 24680 11235", minWpm: 45, minAccuracy: 95 }
+        ]
+      }
+    ];
+
+    // State
+    let currentLesson = null;
+    let currentStage = 0; // 0-based index
+    let startTime = null;
+    let timerInterval = null;
+    let backspaceCount = 0;
+
+    // Aggregated client-side view of progress & activity (loaded from Firestore)
+    const userProgress = {
+      completedStages: {}, // { [lessonId]: Set<number> (0-based stages) }
+      history: []          // recent attempts (from Firestore 'attempts')
+    };
+
+    /***************
+     * AUTH GUARD + INITIAL LOAD
+     ***************/
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { location.href = 'index.html'; return; }
+      if (user.uid === TEACHER_UID) { location.href = 'teacher.html'; return; }
+
+      // Ensure profile doc exists
+      const profileRef = db.collection('users').doc(user.uid);
+      const snap = await profileRef.get();
+      if (!snap.exists) {
+        await profileRef.set({
+          email: user.email,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+      }
+
+      // Set header name
+      document.getElementById('userName').textContent = user.email;
+
+      // Build UI
+      renderLessons();
+
+      // Load Firestore progress + recent attempts
+      await Promise.all([loadProgressFromFirestore(user.uid), loadRecentAttempts(user.uid)]);
+
+      // Update dashboard numbers & unlock tests if finished
+      updateProgressDisplay();
+      if (document.querySelector('.tab.active')?.id === 'progress') {
+        updateProgressReport();
+      }
+
+      // Wire key listeners
+      document.getElementById('typingInput').addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          backspaceCount++;
+          document.getElementById('backspaceCount').textContent = backspaceCount;
         }
+      });
+      document.getElementById('typingInput').addEventListener('input', () => {
+        if (timerInterval) updateStats();
+      });
+    });
 
-        function renderLessons() {
-            const grid = document.getElementById('lessonGrid');
-            grid.innerHTML = '';
-            
-            lessons.forEach(lesson => {
-                const card = document.createElement('div');
-                card.className = 'lesson-card';
-                
-                const completedStages = userProgress.completedStages[lesson.id] || [];
-                const totalStages = lesson.stages.length;
-                const isComplete = completedStages.length === totalStages;
-                
-                if (isComplete) {
-                    card.className += ' completed';
-                }
-                
-                card.innerHTML = `
-                    <div class="status-icon">${isComplete ? '✅' : lesson.icon}</div>
-                    <h3>${lesson.title}</h3>
-                    <p>${lesson.description}</p>
-                    <p style="margin-top: 10px; font-weight: bold;">
-                        Progress: ${completedStages.length}/${totalStages} stages
-                    </p>
-                    <div style="background: #e0e0e0; height: 8px; border-radius: 4px; margin-top: 8px;">
-                        <div style="background: #4CAF50; height: 100%; border-radius: 4px; width: ${(completedStages.length/totalStages)*100}%"></div>
-                    </div>
-                `;
-                
-                card.onclick = () => openLesson(lesson);
-                grid.appendChild(card);
-            });
+    async function loadProgressFromFirestore(uid) {
+      // Read all stage progress docs
+      const coll = db.collection('users').doc(uid).collection('progress');
+      const snap = await coll.get();
+
+      // Reset
+      userProgress.completedStages = {};
+
+      snap.forEach(doc => {
+        // doc.id format: lesson-{lessonId}-stage-{stageNumber}
+        const id = doc.id;
+        const m = id.match(/^lesson-(\d+)-stage-(\d+)$/);
+        if (!m) return;
+        const lessonId = parseInt(m[1], 10);
+        const stageNumber = parseInt(m[2], 10); // 1-based
+        const data = doc.data();
+        if (data.status === 'completed') {
+          if (!userProgress.completedStages[lessonId]) userProgress.completedStages[lessonId] = new Set();
+          userProgress.completedStages[lessonId].add(stageNumber - 1); // store 0-based
         }
+      });
 
-        function openLesson(lesson) {
-            currentLesson = lesson;
-            const completedStages = userProgress.completedStages[lesson.id] || [];
-            
-            // Find next uncompleted stage or start at stage 1
-            currentStage = 0;
-            for (let i = 0; i < lesson.stages.length; i++) {
-                if (!completedStages.includes(i)) {
-                    currentStage = i;
-                    break;
-                }
-            }
-            
-            // If all stages complete, start at last stage
-            if (currentStage === 0 && completedStages.length === lesson.stages.length) {
-                currentStage = lesson.stages.length - 1;
-            }
-            
-            showPracticeModal();
+      // Re-render lesson cards with fresh counts
+      renderLessons();
+    }
+
+    async function loadRecentAttempts(uid) {
+      // Pull the 20 most recent attempts
+      const attemptsRef = db.collection('users').doc(uid).collection('attempts')
+        .orderBy('timestamp', 'desc').limit(20);
+      const snap = await attemptsRef.get();
+
+      userProgress.history = snap.docs.map(d => d.data());
+      // If you're on the progress tab, refresh the table
+      // (We also refresh on switchTab('progress'))
+    }
+
+    /***************
+     * UI RENDERING
+     ***************/
+    function renderLessons() {
+      const grid = document.getElementById('lessonGrid');
+      grid.innerHTML = '';
+
+      lessons.forEach(lesson => {
+        const totalStages = lesson.stages.length;
+        const completedSet = userProgress.completedStages[lesson.id] || new Set();
+        const completedCount = completedSet.size;
+        const isComplete = completedCount === totalStages;
+
+        const card = document.createElement('div');
+        card.className = 'lesson-card' + (isComplete ? ' completed' : '');
+        card.innerHTML = `
+          <div class="status-icon">${isComplete ? '✅' : lesson.icon}</div>
+          <h3>${lesson.title}</h3>
+          <p>${lesson.description}</p>
+          <p style="margin-top: 10px; font-weight: bold;">
+            Progress: ${completedCount}/${totalStages} stages
+          </p>
+          <div style="background: #e0e0e0; height: 8px; border-radius: 4px; margin-top: 8px;">
+            <div style="background: #4CAF50; height: 100%; border-radius: 4px; width: ${(completedCount/totalStages)*100}%"></div>
+          </div>
+        `;
+        card.onclick = () => openLesson(lesson);
+        grid.appendChild(card);
+      });
+    }
+
+    function switchTab(tabName, tabElement) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      tabElement.classList.add('active');
+
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      document.getElementById(tabName).classList.add('active');
+
+      if (tabName === 'progress') updateProgressReport();
+    }
+
+    function updateProgressDisplay() {
+      let totalStages = 0;
+      let completedStagesTotal = 0;
+
+      lessons.forEach(lesson => {
+        totalStages += lesson.stages.length;
+        const set = userProgress.completedStages[lesson.id] || new Set();
+        completedStagesTotal += set.size;
+      });
+
+      document.getElementById('userProgress').textContent = `${completedStagesTotal}/${totalStages} Stages`;
+
+      // Unlock tests if all complete
+      const allLessonsComplete = lessons.every(lesson => {
+        const set = userProgress.completedStages[lesson.id] || new Set();
+        return set.size === lesson.stages.length;
+      });
+      if (allLessonsComplete) {
+        const tab = document.getElementById('testsTab');
+        tab.disabled = false;
+        tab.textContent = '⏱️ Timed Tests';
+      }
+    }
+
+    function updateProgressReport() {
+      if (userProgress.history.length > 0) {
+        const avgWpm = Math.round(userProgress.history.reduce((s, h) => s + (h.wpm || 0), 0) / userProgress.history.length);
+        const avgAcc = Math.round(userProgress.history.reduce((s, h) => s + (h.accuracy || 0), 0) / userProgress.history.length);
+        const totalBackspaces = userProgress.history.reduce((s, h) => s + (h.backspaces || 0), 0);
+
+        document.getElementById('avgWpm').textContent = avgWpm;
+        document.getElementById('avgAccuracy').textContent = `${avgAcc}%`;
+        document.getElementById('totalBackspaces').textContent = totalBackspaces;
+      } else {
+        document.getElementById('avgWpm').textContent = 0;
+        document.getElementById('avgAccuracy').textContent = '0%';
+        document.getElementById('totalBackspaces').textContent = 0;
+      }
+
+      let stagesComplete = 0;
+      Object.values(userProgress.completedStages).forEach(set => { stagesComplete += set.size; });
+      document.getElementById('stagesComplete').textContent = stagesComplete;
+
+      // Table of recent activity
+      const tbody = document.getElementById('historyTable');
+      tbody.innerHTML = '';
+      userProgress.history.forEach(entry => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td style="padding: 12px;">${new Date(entry.timestamp?.toDate ? entry.timestamp.toDate() : entry.timeMs || Date.now()).toLocaleString()}</td>
+          <td style="padding: 12px;">${entry.lesson}</td>
+          <td style="padding: 12px;">${entry.stage}</td>
+          <td style="padding: 12px;">${entry.wpm}</td>
+          <td style="padding: 12px;">${entry.accuracy}%</td>
+          <td style="padding: 12px;">${entry.backspaces}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    /***************
+     * LESSON/STAGE FLOW
+     ***************/
+    function openLesson(lesson) {
+      currentLesson = lesson;
+
+      const completedSet = userProgress.completedStages[lesson.id] || new Set();
+      currentStage = 0;
+      for (let i = 0; i < lesson.stages.length; i++) {
+        if (!completedSet.has(i)) { currentStage = i; break; }
+      }
+      // If everything complete, show last stage
+      if (completedSet.size === lesson.stages.length) currentStage = lesson.stages.length - 1;
+
+      showPracticeModal();
+    }
+
+    function showPracticeModal() {
+      const stage = currentLesson.stages[currentStage];
+
+      document.getElementById('modalTitle').textContent = currentLesson.title;
+      document.getElementById('stageInfo').textContent = `Stage ${currentStage + 1} of ${currentLesson.stages.length} | Goal: ${stage.minWpm} WPM @ ${stage.minAccuracy}% accuracy`;
+      document.getElementById('promptText').textContent = 'Press "Start" when you\'re ready to begin';
+
+      // Reset UI
+      const input = document.getElementById('typingInput');
+      input.value = '';
+      input.disabled = true;
+      document.getElementById('currentWpm').textContent = '0';
+      document.getElementById('currentAccuracy').textContent = '100%';
+      document.getElementById('backspaceCount').textContent = '0';
+      document.getElementById('elapsedTime').textContent = '0:00';
+      backspaceCount = 0;
+
+      document.getElementById('practiceModal').classList.add('active');
+    }
+
+    function startStage() {
+      const stage = currentLesson.stages[currentStage];
+      const input = document.getElementById('typingInput');
+
+      document.getElementById('promptText').textContent = stage.text;
+      input.value = '';
+      input.disabled = false;
+      input.focus();
+      document.getElementById('startBtn').disabled = true;
+
+      startTime = new Date();
+      backspaceCount = 0;
+      timerInterval = setInterval(updateTimer, 100);
+    }
+
+    function updateTimer() {
+      const elapsed = Math.floor((new Date() - startTime) / 1000);
+      const minutes = Math.floor(elapsed / 60);
+      const seconds = elapsed % 60;
+      document.getElementById('elapsedTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+      updateStats();
+    }
+
+    function updateStats() {
+      const typed = document.getElementById('typingInput').value;
+      const prompt = currentLesson.stages[currentStage].text;
+      if (typed.length === 0) return;
+
+      // WPM (5 chars = 1 word)
+      const timeInMinutes = (new Date() - startTime) / 60000;
+      const wpm = Math.round((typed.length / 5) / timeInMinutes) || 0;
+
+      // Accuracy
+      let correct = 0;
+      const compareLength = Math.min(typed.length, prompt.length);
+      for (let i = 0; i < compareLength; i++) {
+        if (typed[i] === prompt[i]) correct++;
+      }
+      const accuracy = compareLength > 0 ? Math.round((correct / compareLength) * 100) : 0;
+
+      document.getElementById('currentWpm').textContent = wpm;
+      document.getElementById('currentAccuracy').textContent = `${accuracy}%`;
+
+      updatePromptDisplay(typed, prompt);
+
+      if (typed.length === prompt.length) {
+        completeStage(wpm, accuracy);
+      }
+    }
+
+    function updatePromptDisplay(typed, prompt) {
+      let html = '';
+      for (let i = 0; i < prompt.length; i++) {
+        if (i < typed.length) {
+          html += (typed[i] === prompt[i])
+            ? `<span class="correct">${prompt[i]}</span>`
+            : `<span class="incorrect">${prompt[i]}</span>`;
+        } else if (i === typed.length) {
+          html += `<span class="current">${prompt[i]}</span>`;
+        } else {
+          html += prompt[i];
         }
+      }
+      document.getElementById('promptText').innerHTML = html;
+    }
 
-        function showPracticeModal() {
-            const modal = document.getElementById('practiceModal');
-            const stage = currentLesson.stages[currentStage];
-            
-            document.getElementById('modalTitle').textContent = currentLesson.title;
-            document.getElementById('stageInfo').textContent = 
-                `Stage ${currentStage + 1} of ${currentLesson.stages.length} | Goal: ${stage.minWpm} WPM @ ${stage.minAccuracy}% accuracy`;
-            document.getElementById('promptText').textContent = 'Press "Start" when you\'re ready to begin';
-            
-            // Reset everything
-            document.getElementById('typingInput').value = '';
-            document.getElementById('typingInput').disabled = true;
-            document.getElementById('currentWpm').textContent = '0';
-            document.getElementById('currentAccuracy').textContent = '100%';
-            document.getElementById('backspaceCount').textContent = '0';
-            document.getElementById('elapsedTime').textContent = '0:00';
-            backspaceCount = 0;
-            
-            modal.classList.add('active');
-        }
+    async function completeStage(wpm, accuracy) {
+      clearInterval(timerInterval);
+      document.getElementById('typingInput').disabled = true;
 
-        function startStage() {
-            const stage = currentLesson.stages[currentStage];
-            document.getElementById('promptText').textContent = stage.text;
-            document.getElementById('typingInput').value = '';
-            document.getElementById('typingInput').disabled = false;
-            document.getElementById('typingInput').focus();
-            document.getElementById('startBtn').disabled = true;
-            
-            startTime = new Date();
-            backspaceCount = 0;
-            
-            // Start timer
-            timerInterval = setInterval(updateTimer, 100);
-        }
+      const stage = currentLesson.stages[currentStage];
+      const passed = wpm >= stage.minWpm && accuracy >= stage.minAccuracy;
 
-        function updateTimer() {
-            const elapsed = Math.floor((new Date() - startTime) / 1000);
-            const minutes = Math.floor(elapsed / 60);
-            const seconds = elapsed % 60;
-            document.getElementById('elapsedTime').textContent = 
-                `${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            updateStats();
-        }
+      // Save attempt & progress to Firestore
+      await saveAttemptAndProgress({
+        lessonId: currentLesson.id,
+        lessonTitle: currentLesson.title,
+        stageNumber: currentStage + 1, // 1-based
+        wpm, accuracy, backspaces: backspaceCount, passed
+      });
 
-        function updateStats() {
-            const typed = document.getElementById('typingInput').value;
-            const prompt = currentLesson.stages[currentStage].text;
-            
-            if (typed.length === 0) return;
-            
-            // Calculate WPM (count every 5 characters as a word, standard typing test method)
-            const timeInMinutes = (new Date() - startTime) / 60000;
-            const characterCount = typed.length;
-            const wpm = Math.round((characterCount / 5) / timeInMinutes) || 0;
-            
-            // Calculate accuracy properly
-            let correct = 0;
-            const compareLength = Math.min(typed.length, prompt.length);
-            
-            for (let i = 0; i < compareLength; i++) {
-                if (typed[i] === prompt[i]) correct++;
-            }
-            
-            // Accuracy based on what should have been typed so far
-            const accuracy = compareLength > 0 ? Math.round((correct / compareLength) * 100) : 0;
-            
-            // Update display
-            document.getElementById('currentWpm').textContent = wpm;
-            document.getElementById('currentAccuracy').textContent = accuracy + '%';
-            
-            // Update prompt display with color coding
-            updatePromptDisplay(typed, prompt);
-            
-            // Check if complete
-            if (typed.length === prompt.length) {
-                completeStage(wpm, accuracy);
-            }
-        }
+      // Update in-memory progress
+      if (passed) {
+        if (!userProgress.completedStages[currentLesson.id]) userProgress.completedStages[currentLesson.id] = new Set();
+        userProgress.completedStages[currentLesson.id].add(currentStage);
+      }
 
-    
+      // Reload recent attempts for the progress tab
+      const uid = auth.currentUser.uid;
+      await loadRecentAttempts(uid);
 
-        function updatePromptDisplay(typed, prompt) {
-            let html = '';
-            for (let i = 0; i < prompt.length; i++) {
-                if (i < typed.length) {
-                    if (typed[i] === prompt[i]) {
-                        html += `<span class="correct">${prompt[i]}</span>`;
-                    } else {
-                        html += `<span class="incorrect">${prompt[i]}</span>`;
-                    }
-                } else if (i === typed.length) {
-                    html += `<span class="current">${prompt[i]}</span>`;
-                } else {
-                    html += prompt[i];
-                }
-            }
-            document.getElementById('promptText').innerHTML = html;
-        }
+      // Update UI bits
+      updateProgressDisplay();
+      renderLessons();
+      showResults(passed, wpm, accuracy);
+    }
 
-        function completeStage(wpm, accuracy) {
-            clearInterval(timerInterval);
-            document.getElementById('typingInput').disabled = true;
-            
-            const stage = currentLesson.stages[currentStage];
-            const passed = wpm >= stage.minWpm && accuracy >= stage.minAccuracy;
-            
-            // Save to history
-            const result = {
-                date: new Date().toLocaleDateString(),
-                lesson: currentLesson.title,
-                stage: currentStage + 1,
-                wpm: wpm,
-                accuracy: accuracy,
-                backspaces: backspaceCount
-            };
-            userProgress.history.unshift(result);
-            if (userProgress.history.length > 50) userProgress.history.pop();
-            
-            // Mark as complete if passed
-            if (passed) {
-                if (!userProgress.completedStages[currentLesson.id]) {
-                    userProgress.completedStages[currentLesson.id] = [];
-                }
-                if (!userProgress.completedStages[currentLesson.id].includes(currentStage)) {
-                    userProgress.completedStages[currentLesson.id].push(currentStage);
-                }
-            }
-            
-            saveProgress();
-            showResults(passed, wpm, accuracy);
-        }
+    function showResults(passed, wpm, accuracy) {
+      const stage = currentLesson.stages[currentStage];
+      document.getElementById('practiceModal').classList.remove('active');
+      document.getElementById('resultsModal').classList.add('active');
 
-        function showResults(passed, wpm, accuracy) {
-            const stage = currentLesson.stages[currentStage];
-            document.getElementById('practiceModal').classList.remove('active');
-            document.getElementById('resultsModal').classList.add('active');
-            
-            document.getElementById('resultTitle').textContent = passed ? '🎉 Stage Complete!' : '💪 Keep Practicing!';
-            document.getElementById('resultContent').innerHTML = `
-                <div style="text-align: center;">
-                    <p style="font-size: 24px; margin: 10px 0;">
-                        <strong>${wpm}</strong> WPM | <strong>${accuracy}%</strong> Accuracy
-                    </p>
-                    <p style="color: #666; margin: 10px 0;">
-                        Backspaces used: ${backspaceCount}
-                    </p>
-                    <p style="margin: 20px 0;">
-                        Goal: ${stage.minWpm} WPM @ ${stage.minAccuracy}% accuracy
-                    </p>
-                    <p style="font-size: 18px; color: ${passed ? '#4CAF50' : '#ff9800'};">
-                        ${passed ? 'Great job! You passed this stage!' : 'Almost there! Try again to meet the goal.'}
-                    </p>
-                </div>
-            `;
-            renderLessons();
-        }
+      document.getElementById('resultTitle').textContent = passed ? '🎉 Stage Complete!' : '💪 Keep Practicing!';
+      document.getElementById('resultContent').innerHTML = `
+        <div style="text-align: center;">
+          <p style="font-size: 24px; margin: 10px 0;">
+            <strong>${wpm}</strong> WPM | <strong>${accuracy}%</strong> Accuracy
+          </p>
+          <p style="color: #666; margin: 10px 0;">
+            Backspaces used: ${backspaceCount}
+          </p>
+          <p style="margin: 20px 0;">
+            Goal: ${stage.minWpm} WPM @ ${stage.minAccuracy}% accuracy
+          </p>
+          <p style="font-size: 18px; color: ${passed ? '#4CAF50' : '#ff9800'};">
+            ${passed ? 'Great job! You passed this stage!' : 'Almost there! Try again to meet the goal.'}
+          </p>
+        </div>
+      `;
+    }
 
-        function nextStage() {
-            if (currentStage < currentLesson.stages.length - 1) {
-                currentStage++;
-                document.getElementById('resultsModal').classList.remove('active');
-                showPracticeModal();
-            } else {
-                closeResults();
-            }
-        }
+    function nextStage() {
+      if (currentStage < currentLesson.stages.length - 1) {
+        currentStage++;
+        document.getElementById('resultsModal').classList.remove('active');
+        showPracticeModal();
+        document.getElementById('startBtn').disabled = false;
+      } else {
+        closeResults();
+      }
+    }
 
-        function retryStage() {
-            document.getElementById('resultsModal').classList.remove('active');
-            showPracticeModal();
-        }
+    function retryStage() {
+      document.getElementById('resultsModal').classList.remove('active');
+      showPracticeModal();
+      document.getElementById('startBtn').disabled = false;
+    }
 
-        function closeResults() {
-            document.getElementById('resultsModal').classList.remove('active');
-            renderLessons();
-            updateProgressDisplay();
-        }
+    function closeResults() {
+      document.getElementById('resultsModal').classList.remove('active');
+      renderLessons();
+      updateProgressDisplay();
+    }
 
-        function closeModal() {
-            clearInterval(timerInterval);
-            document.getElementById('practiceModal').classList.remove('active');
-            document.getElementById('startBtn').disabled = false;
-        }
+    function closeModal() {
+      clearInterval(timerInterval);
+      document.getElementById('practiceModal').classList.remove('active');
+      document.getElementById('startBtn').disabled = false;
+    }
 
-        function switchTab(tabName, tabElement) {
-            // Update active tab
-            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
-            tabElement.classList.add('active');
-            
-            // Show correct content
-            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-            document.getElementById(tabName).classList.add('active');
-            
-            if (tabName === 'progress') {
-                updateProgressReport();
-            }
-        }
+    /***************
+     * FIRESTORE WRITES
+     ***************/
+    async function saveAttemptAndProgress({ lessonId, lessonTitle, stageNumber, wpm, accuracy, backspaces, passed }) {
+      const u = auth.currentUser;
+      if (!u) return;
+      const userDoc = db.collection('users').doc(u.uid);
 
-        function updateProgressDisplay() {
-            let totalStages = 0;
-            let completedStages = 0;
-            
-            lessons.forEach(lesson => {
-                totalStages += lesson.stages.length;
-                completedStages += (userProgress.completedStages[lesson.id] || []).length;
-            });
-            
-            document.getElementById('userProgress').textContent = 
-                `${completedStages}/${totalStages} Stages`;
-            
-            // Check if all lessons complete to unlock tests
-            const allLessonsComplete = lessons.every(lesson => {
-                const completed = userProgress.completedStages[lesson.id] || [];
-                return completed.length === lesson.stages.length;
-            });
-            
-            if (allLessonsComplete) {
-                document.getElementById('testsTab').disabled = false;
-                document.getElementById('testsTab').textContent = '⏱️ Timed Tests';
-            }
-        }
+      // 1) Log attempt (for the "Recent Activity" table)
+      await userDoc.collection('attempts').add({
+        lessonId,
+        lesson: lessonTitle,
+        stage: stageNumber,
+        wpm,
+        accuracy,
+        backspaces,
+        passed,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
-        function updateProgressReport() {
-            // Calculate averages
-            if (userProgress.history.length > 0) {
-                const avgWpm = Math.round(
-                    userProgress.history.reduce((sum, h) => sum + h.wpm, 0) / userProgress.history.length
-                );
-                const avgAccuracy = Math.round(
-                    userProgress.history.reduce((sum, h) => sum + h.accuracy, 0) / userProgress.history.length
-                );
-                const totalBackspaces = userProgress.history.reduce((sum, h) => sum + h.backspaces, 0);
-                
-                document.getElementById('avgWpm').textContent = avgWpm;
-                document.getElementById('avgAccuracy').textContent = avgAccuracy + '%';
-                document.getElementById('totalBackspaces').textContent = totalBackspaces;
-            }
-            
-            // Count total stages complete
-            let stagesComplete = 0;
-            Object.values(userProgress.completedStages).forEach(stages => {
-                stagesComplete += stages.length;
-            });
-            document.getElementById('stagesComplete').textContent = stagesComplete;
-            
-            // Update history table
-            const tbody = document.getElementById('historyTable');
-            tbody.innerHTML = '';
-            
-            userProgress.history.slice(0, 20).forEach(entry => {
-                const row = tbody.insertRow();
-                row.innerHTML = `
-                    <td style="padding: 12px;">${entry.date}</td>
-                    <td style="padding: 12px;">${entry.lesson}</td>
-                    <td style="padding: 12px;">${entry.stage}</td>
-                    <td style="padding: 12px;">${entry.wpm}</td>
-                    <td style="padding: 12px;">${entry.accuracy}%</td>
-                    <td style="padding: 12px;">${entry.backspaces}</td>
-                `;
-            });
-        }
+      // 2) Upsert stage progress doc with best scores & attempts count
+      const progId = `lesson-${lessonId}-stage-${stageNumber}`; // deterministic
+      const progRef = userDoc.collection('progress').doc(progId);
 
-        function saveProgress() {
-            localStorage.setItem(`progress_${currentUser.username}`, JSON.stringify(userProgress));
-        }
+      await db.runTransaction(async (tx) => {
+        const snap = await tx.get(progRef);
+        const prev = snap.exists ? snap.data() : {};
+        const bestWPM = Math.max(prev.bestWPM || 0, Number(wpm || 0));
+        const bestAccuracy = Math.max(prev.bestAccuracy || 0, Number(accuracy || 0));
+        const attempts = (prev.attempts || 0) + 1;
 
-        function exportProgress() {
-            const report = `TYPING PROGRESS REPORT
+        tx.set(progRef, {
+          lessonId,
+          stageNumber,
+          status: passed ? 'completed' : (prev.status || 'in_progress'),
+          bestWPM,
+          bestAccuracy,
+          attempts,
+          lastAttemptAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+      });
+    }
+
+    /***************
+     * EXPORT & SIGN-OUT
+     ***************/
+    async function exportProgress() {
+      const u = auth.currentUser;
+      if (!u) return;
+
+      // Compute summary from current in-memory state
+      const avgWpm = document.getElementById('avgWpm').textContent;
+      const avgAcc = document.getElementById('avgAccuracy').textContent;
+      const totalBackspaces = document.getElementById('totalBackspaces').textContent;
+      const stagesComplete = document.getElementById('stagesComplete').textContent;
+
+      const lines = userProgress.history.map(h =>
+        `${(h.timestamp?.toDate ? h.timestamp.toDate() : new Date()).toLocaleString()} | ${h.lesson} | Stage ${h.stage} | ${h.wpm} WPM | ${h.accuracy}% | ${h.backspaces} backspaces`
+      );
+
+      const report = `TYPING PROGRESS REPORT
 ==============================
-Student: ${currentUser.firstName} ${currentUser.lastName}
-Student ID: ${currentUser.studentId}
+Student: ${auth.currentUser.email}
 Course: KBD1100 - Computer Keyboarding Skills
 Date: ${new Date().toLocaleDateString()}
 
 SUMMARY
 -------
-Average WPM: ${document.getElementById('avgWpm').textContent}
-Average Accuracy: ${document.getElementById('avgAccuracy').textContent}
-Total Backspaces: ${document.getElementById('totalBackspaces').textContent}
-Stages Completed: ${document.getElementById('stagesComplete').textContent}
+Average WPM: ${avgWpm}
+Average Accuracy: ${avgAcc}
+Total Backspaces: ${totalBackspaces}
+Stages Completed: ${stagesComplete}
 
 RECENT ACTIVITY
 ---------------
-${userProgress.history.slice(0, 20).map(h => 
-    `${h.date} | ${h.lesson} | Stage ${h.stage} | ${h.wpm} WPM | ${h.accuracy}% | ${h.backspaces} backspaces`
-).join('\n')}`;
+${lines.join('\n')}
+`;
 
-            // Create download
-            const blob = new Blob([report], { type: 'text/plain' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `KBD1100_Progress_${currentUser.firstName}_${currentUser.lastName}_${Date.now()}.txt`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            window.URL.revokeObjectURL(url);
-            
-            alert('Progress report downloaded!');
-        }
+      const blob = new Blob([report], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `KBD1100_Progress_${auth.currentUser.uid}_${Date.now()}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      alert('Progress report downloaded!');
+    }
 
-        function logout() {
-            if (confirm('Are you sure you want to sign out?')) {
-                sessionStorage.removeItem('currentUser');
-                window.location.href = 'index.html';
-            }
-        }
-
-        // Track backspaces
-        document.getElementById('typingInput').addEventListener('keydown', function(e) {
-            if (e.key === 'Backspace') {
-                backspaceCount++;
-                document.getElementById('backspaceCount').textContent = backspaceCount;
-            }
-        });
-
-        // Track typing for live updates
-        document.getElementById('typingInput').addEventListener('input', function() {
-            if (timerInterval) {
-                updateStats();
-            }
-        });
-    </script>
+    function signOut() {
+      auth.signOut().then(() => location.href = 'index.html');
+    }
+  </script>
 </body>
 </html>

@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>KBD1100 - Computer Keyboarding Skills | Cambrian College</title>
     <link rel="stylesheet" href="styles.css">
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+
+    <!-- Your Firebase config file -->
+    <script src="firebase-config.js"></script>
+    
 </head>
 <body>
     <div class="login-container" id="loginContainer">
@@ -37,39 +45,34 @@
         </div>
     </div>
 
-    <!-- Google Sheets API -->
-    <script src="google-config.js"></script>
     <script>
-    document.getElementById('loginForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const username = document.getElementById('username').value;
-        const password = document.getElementById('password').value;
-        const errorMsg = document.getElementById('errorMessage');
-        const loginBtn = document.getElementById('loginBtn');
-        const spinner = document.getElementById('loadingSpinner');
-        
-        errorMsg.style.display = 'none';
-        loginBtn.disabled = true;
-        spinner.style.display = 'block';
-        
-        try {
-            const result = await checkLogin(username, password);
-            
-            if (result.success) {
-                sessionStorage.setItem('currentUser', JSON.stringify(result.user));
-                window.location.href = 'typing.html';
-            } else {
-                throw new Error('Invalid username or password');
+        // Replace with your teacher UID from Firebase Auth
+        const TEACHER_UID = "CVBEuoweirfSPLhjfm499puLrcn2";
+
+        // If already signed in, route immediately
+        auth.onAuthStateChanged(user => {
+            if (!user) return;
+            if (user.uid === TEACHER_UID) location.href = 'teacher.html';
+            else location.href = 'typing.html';
+        });
+
+        // Handle form submit
+        const form = document.getElementById('loginForm'); // adjust to your form's id
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const pwd = document.getElementById('password').value;
+            try {
+            await auth.signInWithEmailAndPassword(email, pwd);
+            const user = auth.currentUser;
+            if (user.uid === TEACHER_UID) location.href = 'teacher.html';
+            else location.href = 'typing.html';
+            } catch (err) {
+            alert((err.message || 'Login failed').replace('Firebase:', '').trim());
             }
-        } catch (error) {
-            errorMsg.textContent = error.message;
-            errorMsg.style.display = 'block';
-        } finally {
-            loginBtn.disabled = false;
-            spinner.style.display = 'none';
-        }
-    });
-</script>
+        });
+        </script>
+
+
 </body>
 </html>
