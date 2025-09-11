@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KBD1100 - Computer Keyboarding Skills | Cambrian College</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="login-container" id="loginContainer">
+        <div class="login-header">
+            <div class="college-badge">CAMBRIAN COLLEGE</div>
+            <h1>Computer Keyboarding Skills</h1>
+            <div class="course-code">KBD1100</div>
+            <div class="instructor">Instructor: Charles Mapletoft</div>
+        </div>
+        <div class="login-body">
+            <form class="login-form" id="loginForm">
+                <div class="error-message" id="errorMessage"></div>
+                
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input type="text" id="username" required placeholder="Enter your username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input type="password" id="password" required placeholder="Enter your password">
+                </div>
+                
+                <button type="submit" class="login-button" id="loginBtn">
+                    Sign In
+                </button>
+                
+                <div class="loading-spinner" id="loadingSpinner"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Google Sheets API -->
+    <script src="google-config.js"></script>
+    <script>
+    document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+        const errorMsg = document.getElementById('errorMessage');
+        const loginBtn = document.getElementById('loginBtn');
+        const spinner = document.getElementById('loadingSpinner');
+        
+        errorMsg.style.display = 'none';
+        loginBtn.disabled = true;
+        spinner.style.display = 'block';
+        
+        try {
+            const result = await checkLogin(username, password);
+            
+            if (result.success) {
+                sessionStorage.setItem('currentUser', JSON.stringify(result.user));
+                window.location.href = 'typing.html';
+            } else {
+                throw new Error('Invalid username or password');
+            }
+        } catch (error) {
+            errorMsg.textContent = error.message;
+            errorMsg.style.display = 'block';
+        } finally {
+            loginBtn.disabled = false;
+            spinner.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>
