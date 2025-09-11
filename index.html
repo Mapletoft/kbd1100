@@ -48,33 +48,53 @@
     <script>
         // Replace with your teacher UID from Firebase Auth
         const TEACHER_UID = "CVBEuoweirfSPLhjfm499puLrcn2";
-
+    
         // If already signed in, route immediately
         auth.onAuthStateChanged(user => {
             if (!user) return;
             if (user.uid === TEACHER_UID) location.href = 'teacher.html';
             else location.href = 'typing.html';
         });
-
+    
         // Handle form submit
-        const form = document.getElementById('loginForm'); // adjust to your form's id
+        const form = document.getElementById('loginForm');
         form.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Get the error message and button elements
+            const errorMsg = document.getElementById('errorMessage');
+            const loginBtn = document.getElementById('loginBtn');
+            const spinner = document.getElementById('loadingSpinner');
+            
+            // Get form values
             const email = document.getElementById('email').value.trim();
             const pwd = document.getElementById('password').value;
+            
+            // Show loading state
+            errorMsg.style.display = 'none';
+            loginBtn.disabled = true;
+            spinner.style.display = 'block';
+            
             try {
-            await auth.signInWithEmailAndPassword(email, pwd);
-            const user = auth.currentUser;
-            if (user.uid === TEACHER_UID) location.href = 'teacher.html';
-            else location.href = 'typing.html';
+                await auth.signInWithEmailAndPassword(email, pwd);
+                const user = auth.currentUser;
+                if (user.uid === TEACHER_UID) {
+                    location.href = 'teacher.html';
+                } else {
+                    location.href = 'typing.html';
+                }
             } catch (err) {
                 console.error('Login error:', err);
-                alert(err.message || 'Login failed');
+                errorMsg.textContent = err.message || 'Login failed';
+                errorMsg.style.display = 'block';
+            } finally {
+                loginBtn.disabled = false;
+                spinner.style.display = 'none';
             }
         });
-        </script>
-
+    </script>
 
 </body>
 
 </html>
+
