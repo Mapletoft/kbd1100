@@ -28,7 +28,7 @@
                 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="text" id="email" required placeholder="Enter your Email">
+                    <input type="email" id="email" required placeholder="Enter your Email">
                 </div>
                 
                 <div class="form-group">
@@ -45,7 +45,8 @@
         </div>
     </div>
 
-    <script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
         // Replace with your teacher UID from Firebase Auth
         const TEACHER_UID = "CVBEuoweirfSPLhjfm499puLrcn2";
     
@@ -58,43 +59,54 @@
     
         // Handle form submit
         const form = document.getElementById('loginForm');
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            // Get the error message and button elements
-            const errorMsg = document.getElementById('errorMessage');
-            const loginBtn = document.getElementById('loginBtn');
-            const spinner = document.getElementById('loadingSpinner');
-            
-            // Get form values
-            const email = document.getElementById('email').value.trim();
-            const pwd = document.getElementById('password').value;
-            
-            // Show loading state
-            errorMsg.style.display = 'none';
-            loginBtn.disabled = true;
-            spinner.style.display = 'block';
-            
-            try {
-                await auth.signInWithEmailAndPassword(email, pwd);
-                const user = auth.currentUser;
-                if (user.uid === TEACHER_UID) {
-                    location.href = 'teacher.html';
-                } else {
-                    location.href = 'typing.html';
+        if (form) {
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Get the error message and button elements
+                const errorMsg = document.getElementById('errorMessage');
+                const loginBtn = document.getElementById('loginBtn');
+                const spinner = document.getElementById('loadingSpinner');
+                
+                // Get form values
+                const emailInput = document.getElementById('email');
+                const pwdInput = document.getElementById('password');
+                
+                if (!emailInput || !pwdInput) {
+                    console.error('Email or password input not found');
+                    return;
                 }
-            } catch (err) {
-                console.error('Login error:', err);
-                errorMsg.textContent = err.message || 'Login failed';
-                errorMsg.style.display = 'block';
-            } finally {
-                loginBtn.disabled = false;
-                spinner.style.display = 'none';
-            }
-        });
-    </script>
+                
+                const email = emailInput.value.trim();
+                const pwd = pwdInput.value;
+                
+                // Show loading state
+                errorMsg.style.display = 'none';
+                loginBtn.disabled = true;
+                spinner.style.display = 'block';
+                
+                try {
+                    await auth.signInWithEmailAndPassword(email, pwd);
+                    const user = auth.currentUser;
+                    if (user.uid === TEACHER_UID) {
+                        location.href = 'teacher.html';
+                    } else {
+                        location.href = 'typing.html';
+                    }
+                } catch (err) {
+                    console.error('Login error:', err);
+                    errorMsg.textContent = err.message || 'Login failed';
+                    errorMsg.style.display = 'block';
+                    loginBtn.disabled = false;
+                    spinner.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>
 
 </body>
 
 </html>
+
 
