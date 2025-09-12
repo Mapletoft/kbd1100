@@ -230,41 +230,76 @@
       renderRows(rows);
     }
 
-    function renderRows(rows) {
-      const tbody = document.querySelector('#progressTable tbody');
-      tbody.innerHTML = '';
-      const q = document.getElementById('filterText').value.toLowerCase().trim();
+function renderRows(rows) {
+    const tbody = document.querySelector('#progressTable tbody');
+    tbody.innerHTML = '';
+    const q = document.getElementById('filterText').value.toLowerCase().trim();
 
-      const filtered = rows.filter(r => {
+    const filtered = rows.filter(r => {
         if (!q) return true;
+        // Convert exercise ID to readable format for filtering
+        const exerciseName = formatExercise(r.exerciseId);
         return (
-          (r.email||'').toLowerCase().includes(q) ||
-          (r.name||'').toLowerCase().includes(q) ||
-          (r.uid||'').toLowerCase().includes(q) ||
-          (r.exerciseId||'').toLowerCase().includes(q)
+            (r.email||'').toLowerCase().includes(q) ||
+            (r.name||'').toLowerCase().includes(q) ||
+            exerciseName.toLowerCase().includes(q) ||
+            (r.status||'').toLowerCase().includes(q)
         );
-      });
+    });
 
-      filtered.sort((a,b) => (b.lastAttemptAt?.getTime?.()||0) - (a.lastAttemptAt?.getTime?.()||0));
+    filtered.sort((a,b) => (b.lastAttemptAt?.getTime?.()||0) - (a.lastAttemptAt?.getTime?.()||0));
 
-      for (const r of filtered) {
+    for (const r of filtered) {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td>${escapeHtml(r.email || '')}</td>
-          <td>${escapeHtml(r.name || '')}</td>
-          <td>${escapeHtml(r.uid)}</td>
-          <td>${escapeHtml(r.exerciseId)}</td>
-          <td>${escapeHtml(r.status || '')}</td>
-          <td>${r.bestWPM ?? ''}</td>
-          <td>${r.bestAccuracy ?? ''}</td>
-          <td>${r.attempts ?? ''}</td>
-          <td>${r.lastAttemptAt ? r.lastAttemptAt.toLocaleString() : ''}</td>
+            <td>${escapeHtml(r.email || '')}</td>
+            <td>${escapeHtml(r.name || 'Not Set')}</td>
+            <td>${formatExercise(r.exerciseId)}</td>
+            <td>${formatStatus(r.status || '')}</td>
+            <td>${r.bestWPM ?? ''}</td>
+            <td>${r.bestAccuracy ? r.bestAccuracy + '%' : ''}</td>
+            <td>${r.attempts ?? ''}</td>
+            <td>${r.lastAttemptAt ? r.lastAttemptAt.toLocaleString() : ''}</td>
         `;
         tbody.appendChild(tr);
-      }
-
-      document.getElementById('count').textContent = `${filtered.length} rows`;
     }
+
+    document.getElementById('count').textContent = `${filtered.length} rows`;
+}
+
+// Add these helper functions right after renderRows
+function formatExercise(exerciseId) {
+    // Convert "lesson-1-stage-3" to "Lesson 1 - Stage 3"
+    if (!exerciseId) return '';
+    const match = exerciseId.match(/lesson-(\d+)-stage-(\d+)/);
+    if (match) {
+        const lessonNames = {
+            1: "Home Row",
+            2: "Top Row",
+            3: "Bottom Row",
+            4: "Numbers",
+            5: "Shift Keys",
+            6: "Caps Lock",
+            7: "Symbols L1",
+            8: "Symbols L2",
+            9: "Mixed Practice",
+            10: "Speed Builder",
+            11: "Accuracy Focus",
+            12: "Numeric Keypad"
+        };
+        const lessonNum = match[1];
+        const stageNum = match[2];
+        const lessonName = lessonNames[lessonNum] || `Lesson ${lessonNum}`;
+        return `${lessonName} - Stage ${stageNum}`;
+    }
+    return exerciseId;
+}
+
+function formatStatus(status) {
+    if (status === 'completed') return '✅ Completed';
+    if (status === 'in_progress') return '🔄 In Progress';
+    return status;
+}
 
     function escapeHtml(s) {
       return String(s)
@@ -278,4 +313,5 @@
 </body>
 
 </html>
+
 
