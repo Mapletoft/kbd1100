@@ -464,39 +464,80 @@
     /***************
      * LESSON/STAGE FLOW
      ***************/
-    function openLesson(lesson) {
-      currentLesson = lesson;
-
-      const completedSet = userProgress.completedStages[lesson.id] || new Set();
-      currentStage = 0;
-      for (let i = 0; i < lesson.stages.length; i++) {
-        if (!completedSet.has(i)) { currentStage = i; break; }
-      }
-      // If everything complete, show last stage
-      if (completedSet.size === lesson.stages.length) currentStage = lesson.stages.length - 1;
-
-      showPracticeModal();
+function openLesson(lesson) {
+    currentLesson = lesson;
+    const completedSet = userProgress.completedStages[lesson.id] || new Set();
+    
+    // If they've completed some stages, show a selection menu
+    if (completedSet.size > 0) {
+        showStageSelection(lesson, completedSet);
+    } else {
+        // Start at stage 1 for new lessons
+        currentStage = 0;
+        showPracticeModal();
     }
+}
 
-    function showPracticeModal() {
-      const stage = currentLesson.stages[currentStage];
+function showStageSelection(lesson, completedSet) {
+    // Create a simple modal for stage selection
+    const modal = document.createElement('div');
+    modal.className = 'modal active';
+    modal.innerHTML = `
+        <div class="modal-content">
+            <h2>${lesson.title} - Select Stage</h2>
+            <p>Choose a stage to practice:</p>
+            <div style="margin: 20px 0;">
+                ${lesson.stages.map((stage, index) => {
+                    const isCompleted = completedSet.has(index);
+                    const isLocked = index > 0 && !completedSet.has(index - 1);
+                    const status = isCompleted ? '✅' : isLocked ? '🔒' : '⭕';
+                    const disabled = isLocked ? 'disabled' : '';
+                    
+                    return `
+                        <button class="btn btn-primary" style="display: block; width: 100%; margin: 10px 0; text-align: left;" 
+                                onclick="selectStage(${index})" ${disabled}>
+                            ${status} Stage ${index + 1}: ${stage.minWpm} WPM @ ${stage.minAccuracy}% 
+                            ${isCompleted ? '(Completed - Click to retry)' : isLocked ? '(Locked)' : '(Available)'}
+                        </button>
+                    `;
+                }).join('')}
+            </div>
+            <button class="btn btn-danger" onclick="this.parentElement.parentElement.remove()">Cancel</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+}
 
-      document.getElementById('modalTitle').textContent = currentLesson.title;
-      document.getElementById('stageInfo').textContent = `Stage ${currentStage + 1} of ${currentLesson.stages.length} | Goal: ${stage.minWpm} WPM @ ${stage.minAccuracy}% accuracy`;
-      document.getElementById('promptText').textContent = 'Press "Start" when you\'re ready to begin';
+function selectStage(stageIndex) {
+    currentStage = stageIndex;
+    // Remove the selection modal
+    document.querySelector('.modal.active').remove();
+    showPracticeModal();
+    document.getElementById('startBtn').disabled = false;
+}
 
-      // Reset UI
-      const input = document.getElementById('typingInput');
-      input.value = '';
-      input.disabled = true;
-      document.getElementById('currentWpm').textContent = '0';
-      document.getElementById('currentAccuracy').textContent = '100%';
-      document.getElementById('backspaceCount').textContent = '0';
-      document.getElementById('elapsedTime').textContent = '0:00';
-      backspaceCount = 0;
+function showPracticeModal() {
+    const stage = currentLesson.stages[currentStage];
 
-      document.getElementById('practiceModal').classList.add('active');
-    }
+    document.getElementById('modalTitle').textContent = currentLesson.title;
+    document.getElementById('stageInfo').textContent = `Stage ${currentStage + 1} of ${currentLesson.stages.length} | Goal: ${stage.minWpm} WPM @ ${stage.minAccuracy}% accuracy`;
+    document.getElementById('promptText').textContent = 'Press "Start" when you\'re ready to begin';
+
+    // Reset UI
+    const input = document.getElementById('typingInput');
+    input.value = '';
+    input.disabled = true;
+    document.getElementById('currentWpm').textContent = '0';
+    document.getElementById('currentAccuracy').textContent = '100%';
+    document.getElementById('backspaceCount').textContent = '0';
+    document.getElementById('elapsedTime').textContent = '0:00';
+    backspaceCount = 0;
+    
+    // ALWAYS enable the start button
+    document.getElementById('startBtn').disabled = false;
+
+    document.getElementById('practiceModal').classList.add('active');
+}
 
     function startStage() {
       const stage = currentLesson.stages[currentStage];
@@ -619,16 +660,28 @@
       `;
     }
 
-    function nextStage() {
-      if (currentStage < currentLesson.stages.length - 1) {
+function nextStage() {
+    // Check if user actually passed the current stage
+    const completedSet = userProgress.completedStages[currentLesson.id] || new Set();
+    
+    if (!completedSet.has(currentStage)) {
+        // They didn't pass this stage, don't let them advance
+        alert('You must pass this stage before moving to the next one!');
+        document.getElementById('resultsModal').classList.remove('active');
+        showPracticeModal();
+        document.getElementById('startBtn').disabled = false;
+        return;
+    }
+    
+    if (currentStage < currentLesson.stages.length - 1) {
         currentStage++;
         document.getElementById('resultsModal').classList.remove('active');
         showPracticeModal();
         document.getElementById('startBtn').disabled = false;
-      } else {
+    } else {
         closeResults();
-      }
     }
+}
 
     function retryStage() {
       document.getElementById('resultsModal').classList.remove('active');
@@ -744,3 +797,4 @@ ${lines.join('\n')}
   </script>
 </body>
 </html>
+
