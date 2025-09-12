@@ -11,56 +11,166 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <style>
-    /* quick table style; you can move to styles.css */
-    .toolbar{display:flex;gap:.5rem;align-items:center;margin:1rem 0;}
-    table{width:100%;border-collapse:collapse}
-    th,td{border:1px solid #ddd;padding:.5rem;text-align:left;font-size:.95rem}
-    th{background:#f5f5f5}
-    .right{margin-left:auto}
-    .pill{font-size:.8rem;border:1px solid #ddd;border-radius:999px;padding:.1rem .5rem}
-  </style>
+<style>
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+        min-height: 100vh;
+        padding: 20px;
+        margin: 0;
+    }
+    
+    .dashboard-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        overflow: hidden;
+    }
+    
+    .dashboard-header {
+        background: linear-gradient(135deg, #003d7a 0%, #0056b3 100%);
+        color: white;
+        padding: 25px 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    
+    .dashboard-header h1 {
+        margin: 0;
+        font-size: 24px;
+    }
+    
+    .dashboard-content {
+        padding: 30px;
+    }
+    
+    .toolbar {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .toolbar input {
+        flex: 1;
+        max-width: 400px;
+        padding: 10px 15px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 16px;
+    }
+    
+    .toolbar button {
+        padding: 10px 20px;
+        background: #0056b3;
+        color: white;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    
+    .toolbar button:hover {
+        background: #003d7a;
+    }
+    
+    #signOut {
+        background: rgba(255,255,255,0.2);
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 8px 20px;
+        border-radius: 20px;
+    }
+    
+    #signOut:hover {
+        background: rgba(255,255,255,0.3);
+    }
+    
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        background: white;
+    }
+    
+    th {
+        background: #f5f5f5;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        color: #333;
+        border-bottom: 2px solid #e0e0e0;
+    }
+    
+    td {
+        padding: 12px;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    tr:hover {
+        background: #f9f9f9;
+    }
+    
+    .pill {
+        background: #0056b3;
+        color: white;
+        font-size: 14px;
+        border-radius: 20px;
+        padding: 5px 15px;
+        display: inline-block;
+    }
+    
+    .table-container {
+        overflow-x: auto;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+</style>
 </head>
+  
 <body>
-  <header class="toolbar">
-    <h1>Teacher Dashboard</h1>
-    <span id="me" class="pill"></span>
-    <button id="signOut" class="right">Sign out</button>
-  </header>
+  <div class="dashboard-container">
+    <div class="dashboard-header">
+      <div>
+        <h1>👨‍🏫 Teacher Dashboard - KBD1100</h1>
+        <span id="me" class="pill" style="margin-top: 10px;"></span>
+      </div>
+      <button id="signOut">Sign Out</button>
+    </div>
 
-  <section class="toolbar">
-    <input id="filterText" type="text" placeholder="Filter by email/name/exercise…" />
-    <button id="refresh">Refresh</button>
-    <span id="count" class="pill"></span>
-  </section>
+    <div class="dashboard-content">
+      <div class="toolbar">
+        <input id="filterText" type="text" placeholder="Filter by email, name, or exercise..." />
+        <button id="refresh">🔄 Refresh</button>
+        <span id="count" class="pill"></span>
+      </div>
 
-  <section>
-    <table id="progressTable">
-      <thead>
-        <tr>
-          <th>Email</th>
-          <th>Name</th>
-          <th>UID</th>
-          <th>Exercise</th>
-          <th>Status</th>
-          <th>Best WPM</th>
-          <th>Best Accuracy</th>
-          <th>Attempts</th>
-          <th>Last Attempt</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
-  </section>
-
-  <!-- Optional: add a tab for tests later if you want -->
-  <!--
-  <h2>Tests</h2>
-  <table id="testsTable"> ... </table>
-  -->
+      <div class="table-container">
+        <table id="progressTable">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Exercise</th>
+              <th>Status</th>
+              <th>Best WPM</th>
+              <th>Best Accuracy</th>
+              <th>Attempts</th>
+              <th>Last Attempt</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
   <script>
-    // Replace with your teacher UID
+    
     const TEACHER_UID = "CVBEuoweirfSPLhjfm499puLrcn2";
 
     // Gate access: only the teacher UID may view
@@ -168,3 +278,4 @@
 </body>
 
 </html>
+
