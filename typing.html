@@ -73,7 +73,7 @@
             <tr style="background: #f5f5f5;">
               <th style="padding: 12px; text-align: left;">Date</th>
               <th style="padding: 12px; text-align: left;">Lesson</th>
-              <th style="padding: 12px; text-align: left;">Stage</th>
+              <th style="padding: 12px; text-align: left;">Stage</th
               <th style="padding: 12px; text-align: left;">WPM</th>
               <th style="padding: 12px; text-align: left;">Accuracy</th>
               <th style="padding: 12px; text-align: left;">Backspaces</th>
@@ -87,69 +87,7 @@
         </div>
       </div>
 
-      <!-- Tests Tab (Locked Initially) -->
-      <div id="tests" class="tab-content">
-        <h2>🔒 Timed Tests - Locked</h2>
-        <p>Complete all skill building lessons to unlock timed tests!</p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Stage Practice Modal -->
-  <div class="modal" id="practiceModal">
-    <div class="modal-content" style="max-width: 900px;">
-      <h2 id="modalTitle">Lesson Title</h2>
-      <p id="stageInfo" style="margin-bottom: 20px; color: #666;">Stage 1 of 5</p>
-
-      <div class="typing-area">
-        <div class="prompt-text" id="promptText">
-          Press "Start" when you're ready to begin
-        </div>
-
-        <input type="text" class="typing-input" id="typingInput"
-               placeholder="Click Start, then type here..." disabled>
-
-        <div class="stats-row">
-          <div class="stat-box">
-            <div class="stat-label">WPM</div>
-            <div class="stat-value" id="currentWpm">0</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Accuracy</div>
-            <div class="stat-value" id="currentAccuracy">100%</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Backspaces</div>
-            <div class="stat-value" id="backspaceCount">0</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-label">Time</div>
-            <div class="stat-value" id="elapsedTime">0:00</div>
-          </div>
-        </div>
-
-        <div class="control-buttons">
-          <button class="btn btn-success" id="startBtn" onclick="startStage()">▶️ Start</button>
-          <button class="btn btn-danger" onclick="closeModal()">✖️ Close</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Results Modal -->
-  <div class="modal" id="resultsModal">
-    <div class="modal-content">
-      <h2 id="resultTitle">Stage Complete!</h2>
-      <div id="resultContent" style="margin: 20px 0;"></div>
-      <div class="control-buttons">
-        <button class="btn btn-primary" onclick="nextStage()">Next Stage ➡️</button>
-        <button class="btn btn-success" onclick="retryStage()">🔄 Retry</button>
-        <button class="btn btn-danger" onclick="closeResults()">Close</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Office tab content section -->
+        <!-- Office tab content section -->
 <div id="office" class="tab-content">
     <h2>Microsoft Office Practice</h2>
     
@@ -269,6 +207,69 @@
         </div>
     </div>
 </div>
+
+      <!-- Tests Tab (Locked Initially) -->
+      <div id="tests" class="tab-content">
+        <h2>🔒 Timed Tests - Locked</h2>
+        <p>Complete all skill building lessons to unlock timed tests!</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stage Practice Modal -->
+  <div class="modal" id="practiceModal">
+    <div class="modal-content" style="max-width: 900px;">
+      <h2 id="modalTitle">Lesson Title</h2>
+      <p id="stageInfo" style="margin-bottom: 20px; color: #666;">Stage 1 of 5</p>
+
+      <div class="typing-area">
+        <div class="prompt-text" id="promptText">
+          Press "Start" when you're ready to begin
+        </div>
+
+        <input type="text" class="typing-input" id="typingInput"
+               placeholder="Click Start, then type here..." disabled>
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <div class="stat-label">WPM</div>
+            <div class="stat-value" id="currentWpm">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Accuracy</div>
+            <div class="stat-value" id="currentAccuracy">100%</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Backspaces</div>
+            <div class="stat-value" id="backspaceCount">0</div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Time</div>
+            <div class="stat-value" id="elapsedTime">0:00</div>
+          </div>
+        </div>
+
+        <div class="control-buttons">
+          <button class="btn btn-success" id="startBtn" onclick="startStage()">▶️ Start</button>
+          <button class="btn btn-danger" onclick="closeModal()">✖️ Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Modal -->
+  <div class="modal" id="resultsModal">
+    <div class="modal-content">
+      <h2 id="resultTitle">Stage Complete!</h2>
+      <div id="resultContent" style="margin: 20px 0;"></div>
+      <div class="control-buttons">
+        <button class="btn btn-primary" onclick="nextStage()">Next Stage ➡️</button>
+        <button class="btn btn-success" onclick="retryStage()">🔄 Retry</button>
+        <button class="btn btn-danger" onclick="closeResults()">Close</button>
+      </div>
+    </div>
+  </div>
+
 
   <script>
     /***************
@@ -1157,9 +1158,53 @@ function saveExcel() {
     saveOfficeProgress('Completed Excel spreadsheet practice');
     alert('Spreadsheet practice completed!');
 }
+
+function addRow() {
+    const table = document.getElementById('spreadsheet').getElementsByTagName('tbody')[0];
+    const rowCount = table.rows.length + 1;
+    const newRow = table.insertRow();
+    
+    // Row number cell
+    const cellNum = newRow.insertCell(0);
+    cellNum.style = "background: #e0e0e0; padding: 5px; border: 1px solid #999;";
+    cellNum.textContent = rowCount;
+    
+    // Data cells A-E
+    for (let i = 0; i < 5; i++) {
+        const cell = newRow.insertCell(i + 1);
+        cell.contentEditable = true;
+        cell.className = "cell";
+        cell.dataset.cell = String.fromCharCode(65 + i) + rowCount;
+        cell.style = "padding: 5px; border: 1px solid #ccc;";
+    }
+    alert('Row added!');
+}
+
+function addColumn() {
+    alert('In a real spreadsheet, this would add a new column. For this practice, we have columns A-E available.');
+}
+
+function autoSum() {
+    const selection = prompt('Enter the range to sum (e.g., B2:B5):');
+    if (selection) {
+        alert(`In Excel, this would create =SUM(${selection}). Type this formula in a cell to practice!`);
+    }
+}
+
+function calculateAverage() {
+    const selection = prompt('Enter the range to average (e.g., C2:C5):');
+    if (selection) {
+        alert(`In Excel, this would create =AVERAGE(${selection}). Type this formula in a cell to practice!`);
+    }
+}
+
+function formatCells() {
+    alert('Select cells and use these shortcuts:\nCtrl+B for Bold\nCtrl+I for Italic\nIn real Excel, you would right-click and choose Format Cells');
+}
   </script>
 </body>
 </html>
+
 
 
 
