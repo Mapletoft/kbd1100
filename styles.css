@@ -479,4 +479,41 @@ body {
     .lesson-grid {
         grid-template-columns: 1fr;
     }
+
+}
+
+/* Office Practice Styles */
+.office-tool {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    margin-top: 20px;
+}
+
+.word-toolbar, .excel-toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.word-toolbar button, .excel-toolbar button {
+    padding: 8px 15px;
+    border: 1px solid #ccc;
+    background: white;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+.word-toolbar button:hover, .excel-toolbar button:hover {
+    background: #f0f0f0;
+}
+
+#wordDocument {
+    max-width: 100%;
+    overflow-x: auto;
+}
+
+#spreadsheet {
+    max-width: 100%;
+    overflow-x: auto;
 }
