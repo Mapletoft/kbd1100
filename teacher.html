@@ -193,6 +193,19 @@
       // Query ALL progress documents across users (rules allow only teacher)
       const snap = await db.collectionGroup('progress').get();
 
+      async function loadOfficeProgress() {
+    const snap = await db.collectionGroup('officeProgress').get();
+    
+    snap.forEach(doc => {
+        const data = doc.data();
+        const pathParts = doc.ref.path.split('/');
+        const uid = pathParts[1];
+        
+        // Add to your table or create a separate Office Practice section
+        console.log(`${uid} completed: ${data.activity} at ${data.timestamp?.toDate()}`);
+    });
+}
+
       // Collect all UIDs to fetch profile docs (for email/name)
       const rows = snap.docs.map(d => {
         const data = d.data();
@@ -313,5 +326,6 @@ function formatStatus(status) {
 </body>
 
 </html>
+
 
 
