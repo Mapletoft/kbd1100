@@ -32,6 +32,7 @@
       <button class="tab active" onclick="switchTab('lessons', this)">📚 Skill Building</button>
       <button class="tab" onclick="switchTab('progress', this)">📊 My Progress</button>
       <button class="tab" onclick="switchTab('tests', this)" id="testsTab" disabled>🔒 Timed Tests</button>
+      <button class="tab" onclick="switchTab('office', this)">💼 Office Practice</button>
     </div>
 
     <!-- Main Content -->
@@ -147,6 +148,127 @@
       </div>
     </div>
   </div>
+
+  <!-- Office tab content section -->
+<div id="office" class="tab-content">
+    <h2>Microsoft Office Practice</h2>
+    
+    <!-- Sub-tabs for Word and Excel -->
+    <div style="display: flex; gap: 10px; margin: 20px 0; border-bottom: 2px solid #e0e0e0;">
+        <button onclick="showOfficeTool('word')" class="btn btn-primary">📝 Word Processor</button>
+        <button onclick="showOfficeTool('excel')" class="btn btn-primary">📊 Spreadsheet</button>
+    </div>
+
+    <!-- Word Processor -->
+    <div id="wordTool" class="office-tool">
+        <h3>Word Processor Practice</h3>
+        
+        <!-- Formatting Toolbar -->
+        <div class="word-toolbar" style="background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+            <button onclick="formatText('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
+            <button onclick="formatText('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
+            <button onclick="formatText('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
+            <span style="margin: 0 10px;">|</span>
+            <button onclick="formatText('justifyLeft')" title="Align Left">⬅️</button>
+            <button onclick="formatText('justifyCenter')" title="Center">↔️</button>
+            <button onclick="formatText('justifyRight')" title="Align Right">➡️</button>
+            <span style="margin: 0 10px;">|</span>
+            <button onclick="insertTable()" title="Insert Table">📋 Table</button>
+            <button onclick="saveWordDoc()" title="Save (Ctrl+S)">💾 Save</button>
+            <button onclick="loadWordDoc()" title="Open">📁 Open</button>
+            <button onclick="printDoc()" title="Print (Ctrl+P)">🖨️ Print</button>
+        </div>
+
+        <!-- Document Area -->
+        <div contenteditable="true" id="wordDocument" style="min-height: 400px; padding: 40px; background: white; border: 1px solid #ccc; font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5;">
+            <h1 style="text-align: center;">MEMO</h1>
+            <p><strong>TO:</strong> All Dispatch Staff<br>
+            <strong>FROM:</strong> [Your Name]<br>
+            <strong>DATE:</strong> <span id="currentDate"></span><br>
+            <strong>RE:</strong> Training Exercise</p>
+            
+            <p>Type your memo content here. Practice using keyboard shortcuts:</p>
+            <ul>
+                <li>Ctrl+B for Bold</li>
+                <li>Ctrl+I for Italic</li>
+                <li>Ctrl+S to Save</li>
+                <li>Ctrl+Z to Undo</li>
+            </ul>
+        </div>
+
+        <div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+            <strong>Practice Tasks:</strong>
+            <ol>
+                <li>Format the heading as bold and centered</li>
+                <li>Add a table for shift schedules</li>
+                <li>Save your document with a meaningful name</li>
+            </ol>
+        </div>
+    </div>
+
+    <!-- Excel/Spreadsheet -->
+    <div id="excelTool" class="office-tool" style="display: none;">
+        <h3>Spreadsheet Practice - Dispatcher Overtime Tracker</h3>
+        
+        <!-- Excel Toolbar -->
+        <div class="excel-toolbar" style="background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
+            <button onclick="addRow()">➕ Add Row</button>
+            <button onclick="addColumn()">📊 Add Column</button>
+            <button onclick="autoSum()">Σ AutoSum</button>
+            <button onclick="calculateAverage()">📈 Average</button>
+            <button onclick="formatCells()">🎨 Format</button>
+            <button onclick="saveExcel()">💾 Save</button>
+        </div>
+
+        <!-- Spreadsheet Grid -->
+        <div style="overflow: auto; max-height: 500px;">
+            <table id="spreadsheet" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;"></th>
+                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">A</th>
+                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">B</th>
+                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">C</th>
+                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">D</th>
+                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">E</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">1</td>
+                        <td contenteditable="true" class="cell" data-cell="A1" style="padding: 5px; border: 1px solid #ccc;">Employee Name</td>
+                        <td contenteditable="true" class="cell" data-cell="B1" style="padding: 5px; border: 1px solid #ccc;">Regular Hours</td>
+                        <td contenteditable="true" class="cell" data-cell="C1" style="padding: 5px; border: 1px solid #ccc;">Overtime Hours</td>
+                        <td contenteditable="true" class="cell" data-cell="D1" style="padding: 5px; border: 1px solid #ccc;">Total Hours</td>
+                        <td contenteditable="true" class="cell" data-cell="E1" style="padding: 5px; border: 1px solid #ccc;">Pay Rate</td>
+                    </tr>
+                    <tr>
+                        <td style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">2</td>
+                        <td contenteditable="true" class="cell" data-cell="A2" style="padding: 5px; border: 1px solid #ccc;">John Smith</td>
+                        <td contenteditable="true" class="cell" data-cell="B2" style="padding: 5px; border: 1px solid #ccc;">40</td>
+                        <td contenteditable="true" class="cell" data-cell="C2" style="padding: 5px; border: 1px solid #ccc;">5</td>
+                        <td contenteditable="true" class="cell formula" data-cell="D2" style="padding: 5px; border: 1px solid #ccc;">=B2+C2</td>
+                        <td contenteditable="true" class="cell" data-cell="E2" style="padding: 5px; border: 1px solid #ccc;">25.00</td>
+                    </tr>
+                    <!-- Add more rows as needed -->
+                </tbody>
+            </table>
+        </div>
+
+        <div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
+            <strong>Formula Bar:</strong> <input type="text" id="formulaBar" style="width: 100%; padding: 5px; font-family: monospace;">
+            <br><br>
+            <strong>Practice Tasks:</strong>
+            <ol>
+                <li>Enter employee hours data</li>
+                <li>Use =B2+C2 to calculate total hours</li>
+                <li>Use =SUM(B2:B10) to total a column</li>
+                <li>Use =AVERAGE(D2:D10) for average hours</li>
+                <li>Format cells with borders and shading</li>
+            </ol>
+        </div>
+    </div>
+</div>
 
   <script>
     /***************
@@ -893,8 +1015,151 @@ ${lines.join('\n')}
     function signOut() {
       auth.signOut().then(() => location.href = 'index.html');
     }
+
+    // Office Tools Functions
+function showOfficeTool(tool) {
+    document.getElementById('wordTool').style.display = tool === 'word' ? 'block' : 'none';
+    document.getElementById('excelTool').style.display = tool === 'excel' ? 'block' : 'none';
+}
+
+// Word Functions
+function formatText(command) {
+    document.execCommand(command, false, null);
+    document.getElementById('wordDocument').focus();
+}
+
+function insertTable() {
+    const table = `
+        <table border="1" style="width: 100%; border-collapse: collapse; margin: 10px 0;">
+            <tr>
+                <th style="padding: 8px;">Shift</th>
+                <th style="padding: 8px;">Employee</th>
+                <th style="padding: 8px;">Time</th>
+                <th style="padding: 8px;">Position</th>
+            </tr>
+            <tr>
+                <td style="padding: 8px;">Day</td>
+                <td style="padding: 8px;">Edit here</td>
+                <td style="padding: 8px;">07:00-15:00</td>
+                <td style="padding: 8px;">Dispatcher</td>
+            </tr>
+        </table>`;
+    document.execCommand('insertHTML', false, table);
+}
+
+function saveWordDoc() {
+    const content = document.getElementById('wordDocument').innerHTML;
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dispatch-memo.html';
+    a.click();
+    alert('Document saved! In real Word, you would use File > Save or Ctrl+S');
+}
+
+// Excel Functions
+function calculateFormulas() {
+    document.querySelectorAll('.cell').forEach(cell => {
+        const content = cell.textContent;
+        if (content.startsWith('=')) {
+            try {
+                // Simple formula parser
+                let formula = content.substring(1);
+                
+                // Handle SUM
+                if (formula.includes('SUM')) {
+                    const range = formula.match(/([A-Z]\d+):([A-Z]\d+)/);
+                    if (range) {
+                        // Calculate sum (simplified)
+                        cell.textContent = '45'; // Placeholder
+                    }
+                }
+                // Handle basic math
+                else if (formula.includes('+')) {
+                    const parts = formula.split('+');
+                    let sum = 0;
+                    parts.forEach(part => {
+                        const cellRef = document.querySelector(`[data-cell="${part.trim()}"]`);
+                        if (cellRef) {
+                            sum += parseFloat(cellRef.textContent) || 0;
+                        }
+                    });
+                    cell.textContent = sum;
+                }
+            } catch (e) {
+                console.log('Formula error');
+            }
+        }
+    });
+}
+
+function autoSum() {
+    alert('Click a cell, then select the range you want to sum. In real Excel, this would insert =SUM() automatically.');
+}
+
+function saveExcel() {
+    alert('Spreadsheet saved! In real Excel, you would use File > Save or Ctrl+S');
+}
+
+// Initialize
+document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+
+// Add keyboard shortcuts
+document.addEventListener('keydown', function(e) {
+    if (e.ctrlKey) {
+        switch(e.key) {
+            case 'b': e.preventDefault(); formatText('bold'); break;
+            case 'i': e.preventDefault(); formatText('italic'); break;
+            case 's': e.preventDefault(); saveWordDoc(); break;
+            case 'z': e.preventDefault(); document.execCommand('undo'); break;
+        }
+    }
+});
+
+// Calculate Excel formulas on blur
+document.addEventListener('blur', function(e) {
+    if (e.target.classList.contains('cell')) {
+        calculateFormulas();
+    }
+}, true);
+
+    // function to track when they complete office tasks
+async function saveOfficeProgress(activity) {
+    const u = auth.currentUser;
+    if (!u) return;
+    
+    const userDoc = db.collection('users').doc(u.uid);
+    await userDoc.collection('officeProgress').add({
+        activity: activity, // e.g., "Saved Word document", "Created Excel formula"
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    alert('Progress saved!');
+}
+
+// Modify the save functions to track progress:
+function saveWordDoc() {
+    const content = document.getElementById('wordDocument').innerHTML;
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'dispatch-memo.html';
+    a.click();
+    
+    // Track this activity
+    saveOfficeProgress('Completed Word document practice');
+}
+
+function saveExcel() {
+    // Track this activity
+    saveOfficeProgress('Completed Excel spreadsheet practice');
+    alert('Spreadsheet practice completed!');
+}
   </script>
 </body>
 </html>
+
 
 
