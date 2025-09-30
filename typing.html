@@ -218,46 +218,12 @@
 
       <!-- Tests Tab (Locked Initially) -->
       <div id="tests" class="tab-content">
-          <h2>Timed Typing Tests</h2>
-          <p>Practice as many times as you want. Select your best 5 attempts for grading (3-minute tests only).</p>
-          
-          <div class="test-options">
-              <h3>Practice Tests (Unlimited Attempts)</h3>
-              <button class="btn btn-primary" onclick="startTimedTest(1)">1 Minute Test</button>
-              <button class="btn btn-primary" onclick="startTimedTest(2)">2 Minute Test</button>
-              
-              <h3>Graded Tests (Select Best 5)</h3>
-              <button class="btn btn-success" onclick="startTimedTest(3)">3 Minute Test (Counts for Grade)</button>
-          </div>
-          
-          <div class="selected-tests">
-              <h3>Tests Selected for Grading: <span id="selectedCount">0/5</span></h3>
-              <div id="selectedTestsList"></div>
-          </div>
-          
-          <div class="test-history">
-              <h3>All Attempts</h3>
-              <table id="testHistoryTable">
-                  <thead>
-                      <tr>
-                          <th>Date</th>
-                          <th>Duration</th>
-                          <th>WPM</th>
-                          <th>Accuracy</th>
-                          <th>Action</th>
-                      </tr>
-                  </thead>
-                  <tbody id="testHistoryBody"></tbody>
-              </table>
-          </div>
-          
-          <!-- Test area (hidden until test starts) -->
-          <div id="testArea" style="display: none;">
-              <!-- Your existing test area code -->
-          </div>
+        <h2>🔒 Timed Tests - Locked</h2>
+        <p>Complete all skill building lessons to unlock timed tests!</p>
       </div>
-   <!--</div>-->
-  <!--</div>-->
+    </div>
+  </div>
+
 
   <!-- Stage Practice Modal -->
   <div class="modal" id="practiceModal">
@@ -1620,6 +1586,7 @@ function completePracticeTask(type, title) {
   </script>
 </body>
 </html>
+
 
 
 
