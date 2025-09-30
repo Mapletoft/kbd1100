@@ -31,7 +31,7 @@
     <div class="nav-tabs">
       <button class="tab active" onclick="switchTab('lessons', this)">📚 Skill Building</button>
       <button class="tab" onclick="switchTab('progress', this)">📊 My Progress</button>
-      <button class="tab" onclick="switchTab('tests', this)" id="testsTab">🔒 Timed Tests</button>
+      <button class="tab" onclick="switchTab('tests', this)" id="testsTab" disabled>🔒 Timed Tests</button>
       <button class="tab" onclick="switchTab('office', this)">💼 Office Practice</button>
     </div>
 
@@ -599,123 +599,7 @@
         ]
     };
     
-    // Generate random continuous text
-    function generateTimedTestText(minutes) {
-        const wordsPerMinute = 200; // Average reading speed
-        const targetWords = minutes * wordsPerMinute;
-        let text = "";
-        let wordCount = 0;
-        
-        // Mix paragraphs and sentences
-        while (wordCount < targetWords) {
-            if (Math.random() > 0.3) {
-                // Add a paragraph
-                const paragraph = textPools.paragraphs[Math.floor(Math.random() * textPools.paragraphs.length)];
-                text += paragraph + " ";
-                wordCount += paragraph.split(' ').length;
-            } else {
-                // Add sentences
-                for (let i = 0; i < 3; i++) {
-                    const sentence = textPools.sentences[Math.floor(Math.random() * textPools.sentences.length)];
-                    text += sentence + " ";
-                    wordCount += sentence.split(' ').length;
-                }
-                text += "\n\n"; // Paragraph break
-            }
-        }
-        
-        return text.trim();
-    }
-    
-    // Timed test controller
-    let timedTestState = {
-        duration: 0,
-        startTime: null,
-        endTime: null,
-        interval: null,
-        testText: "",
-        attempts: []
-    };
-    
-    function startTimedTest(minutes) {
-        // Generate fresh text each time
-        timedTestState.testText = generateTimedTestText(minutes);
-        timedTestState.duration = minutes * 60; // Convert to seconds
-        
-        // Show test interface
-        document.getElementById('testArea').style.display = 'block';
-        document.getElementById('testPrompt').textContent = timedTestState.testText;
-        document.getElementById('testInput').value = '';
-        document.getElementById('testInput').disabled = false;
-        document.getElementById('testTimeLeft').textContent = `${minutes}:00`;
-        
-        // Start countdown
-        timedTestState.startTime = new Date();
-        timedTestState.interval = setInterval(updateTestTimer, 1000);
-        
-        document.getElementById('testInput').focus();
-    }
-    
-    function updateTestTimer() {
-        const elapsed = Math.floor((new Date() - timedTestState.startTime) / 1000);
-        const remaining = timedTestState.duration - elapsed;
-        
-        if (remaining <= 0) {
-            endTimedTest();
-            return;
-        }
-        
-        const minutes = Math.floor(remaining / 60);
-        const seconds = remaining % 60;
-        document.getElementById('testTimeLeft').textContent = 
-            `${minutes}:${seconds.toString().padStart(2, '0')}`;
-        
-        // Update live stats
-        updateTestStats();
-    }
-    
-    function endTimedTest() {
-        clearInterval(timedTestState.interval);
-        
-        const typed = document.getElementById('testInput').value;
-        const stats = calculateDetailedStats(typed);
-        
-        // Store attempt
-        const attempt = {
-            date: new Date(),
-            duration: timedTestState.duration / 60,
-            wpm: stats.wpm,
-            accuracy: stats.accuracy,
-            errors: stats.errors,
-            typed: typed.length,
-            id: Date.now()
-        };
-        
-        timedTestState.attempts.push(attempt);
-        saveTimedTestAttempt(attempt);
-        showTestResults(attempt);
-    }
-    
-    // Allow students to select best scores for grading
-    function selectForGrading(attemptId) {
-        const attempt = timedTestState.attempts.find(a => a.id === attemptId);
-        if (!attempt) return;
-        
-        // Get current selected tests
-        let gradedTests = JSON.parse(localStorage.getItem('gradedTests') || '[]');
-        
-        if (gradedTests.length >= 5) {
-            alert('You already have 5 tests selected for grading. Remove one to add another.');
-            return;
-        }
-        
-        gradedTests.push(attempt);
-        localStorage.setItem('gradedTests', JSON.stringify(gradedTests));
-        
-        // Save to Firebase for teacher to see
-        saveGradedTest(attempt);
-        
-        alert('Test selected for grading! You have ' + gradedTests.length + '/5 tests selected.');
+
 
     // State
     let currentLesson = null;
@@ -1586,6 +1470,7 @@ function completePracticeTask(type, title) {
   </script>
 </body>
 </html>
+
 
 
 
