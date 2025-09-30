@@ -103,7 +103,6 @@
         
         <!-- Formatting Toolbar -->
         <div class="word-toolbar" style="background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-            <button onclick="showPracticeTask('word')" class="btn btn-success">📋 Get Practice Task</button>
             <button onclick="formatText('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
             <button onclick="formatText('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
             <button onclick="formatText('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
@@ -116,11 +115,6 @@
             <button onclick="saveWordDoc()" title="Save (Ctrl+S)">💾 Save</button>
             <button onclick="loadWordDoc()" title="Open">📁 Open</button>
             <button onclick="printDoc()" title="Print (Ctrl+P)">🖨️ Print</button>
-            <span style="margin: 0 10px;">|</span>
-            <button onclick="wordCount()" title="Word Count">📊 Count</button>
-            <button onclick="findReplace()" title="Find & Replace">🔍 Find</button>
-            <button onclick="insertDateTime()" title="Insert Date/Time">📅 Date</button>
-            <button onclick="toUpperCase()" title="Convert to UPPERCASE">🔠 CAPS</button>
         </div>
 
         <!-- Document Area -->
@@ -162,8 +156,6 @@
             <button onclick="calculateAverage()">📈 Average</button>
             <button onclick="formatCells()">🎨 Format</button>
             <button onclick="saveExcel()">💾 Save</button>
-            <button onclick="showPracticeTask('excel')" class="btn btn-success">📋 Get Practice Task</button>
-            <button onclick="conditionalFormat()">🎨 Color by Value</button>
         </div>
 
         <!-- Spreadsheet Grid -->
@@ -223,7 +215,6 @@
       </div>
     </div>
   </div>
-
 
   <!-- Stage Practice Modal -->
   <div class="modal" id="practiceModal">
@@ -494,112 +485,8 @@
           { text: "DV CALL FEM VIC REQ AMB AND CAS SUSP HBD LEFT S/B IN BLK P/U", minWpm: 50, minAccuracy: 95 },
           { text: "MVA WITH PI 3 VEH BLK SUV RED SED SIL P/U REQ FD EMS MTO VSA NEG", minWpm: 55, minAccuracy: 95 }
         ]
-      },
-
-      { id: 25, title: "Number Combinations", icon: "🔢", description: "Numbers with text",
-        stages: [
-          { text: "Room 101 Building A Floor 3 Suite 250", minWpm: 30, minAccuracy: 95 },
-          { text: "The year 2024 marks our 125th anniversary celebration", minWpm: 35, minAccuracy: 95 },
-          { text: "Call 911 for emergencies or 311 for city services", minWpm: 35, minAccuracy: 95 },
-          { text: "Highway 401 eastbound at exit 375 near kilometer 92", minWpm: 40, minAccuracy: 95 },
-          { text: "Respond to 1234 Main Street Apartment 567 Unit B", minWpm: 45, minAccuracy: 95 }
-        ]
-      },
-      
-      { id: 26, title: "Punctuation Mastery", icon: "⚡", description: "Complex punctuation",
-        stages: [
-          { text: "Yes, no, maybe; these are your options: choose wisely.", minWpm: 30, minAccuracy: 95 },
-          { text: "The suspect (male, 30s) was last seen at 10:45 p.m.", minWpm: 35, minAccuracy: 95 },
-          { text: "Alert: All units respond! Code 3 - urgent; backup needed.", minWpm: 40, minAccuracy: 95 },
-          { text: "Items needed: radio, badge, vest (bulletproof), and notebook.", minWpm: 40, minAccuracy: 95 },
-          { text: "Question: Who, what, when, where, why, and how?", minWpm: 45, minAccuracy: 95 }
-        ]
       }
     ];
-
-    // Text pools for generating varied content
-    const textPools = {
-        sentences: [
-            "The emergency dispatcher remained calm while coordinating multiple units.",
-            "Quick response times save lives in critical situations.",
-            "Accurate information gathering is essential for proper resource allocation.",
-            "Communication clarity prevents misunderstandings during emergencies.",
-            "Every second counts when dispatching emergency services.",
-            "Maintaining composure under pressure is a vital skill.",
-            "Detailed notes help create accurate incident reports.",
-            "Technology enhances our ability to respond effectively.",
-            "Teamwork between dispatchers ensures seamless coverage.",
-            "Professional development improves service quality.",
-        "Calm voices provide reassurance to distressed callers.",
-        "Dispatchers are the first point of contact in emergencies.",
-        "Effective multitasking is essential during high call volumes.",
-        "Listening carefully ensures no critical details are missed.",
-        "Dispatch systems track calls and resources in real time.",
-        "Training prepares dispatchers for a wide range of scenarios.",
-        "Emergency calls often come without warning.",
-        "Strong typing skills help keep pace with incoming information.",
-        "Public safety depends on quick and accurate responses.",
-        "Dispatchers coordinate multiple agencies during major incidents.",
-        "Emotional resilience allows dispatchers to handle traumatic calls.",
-        "Technology continues to improve emergency communications.",
-        "Accurate data entry supports responders in the field.",
-        "Clear radio transmissions help avoid confusion.",
-        "Compassion and professionalism go hand in hand.",
-        "Dispatchers must remain focused despite distractions.",
-        "Information must be verified quickly and precisely.",
-        "Stress management techniques support dispatcher wellness.",
-        "Community trust is built through consistent service.",
-        "Shift work requires adaptability and stamina.",
-        "Emergency call volume can change in an instant.",
-        "Protocols guide dispatchers through unfamiliar situations.",
-        "Team briefings ensure everyone is on the same page.",
-        "The dispatcher’s role is often invisible but essential.",
-        "Every call is unique and requires quick judgment.",
-        "Accurate location details can save valuable minutes.",
-        "Dispatchers balance urgency with protocol compliance.",
-        "Strong decision-making skills are developed with experience.",
-        "Quality assurance reviews help maintain high standards.",
-        "Responders rely on dispatchers for critical updates.",
-        "Dispatchers must adapt to rapidly evolving incidents.",
-        "Ongoing training strengthens confidence and competence.",
-        "Split-second choices can have life-saving outcomes.",
-        "Empathy helps callers feel supported and understood.",
-        "The headset is a dispatcher’s lifeline to the community.",
-        "Incident logs provide a reliable record for investigations.",
-        "Dispatchers are unsung heroes of public safety.",
-        "Accurate coding of calls helps track emergency trends.",
-        "Staying calm influences the caller’s state of mind.",
-        "Consistency builds reliability in dispatch operations.",
-        "Emergency communication is both an art and a science.",
-        "Resource allocation requires both speed and strategy.",
-        "Every voice on the line represents a human in need.",
-        "Continuous improvement is part of the dispatcher’s role.",
-        "Silent strength defines many dispatch professionals.",
-        "Technology supports but never replaces human judgment.",
-        "Dispatchers often handle multiple emergencies at once.",
-        "The ability to prioritise is a dispatcher’s superpower.",
-        "Crisis communication skills are honed through experience.",
-        "Listening is just as important as speaking clearly."
-        ],
-        
-        paragraphs: [
-            "Emergency dispatching requires a unique combination of skills, including rapid typing, clear communication, and the ability to remain calm under extreme pressure. Dispatchers serve as the vital link between citizens in crisis and the emergency responders who assist them.",
-            "The role of a 911 dispatcher extends far beyond simply answering calls. These professionals must quickly assess situations, prioritise responses based on severity, and coordinate multiple emergency services simultaneously while maintaining detailed records of every interaction.",
-            "Modern dispatch centres utilise sophisticated computer-aided dispatch systems that help operators manage resources efficiently. These systems track unit locations, response times, and incident histories, enabling dispatchers to make informed decisions quickly.",
-        "Dispatchers often work behind the scenes, yet their role is crucial in ensuring that help reaches those in need quickly. By gathering accurate information and relaying it to responders, they act as the critical link between crisis and resolution.",
-        "In the fast-paced world of emergency response, dispatchers must balance speed with accuracy. A single mistake can delay aid, making attention to detail just as important as quick decision-making.",
-        "Every call a dispatcher answers is different. Some may involve life-threatening emergencies, while others may be non-urgent. The ability to adapt communication style to each situation is a hallmark of a skilled professional.",
-        "Emergency communication is not just about technology—it’s about people. Dispatchers must provide calm reassurance to callers while simultaneously directing responders to the scene. Their ability to multitask under stress is unmatched.",
-        "Training and experience prepare dispatchers to handle high-pressure situations, but ongoing education ensures they stay sharp. From updates in technology to evolving protocols, continuous learning is part of the job.",
-        "Collaboration is at the heart of dispatch work. Whether it’s coordinating with police, fire, or medical teams, dispatchers ensure that all responders have the information they need to act swiftly and effectively.",
-        "Mental resilience is an often-overlooked skill for dispatchers. Handling distressing calls daily requires a balance of empathy and emotional control, supported by strong wellness practices and supportive work environments.",
-        "The dispatcher’s role may not always be visible to the public, but their impact is felt in every successful emergency response. Their dedication ensures that communities remain safe and supported during times of crisis.",
-        "Modern dispatch centres are equipped with advanced tools, but human judgment remains irreplaceable. Dispatchers analyse tone, context, and subtle details that technology cannot fully capture, making them an essential part of public safety.",
-        "Clear and concise communication defines successful dispatching. Whether speaking to frightened callers or trained responders, dispatchers use precise language to eliminate confusion and keep everyone focused on what matters most—saving lives."
-        ]
-    };
-    
-
 
     // State
     let currentLesson = null;
@@ -1172,45 +1059,6 @@ function saveWordDoc() {
     alert('Document saved! In real Word, you would use File > Save or Ctrl+S');
 }
 
-function wordCount() {
-    const content = document.getElementById('wordDocument').innerText;
-    const words = content.trim().split(/\s+/).length;
-    const chars = content.length;
-    alert(`Word Count: ${words}\nCharacter Count: ${chars}\nTypical dispatch report: 150-300 words`);
-}
-
-// Find and Replace
-function findReplace() {
-    const find = prompt('Find what:');
-    if (!find) return;
-    const replace = prompt('Replace with:');
-    if (replace === null) return;
-    
-    const doc = document.getElementById('wordDocument');
-    const content = doc.innerHTML;
-    const newContent = content.replaceAll(find, `<mark style="background: yellow;">${replace}</mark>`);
-    doc.innerHTML = newContent;
-    
-    setTimeout(() => {
-        doc.innerHTML = doc.innerHTML.replaceAll('<mark style="background: yellow;">', '').replaceAll('</mark>', '');
-    }, 2000);
-}
-
-// Insert current date/time (useful for dispatch logs)
-function insertDateTime() {
-    const now = new Date();
-    const dateTime = now.toLocaleString('en-CA');
-    document.execCommand('insertText', false, dateTime);
-}
-
-// Text to uppercase (for codes/alerts)
-function toUpperCase() {
-    const selection = window.getSelection().toString();
-    if (selection) {
-        document.execCommand('insertText', false, selection.toUpperCase());
-    }
-}
-
 // Excel Functions
 function calculateFormulas() {
     document.querySelectorAll('.cell').forEach(cell => {
@@ -1253,48 +1101,6 @@ function autoSum() {
 
 function saveExcel() {
     alert('Spreadsheet saved! In real Excel, you would use File > Save or Ctrl+S');
-}
-
-function conditionalFormat() {
-    document.querySelectorAll('.cell').forEach(cell => {
-        const value = parseFloat(cell.textContent);
-        if (!isNaN(value)) {
-            if (value > 40) {
-                cell.style.backgroundColor = '#ffcccc'; // Red for overtime
-            } else if (value === 40) {
-                cell.style.backgroundColor = '#ccffcc'; // Green for normal
-            } else if (value < 40 && value > 0) {
-                cell.style.backgroundColor = '#ffffcc'; // Yellow for under
-            }
-        }
-    });
-    alert('Cells formatted! Red = Overtime, Green = Normal hours, Yellow = Under hours');
-}
-
-// Sort column
-function sortColumn() {
-    const col = prompt('Which column to sort? (A, B, C, D, or E)');
-    if (!col || !'ABCDE'.includes(col.toUpperCase())) return;
-    
-    alert(`In Excel, this would sort column ${col}. Click Data > Sort to practice!`);
-}
-
-// Quick fill series (like Excel's drag fill)
-function fillSeries() {
-    const start = prompt('Enter starting value:');
-    const increment = prompt('Enter increment (e.g., 1 for 1,2,3...):');
-    
-    if (start && increment) {
-        let val = parseFloat(start);
-        const inc = parseFloat(increment);
-        
-        document.querySelectorAll('.cell[data-cell^="A"]').forEach((cell, index) => {
-            if (index > 0 && index < 6) {
-                cell.textContent = val;
-                val += inc;
-            }
-        });
-    }
 }
 
 // Initialize
@@ -1395,92 +1201,6 @@ function calculateAverage() {
 function formatCells() {
     alert('Select cells and use these shortcuts:\nCtrl+B for Bold\nCtrl+I for Italic\nIn real Excel, you would right-click and choose Format Cells');
 }
-
-const practiceTasks = {
-    word: [
-        {
-            title: "Incident Report",
-            instruction: "Create an incident report with: Date/Time, Location, Units Responding, Description",
-            check: "Does your report include all required fields?"
-        },
-        {
-            title: "Shift Schedule",
-            instruction: "Create a table showing: Employee Name, Shift Time, Position, Badge Number",
-            check: "Is your table properly formatted with headers?"
-        },
-        {
-            title: "Emergency Bulletin",
-            instruction: "Format an urgent notice: Use CAPS for 'URGENT', bold the main message, add timestamp",
-            check: "Is the urgency clear at first glance?"
-        }
-    ],
-    excel: [
-        {
-            title: "Overtime Calculator",
-            instruction: "Enter hours for 5 employees. Use =B2+C2 to calculate total hours",
-            check: "Do your formulas calculate correctly?"
-        },
-        {
-            title: "Shift Coverage",
-            instruction: "Create a weekly schedule grid showing who covers each shift",
-            check: "Can you see at a glance who works when?"
-        },
-        {
-            title: "Response Time Tracker",
-            instruction: "Track call times and use =AVERAGE to find average response time",
-            check: "What's the average response time?"
-        }
-    ]
-};
-
-function showPracticeTask(type) {
-    const tasks = practiceTasks[type];
-    const task = tasks[Math.floor(Math.random() * tasks.length)];
-    
-    const taskDiv = document.createElement('div');
-    taskDiv.style = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #fff3cd;
-        border: 2px solid #ffc107;
-        padding: 20px;
-        border-radius: 10px;
-        max-width: 300px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 1000;
-    `;
-    
-    taskDiv.innerHTML = `
-        <h4 style="margin-top: 0;">📋 Practice Task</h4>
-        <strong>${task.title}</strong>
-        <p>${task.instruction}</p>
-        <p style="font-style: italic;">${task.check}</p>
-        <button onclick="this.parentElement.remove()">Close</button>
-        <button onclick="completePracticeTask('${type}', '${task.title}')">Mark Complete</button>
-    `;
-    
-    document.body.appendChild(taskDiv);
-}
-
-function completePracticeTask(type, title) {
-    saveOfficeProgress(`Completed ${type} task: ${title}`);
-    document.querySelector('[onclick*="completePracticeTask"]').parentElement.remove();
-}
   </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
