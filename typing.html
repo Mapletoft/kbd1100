@@ -217,9 +217,71 @@
 </div>
 
       <!-- Tests Tab (Locked Initially) -->
-      <div id="tests" class="tab-content">
-        <h2>🔒 Timed Tests - Locked</h2>
-        <p>Complete all skill building lessons to unlock timed tests!</p>
+<div id="tests" class="tab-content">
+    <h2>⏱️ Timed Typing Tests</h2>
+    <p>Build your speed with practice tests. 3-minute tests count toward your final grade.</p>
+    
+    <!-- Test Selection Buttons -->
+    <div class="lesson-grid">
+        <div class="lesson-card" onclick="initTimedTest(1)">
+            <h3>1 Minute Test</h3>
+            <p>Quick practice</p>
+        </div>
+        <div class="lesson-card" onclick="initTimedTest(2)">
+            <h3>2 Minute Test</h3>
+            <p>Medium practice</p>
+        </div>
+        <div class="lesson-card" onclick="initTimedTest(3)">
+            <h3>3 Minute Test</h3>
+            <p>⭐ Counts for grade</p>
+        </div>
+    </div>
+    
+    <!-- Test Interface (Hidden initially) -->
+          <div class="typing-area" id="timedTestArea" style="display: none;">
+              <h3 id="timedTestTitle">Test Title</h3>
+              <div class="prompt-text" id="timedTestPrompt">Test text will appear here</div>
+              <textarea class="typing-input" id="timedTestInput" 
+                        placeholder="Click Start Test to begin..." 
+                        disabled style="width: 100%; min-height: 150px;"></textarea>
+              
+              <div class="stats-row">
+                  <div class="stat-box">
+                      <div class="stat-label">Time Left</div>
+                      <div class="stat-value" id="timeRemaining">0:00</div>
+                  </div>
+                  <div class="stat-box">
+                      <div class="stat-label">WPM</div>
+                      <div class="stat-value" id="timedWpm">0</div>
+                  </div>
+                  <div class="stat-box">
+                      <div class="stat-label">Accuracy</div>
+                      <div class="stat-value" id="timedAccuracy">100%</div>
+                  </div>
+              </div>
+              
+              <div class="control-buttons">
+                  <button class="btn btn-success" id="startTimedBtn" onclick="startTimedTest()">Start Test</button>
+                  <button class="btn btn-danger" onclick="cancelTimedTest()">Cancel</button>
+              </div>
+          </div>
+          
+          <!-- Test History -->
+          <div id="testHistory" style="margin-top: 30px; display: none;">
+              <h3>Your Test Results</h3>
+              <table style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                      <tr style="background: #f5f5f5;">
+                          <th style="padding: 10px;">Date</th>
+                          <th style="padding: 10px;">Duration</th>
+                          <th style="padding: 10px;">WPM</th>
+                          <th style="padding: 10px;">Accuracy</th>
+                          <th style="padding: 10px;">Grade</th>
+                      </tr>
+                  </thead>
+                  <tbody id="testHistoryBody"></tbody>
+              </table>
+          </div>
       </div>
     </div>
   </div>
@@ -1383,7 +1445,157 @@ function completePracticeTask(type, title) {
     saveOfficeProgress(`Completed ${type} task: ${title}`);
     document.querySelector('[onclick*="completePracticeTask"]').parentElement.remove();
 }
+
+// Timed Test System
+let timedTest = {
+    duration: 0,
+    timeLeft: 0,
+    timer: null,
+    startTime: null,
+    testType: 0
+};
+
+// Test text library - mix of dispatch-relevant content
+const testTexts = [
+    "Emergency dispatchers play a crucial role in public safety. They are the first point of contact for people calling for help. Quick thinking and accurate typing are essential skills for this position. Every call must be handled with professionalism and care.",
+    
+    "When receiving an emergency call, dispatchers must quickly gather essential information including the nature of the emergency, the exact location, and any immediate dangers. This information is then relayed to the appropriate emergency services.",
+    
+    "The computer aided dispatch system helps emergency operators track and coordinate resources efficiently. Units are dispatched based on proximity and availability. Response times are carefully monitored to ensure optimal service delivery.",
+    
+    "Professional communication is vital in emergency services. Clear and concise messages prevent misunderstandings that could delay response times. Dispatchers must remain calm even in the most stressful situations.",
+    
+    "Shift schedules in dispatch centers ensure twenty four hour coverage seven days a week. Staff rotations are carefully planned to maintain alertness and prevent fatigue. Backup dispatchers are always available for high volume periods."
+];
+
+function initTimedTest(minutes) {
+    timedTest.duration = minutes * 60;
+    timedTest.testType = minutes;
+    
+    // Show test interface
+    document.getElementById('timedTestArea').style.display = 'block';
+    document.getElementById('timedTestTitle').textContent = `${minutes} Minute Typing Test`;
+    
+    // Select random text(s) based on duration
+    let testContent = "";
+    const textCount = minutes; // Use more texts for longer tests
+    for (let i = 0; i < textCount; i++) {
+        testContent += testTexts[Math.floor(Math.random() * testTexts.length)] + " ";
+    }
+    
+    document.getElementById('timedTestPrompt').textContent = testContent;
+    document.getElementById('timedTestInput').value = '';
+    document.getElementById('timeRemaining').textContent = `${minutes}:00`;
+    document.getElementById('startTimedBtn').disabled = false;
+}
+
+function startTimedTest() {
+    document.getElementById('timedTestInput').disabled = false;
+    document.getElementById('timedTestInput').focus();
+    document.getElementById('startTimedBtn').disabled = true;
+    
+    timedTest.startTime = new Date();
+    timedTest.timeLeft = timedTest.duration;
+    
+    // Start countdown timer
+    timedTest.timer = setInterval(() => {
+        timedTest.timeLeft--;
+        
+        const minutes = Math.floor(timedTest.timeLeft / 60);
+        const seconds = timedTest.timeLeft % 60;
+        document.getElementById('timeRemaining').textContent = 
+            `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        
+        // Update stats
+        updateTimedStats();
+        
+        if (timedTest.timeLeft <= 0) {
+            finishTimedTest();
+        }
+    }, 1000);
+}
+
+function updateTimedStats() {
+    const typed = document.getElementById('timedTestInput').value;
+    const original = document.getElementById('timedTestPrompt').textContent;
+    
+    if (typed.length === 0) return;
+    
+    // Calculate WPM
+    const timeElapsed = (new Date() - timedTest.startTime) / 60000; // in minutes
+    const words = typed.trim().split(/\s+/).length;
+    const wpm = Math.round(words / timeElapsed) || 0;
+    
+    // Calculate accuracy
+    let correct = 0;
+    const checkLength = Math.min(typed.length, original.length);
+    for (let i = 0; i < checkLength; i++) {
+        if (typed[i] === original[i]) correct++;
+    }
+    const accuracy = Math.round((correct / checkLength) * 100) || 100;
+    
+    document.getElementById('timedWpm').textContent = wpm;
+    document.getElementById('timedAccuracy').textContent = accuracy + '%';
+}
+
+function finishTimedTest() {
+    clearInterval(timedTest.timer);
+    document.getElementById('timedTestInput').disabled = true;
+    
+    const wpm = document.getElementById('timedWpm').textContent;
+    const accuracy = document.getElementById('timedAccuracy').textContent;
+    
+    // Save result
+    const result = {
+        date: new Date().toLocaleDateString(),
+        time: new Date().toLocaleTimeString(),
+        duration: timedTest.testType,
+        wpm: parseInt(wpm),
+        accuracy: parseInt(accuracy),
+        forGrade: timedTest.testType === 3
+    };
+    
+    // Save to Firebase
+    if (auth.currentUser) {
+        db.collection('users').doc(auth.currentUser.uid)
+          .collection('timedTests').add({
+            ...result,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+    
+    // Show result
+    alert(`Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n${result.forGrade ? 'This test counts toward your grade.' : 'Practice test - not graded.'}`);
+    
+    // Add to history table
+    addToTestHistory(result);
+    
+    // Reset
+    document.getElementById('startTimedBtn').disabled = false;
+}
+
+function cancelTimedTest() {
+    clearInterval(timedTest.timer);
+    document.getElementById('timedTestArea').style.display = 'none';
+    document.getElementById('timedTestInput').disabled = true;
+    document.getElementById('timedTestInput').value = '';
+}
+
+function addToTestHistory(result) {
+    document.getElementById('testHistory').style.display = 'block';
+    const tbody = document.getElementById('testHistoryBody');
+    const row = tbody.insertRow(0); // Add at top
+    
+    row.innerHTML = `
+        <td style="padding: 10px;">${result.date} ${result.time}</td>
+        <td style="padding: 10px;">${result.duration} min</td>
+        <td style="padding: 10px;">${result.wpm}</td>
+        <td style="padding: 10px;">${result.accuracy}%</td>
+        <td style="padding: 10px;">${result.forGrade ? '⭐ Graded' : 'Practice'}</td>
+    `;
+}
   </script>
 </body>
 </html>
+
 
