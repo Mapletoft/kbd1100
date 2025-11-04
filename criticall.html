@@ -1,0 +1,701 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CritiCall Practice - KBD1100</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    
+    <style>
+        .criticall-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 1400px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+        
+        .criticall-header {
+            background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .module-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 25px;
+            padding: 30px;
+        }
+        
+        .module-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-height: 180px;
+        }
+        
+        .module-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.3);
+        }
+        
+        .module-card h3 {
+            margin-bottom: 15px;
+            font-size: 22px;
+        }
+        
+        .module-card p {
+            opacity: 0.95;
+            font-size: 14px;
+        }
+        
+        .full-test-card {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+        
+        .practice-area {
+            display: none;
+            padding: 30px;
+            background: #f8f9fa;
+            margin: 20px;
+            border-radius: 15px;
+        }
+        
+        .practice-area.active {
+            display: block;
+        }
+        
+        .data-entry-form {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .form-row label {
+            font-weight: bold;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+        }
+        
+        .form-row input {
+            padding: 10px;
+            border: 2px solid #dee2e6;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        
+        .alert-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff3cd;
+            border: 3px solid #ffc107;
+            padding: 20px;
+            border-radius: 10px;
+            z-index: 9999;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+            25% { transform: translate(-52%, -50%) rotate(-1deg); }
+            75% { transform: translate(-48%, -50%) rotate(1deg); }
+        }
+        
+        .decision-box {
+            background: white;
+            border: 2px solid #007bff;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .decision-buttons {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .priority-high { background: #dc3545; }
+        .priority-medium { background: #ffc107; color: black; }
+        .priority-low { background: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="criticall-container">
+        <div class="criticall-header">
+            <h1>🚨 CritiCall Practice Modules</h1>
+            <p>Train for the 911 Dispatcher Assessment</p>
+            <button onclick="window.location.href='typing.html'" class="btn" style="background: white; color: #333;">← Back to Main</button>
+        </div>
+        
+        <div class="module-grid" id="moduleGrid">
+            <!-- Module 1: Data Entry -->
+            <div class="module-card" onclick="startModule('dataEntry')">
+                <h3>⌨️ Data Entry</h3>
+                <p>Practice entering caller information quickly and accurately into CAD fields</p>
+                <small>Basic, Cross-Reference, Multitasking</small>
+            </div>
+            
+            <!-- Module 2: Decision Making -->
+            <div class="module-card" onclick="startModule('decision')">
+                <h3>🎯 Decision Making</h3>
+                <p>Determine which service to dispatch and priority level</p>
+                <small>Police, Fire, EMS prioritization</small>
+            </div>
+            
+            <!-- Module 3: Memory Recall -->
+            <div class="module-card" onclick="startModule('memory')">
+                <h3>🧠 Memory Recall</h3>
+                <p>Remember and recall visual and audio information</p>
+                <small>Short-term memory test</small>
+            </div>
+            
+            <!-- Module 4: Map Reading -->
+            <div class="module-card" onclick="startModule('map')">
+                <h3>🗺️ Map Reading</h3>
+                <p>Navigate grids and provide directions</p>
+                <small>Spatial orientation</small>
+            </div>
+            
+            <!-- Module 5: Multitasking -->
+            <div class="module-card" onclick="startModule('multitask')">
+                <h3>🔄 Multitasking</h3>
+                <p>Handle multiple windows and tasks simultaneously</p>
+                <small>Split attention simulation</small>
+            </div>
+            
+            <!-- Module 6: Prioritization -->
+            <div class="module-card" onclick="startModule('priority')">
+                <h3>📊 Call Prioritization</h3>
+                <p>Triage multiple incidents by urgency</p>
+                <small>Critical thinking</small>
+            </div>
+            
+            <!-- Full Test -->
+            <div class="module-card full-test-card" onclick="startFullTest()">
+                <h3>📝 Full CritiCall Simulation</h3>
+                <p>Complete assessment with all modules - 30 minutes</p>
+                <small>Simulates actual test conditions</small>
+            </div>
+        </div>
+        
+        <!-- Practice Areas for Each Module -->
+        <div id="practiceContainer"></div>
+    </div>
+
+    <script>
+        // Check authentication
+        auth.onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'index.html';
+            }
+        });
+        
+        // Module data
+        const moduleData = {
+            dataEntry: {
+                title: "Data Entry Practice",
+                scenarios: [
+                    {
+                        type: "basic",
+                        caller: "John Smith",
+                        phone: "555-123-4567",
+                        address: "123 Main Street",
+                        incident: "Vehicle accident",
+                        details: "Two car collision, no injuries"
+                    },
+                    {
+                        type: "complex",
+                        caller: "Mary Johnson",
+                        phone: "555-987-6543",
+                        address: "456 Oak Avenue, Apt 3B",
+                        incident: "Medical emergency",
+                        details: "Elderly female, difficulty breathing, conscious"
+                    }
+                ]
+            },
+            decision: {
+                title: "Decision Making",
+                scenarios: [
+                    {
+                        description: "Caller reports smoke coming from neighbor's house, no flames visible",
+                        correct: "fire",
+                        priority: "high"
+                    },
+                    {
+                        description: "Person collapsed in mall, unconscious but breathing",
+                        correct: "ems",
+                        priority: "high"
+                    },
+                    {
+                        description: "Car parked illegally blocking driveway",
+                        correct: "police",
+                        priority: "low"
+                    },
+                    {
+                        description: "Domestic dispute, yelling heard, possible violence",
+                        correct: "police",
+                        priority: "high"
+                    }
+                ]
+            },
+            memory: {
+                title: "Memory Recall",
+                items: [
+                    ["Blue sedan", "License: ABC-123", "Heading northbound", "2 occupants"],
+                    ["1547 Elm Street", "Cross street: 5th Avenue", "White house", "Red door"],
+                    ["Suspect: Male", "6 feet tall", "Black jacket", "Blue jeans", "Beard"]
+                ]
+            }
+        };
+        
+        let currentModule = null;
+        let moduleScore = 0;
+        let moduleStartTime = null;
+        
+        function startModule(moduleName) {
+            currentModule = moduleName;
+            moduleScore = 0;
+            moduleStartTime = new Date();
+            
+            const container = document.getElementById('practiceContainer');
+            container.innerHTML = '';
+            
+            switch(moduleName) {
+                case 'dataEntry':
+                    showDataEntry();
+                    break;
+                case 'decision':
+                    showDecisionMaking();
+                    break;
+                case 'memory':
+                    showMemoryTest();
+                    break;
+                case 'map':
+                    showMapReading();
+                    break;
+                case 'multitask':
+                    showMultitasking();
+                    break;
+                case 'priority':
+                    showPrioritization();
+                    break;
+            }
+        }
+        
+        function showDataEntry() {
+            const scenario = moduleData.dataEntry.scenarios[Math.floor(Math.random() * moduleData.dataEntry.scenarios.length)];
+            const container = document.getElementById('practiceContainer');
+            
+            container.innerHTML = `
+                <div class="practice-area active">
+                    <h2>📞 Incoming Call - Enter Information</h2>
+                    <p style="background: #e8f5e9; padding: 15px; border-radius: 5px;">
+                        <strong>Caller says:</strong> "${scenario.details}"
+                    </p>
+                    
+                    <div class="data-entry-form">
+                        <div class="form-row">
+                            <label>Caller Name:</label>
+                            <input type="text" id="callerName" placeholder="Enter caller's name">
+                        </div>
+                        <div class="form-row">
+                            <label>Phone Number:</label>
+                            <input type="text" id="phoneNumber" placeholder="555-555-5555">
+                        </div>
+                        <div class="form-row">
+                            <label>Address:</label>
+                            <input type="text" id="address" placeholder="Enter incident address">
+                        </div>
+                        <div class="form-row">
+                            <label>Incident Type:</label>
+                            <input type="text" id="incidentType" placeholder="Type of emergency">
+                        </div>
+                        <div class="form-row">
+                            <label>Details:</label>
+                            <input type="text" id="details" placeholder="Additional information">
+                        </div>
+                    </div>
+                    
+                    <button class="btn btn-success" onclick="submitDataEntry('${btoa(JSON.stringify(scenario))}')">Submit Entry</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                    
+                    <div id="timerDisplay" style="position: fixed; top: 20px; right: 20px; background: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        Time: <span id="timer">0:00</span>
+                    </div>
+                </div>
+            `;
+            
+            // Start timer
+            startModuleTimer();
+            
+            // Simulate interruption after 5 seconds
+            setTimeout(() => {
+                if (currentModule === 'dataEntry') {
+                    showInterruption();
+                }
+            }, 5000);
+        }
+        
+        function showInterruption() {
+            const popup = document.createElement('div');
+            popup.className = 'alert-popup';
+            popup.innerHTML = `
+                <h3>⚠️ PRIORITY ALERT</h3>
+                <p>Unit 24 requesting backup at 789 Pine St</p>
+                <button onclick="this.parentElement.remove()">Acknowledge</button>
+            `;
+            document.body.appendChild(popup);
+            
+            setTimeout(() => {
+                if (popup.parentElement) {
+                    popup.remove();
+                }
+            }, 5000);
+        }
+        
+        function submitDataEntry(encodedScenario) {
+            const scenario = JSON.parse(atob(encodedScenario));
+            const entered = {
+                caller: document.getElementById('callerName').value,
+                phone: document.getElementById('phoneNumber').value,
+                address: document.getElementById('address').value,
+                incident: document.getElementById('incidentType').value,
+                details: document.getElementById('details').value
+            };
+            
+            // Calculate accuracy
+            let correct = 0;
+            let total = 5;
+            
+            if (entered.caller.toLowerCase().includes(scenario.caller.toLowerCase().split(' ')[0])) correct++;
+            if (entered.phone.replace(/\D/g, '') === scenario.phone.replace(/\D/g, '')) correct++;
+            if (entered.address.toLowerCase().includes('main') || entered.address.includes('123')) correct++;
+            if (entered.incident.toLowerCase().includes('accident') || entered.incident.toLowerCase().includes('collision')) correct++;
+            if (entered.details.length > 10) correct++;
+            
+            const accuracy = Math.round((correct / total) * 100);
+            moduleScore = accuracy;
+            
+            alert(`Data Entry Complete!\nAccuracy: ${accuracy}%\n${accuracy >= 80 ? 'Good job!' : 'Keep practicing!'}`);
+            saveModuleResult('dataEntry', accuracy);
+            closeModule();
+        }
+        
+        function showDecisionMaking() {
+            const scenarios = moduleData.decision.scenarios;
+            let currentScenario = 0;
+            
+            function showScenario() {
+                if (currentScenario >= scenarios.length) {
+                    alert(`Decision Making Complete!\nScore: ${moduleScore}/${scenarios.length}`);
+                    saveModuleResult('decision', Math.round((moduleScore/scenarios.length) * 100));
+                    closeModule();
+                    return;
+                }
+                
+                const scenario = scenarios[currentScenario];
+                const container = document.getElementById('practiceContainer');
+                
+                container.innerHTML = `
+                    <div class="practice-area active">
+                        <h2>🎯 Make a Decision</h2>
+                        
+                        <div class="decision-box">
+                            <h3>Incident ${currentScenario + 1} of ${scenarios.length}</h3>
+                            <p style="font-size: 18px; margin: 20px 0;">
+                                ${scenario.description}
+                            </p>
+                            
+                            <h4>Which service should be dispatched?</h4>
+                            <div class="decision-buttons">
+                                <button class="btn btn-primary" onclick="checkDecision('police', '${scenario.correct}', '${scenario.priority}')">👮 Police</button>
+                                <button class="btn btn-danger" onclick="checkDecision('fire', '${scenario.correct}', '${scenario.priority}')">🚒 Fire</button>
+                                <button class="btn btn-success" onclick="checkDecision('ems', '${scenario.correct}', '${scenario.priority}')">🚑 EMS</button>
+                            </div>
+                            
+                            <h4 style="margin-top: 20px;">What is the priority level?</h4>
+                            <div class="decision-buttons">
+                                <button class="btn priority-high" onclick="checkPriority('high', '${scenario.priority}')">HIGH Priority</button>
+                                <button class="btn priority-medium" onclick="checkPriority('medium', '${scenario.priority}')">MEDIUM Priority</button>
+                                <button class="btn priority-low" onclick="checkPriority('low', '${scenario.priority}')">LOW Priority</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            window.checkDecision = function(chosen, correct, priority) {
+                if (chosen === correct) {
+                    moduleScore++;
+                    alert('Correct service selected!');
+                } else {
+                    alert(`Incorrect. The correct service was ${correct.toUpperCase()}`);
+                }
+                currentScenario++;
+                showScenario();
+            };
+            
+            window.checkPriority = function(chosen, correct) {
+                // Just for practice feedback
+                if (chosen === correct) {
+                    alert('Correct priority!');
+                } else {
+                    alert(`Priority should be ${correct.toUpperCase()}`);
+                }
+            };
+            
+            showScenario();
+        }
+        
+        function showMemoryTest() {
+            const items = moduleData.memory.items[Math.floor(Math.random() * moduleData.memory.items.length)];
+            const container = document.getElementById('practiceContainer');
+            
+            container.innerHTML = `
+                <div class="practice-area active">
+                    <h2>🧠 Memory Test</h2>
+                    <p>Memorize these details. They will disappear in 10 seconds.</p>
+                    
+                    <div id="memoryItems" style="background: white; padding: 30px; border-radius: 10px; font-size: 20px;">
+                        ${items.map(item => `<p style="margin: 10px 0;">• ${item}</p>`).join('')}
+                    </div>
+                    
+                    <div id="memoryQuestions" style="display: none;">
+                        <h3>What do you remember?</h3>
+                        ${items.map((item, index) => `
+                            <div style="margin: 15px 0;">
+                                <label>Detail ${index + 1}:</label>
+                                <input type="text" id="memory${index}" style="width: 100%; padding: 10px;">
+                            </div>
+                        `).join('')}
+                        <button class="btn btn-success" onclick="checkMemory()">Check Answers</button>
+                    </div>
+                    
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Hide items after 10 seconds
+            setTimeout(() => {
+                document.getElementById('memoryItems').style.display = 'none';
+                document.getElementById('memoryQuestions').style.display = 'block';
+            }, 10000);
+            
+            window.checkMemory = function() {
+                let correct = 0;
+                items.forEach((item, index) => {
+                    const answer = document.getElementById(`memory${index}`).value.toLowerCase();
+                    if (item.toLowerCase().includes(answer) || answer.includes(item.toLowerCase().substring(0, 5))) {
+                        correct++;
+                    }
+                });
+                
+                const score = Math.round((correct / items.length) * 100);
+                alert(`Memory Test Complete!\nScore: ${score}%`);
+                saveModuleResult('memory', score);
+                closeModule();
+            };
+        }
+        
+        function showPrioritization() {
+            const container = document.getElementById('practiceContainer');
+            
+            const calls = [
+                { id: 1, desc: "Heart attack in progress", priority: 1 },
+                { id: 2, desc: "Cat stuck in tree", priority: 5 },
+                { id: 3, desc: "Armed robbery in progress", priority: 1 },
+                { id: 4, desc: "Noise complaint", priority: 4 },
+                { id: 5, desc: "House fire with people trapped", priority: 1 },
+                { id: 6, desc: "Fender bender, no injuries", priority: 3 },
+                { id: 7, desc: "Missing child, age 4", priority: 2 }
+            ];
+            
+            container.innerHTML = `
+                <div class="practice-area active">
+                    <h2>📊 Prioritize These Calls</h2>
+                    <p>Drag to reorder from HIGHEST priority (top) to LOWEST priority (bottom)</p>
+                    
+                    <div id="priorityList" style="background: white; padding: 20px; border-radius: 10px;">
+                        ${calls.sort(() => Math.random() - 0.5).map(call => `
+                            <div draggable="true" data-priority="${call.priority}" style="background: #f8f9fa; padding: 15px; margin: 10px 0; border-radius: 5px; cursor: move; border: 2px solid #dee2e6;">
+                                ${call.desc}
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <button class="btn btn-success" onclick="checkPrioritization()">Submit Order</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Add drag and drop
+            const list = document.getElementById('priorityList');
+            let draggedElement = null;
+            
+            list.querySelectorAll('[draggable]').forEach(item => {
+                item.addEventListener('dragstart', function(e) {
+                    draggedElement = this;
+                    this.style.opacity = '0.5';
+                });
+                
+                item.addEventListener('dragend', function(e) {
+                    this.style.opacity = '';
+                });
+                
+                item.addEventListener('dragover', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#007bff';
+                });
+                
+                item.addEventListener('dragleave', function(e) {
+                    this.style.borderColor = '#dee2e6';
+                });
+                
+                item.addEventListener('drop', function(e) {
+                    e.preventDefault();
+                    this.style.borderColor = '#dee2e6';
+                    if (this !== draggedElement) {
+                        this.parentNode.insertBefore(draggedElement, this.nextSibling);
+                    }
+                });
+            });
+            
+            window.checkPrioritization = function() {
+                const items = list.querySelectorAll('[draggable]');
+                let score = 100;
+                let errors = 0;
+                
+                items.forEach((item, index) => {
+                    const priority = parseInt(item.dataset.priority);
+                    // Check if high priority items are near the top
+                    if (priority === 1 && index > 3) errors++;
+                    if (priority >= 4 && index < 3) errors++;
+                });
+                
+                score = Math.max(0, 100 - (errors * 20));
+                alert(`Prioritization Complete!\nScore: ${score}%`);
+                saveModuleResult('prioritization', score);
+                closeModule();
+            };
+        }
+        
+        function startModuleTimer() {
+            let seconds = 0;
+            const timerInterval = setInterval(() => {
+                if (!currentModule) {
+                    clearInterval(timerInterval);
+                    return;
+                }
+                seconds++;
+                const mins = Math.floor(seconds / 60);
+                const secs = seconds % 60;
+                const display = document.getElementById('timer');
+                if (display) {
+                    display.textContent = `${mins}:${secs.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+        
+        function closeModule() {
+            currentModule = null;
+            document.getElementById('practiceContainer').innerHTML = '';
+        }
+        
+        function saveModuleResult(moduleName, score) {
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: moduleName,
+                    score: score,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        function startFullTest() {
+            alert('Full CritiCall simulation coming soon! This will combine all modules into a 30-minute assessment.');
+        }
+        
+        // Add map and multitasking modules
+        function showMapReading() {
+            // Simplified map reading
+            const container = document.getElementById('practiceContainer');
+            container.innerHTML = `
+                <div class="practice-area active">
+                    <h2>🗺️ Map Reading</h2>
+                    <p>Study the grid and answer the questions</p>
+                    
+                    <div style="display: grid; grid-template-columns: repeat(5, 60px); gap: 2px; background: white; padding: 20px;">
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">A1</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">B1</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center; background: red; color: white;">C1🔥</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">D1</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">E1</div>
+                        
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">A2</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">B2</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">C2</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">D2</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">E2</div>
+                        
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">A3</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center; background: blue; color: white;">B3🚑</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">C3</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">D3</div>
+                        <div style="border: 1px solid #000; padding: 10px; text-align: center;">E3</div>
+                    </div>
+                    
+                    <div style="margin-top: 20px;">
+                        <p><strong>Question:</strong> What is the shortest route from the ambulance (B3) to the fire (C1)?</p>
+                        <input type="text" id="mapAnswer" placeholder="Enter grid squares (e.g., B3-B2-B1-C1)" style="width: 100%; padding: 10px;">
+                        <button class="btn btn-success" onclick="checkMapAnswer()">Submit Route</button>
+                    </div>
+                    
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            window.checkMapAnswer = function() {
+                const answer = document.getElementById('mapAnswer').value.toUpperCase();
+                let score = 0;
+                if (answer.includes('B3') && answer.includes('C1')) score = 50;
+                if (answer.includes('B2') || answer.includes('C2')) score = 75;
+                if (answer === 'B3-B2-B1-C1' || answer === 'B3-B2-C2-C1' || answer === 'B3-C3-C2-C1') score = 100;
+                
+                alert(`Map Reading Complete!\nScore: ${score}%`);
+                saveModuleResult('map', score);
+                closeModule();
+            };
+        }
+        
+        function showMultitasking() {
+            alert('Multitasking simulation will open multiple windows. This advanced module is coming soon!');
+            closeModule();
+        }
+    </script>
+</body>
+</html>
