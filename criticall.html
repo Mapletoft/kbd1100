@@ -414,13 +414,18 @@
             </div>
             
             <div class="module-card coming-soon">
+                <h3>🔄 Split Attention</h3>
+                <p></p>
+            </div>
+            
+            <div class="module-card coming-soon">
                 <h3>📻 Radio Codes</h3>
                 <p>Learn and practice 10-codes and radio communication protocols.</p>
             </div>
             
             <div class="module-card coming-soon">
-                <h3>🔊 Radio Traffic</h3>
-                <p>Practice listening to and interpreting emergency radio communications.</p>
+                <h3>👂 Listening Skills</h3>
+                <p></p>
             </div>
             
             <div class="module-card coming-soon">
@@ -431,6 +436,16 @@
             <div class="module-card coming-soon">
                 <h3>🔍 Cross-Reference</h3>
                 <p>Verify caller information against database records.</p>
+            </div>
+            
+            <div class="module-card coming-soon">
+                <h3>🎮 Multitasking</h3>
+                <p>Handle multiple tasks simultaneously under time pressure.</p>
+            </div>
+            
+            <div class="module-card coming-soon" style="grid-column: span 2; background: linear-gradient(135deg, #999 0%, #666 100%);">
+                <h3>📋 Full CritiCall Test</h3>
+                <p>Complete simulation combining all modules to assess overall dispatcher readiness.</p>
             </div>
         </div>
     </div>
@@ -453,6 +468,7 @@
         let audioPlayCount = 0;
         let selectedPriority = null;
         let selectedServices = [];
+        let memoryTimerInterval = null; // Global variable to track memory timer
         
         // Initialize Firebase
         auth = firebase.auth();
@@ -496,12 +512,12 @@
             {
                 scenario: "Caller reports seeing smoke coming from a neighbor's garage. No flames visible yet, but the smell is getting stronger. No one appears to be home.",
                 correctServices: ["fire"],
-                correctPriority: "medium"
+                correctPriority: "high"
             },
             {
-                scenario: "A two-car collision at Main St and 5th Ave. Minor injuries reported, one vehicle is blocking the right lane. Both drivers are out of their vehicles.",
-                correctServices: ["police", "ems"],
-                correctPriority: "medium"
+                scenario: "A two-car collision at Main St and 5th Ave. Minor injuries reported. Both drivers are out of their vehicles.",
+                correctServices: ["ems"],
+                correctPriority: "low"
             },
             {
                 scenario: "Caller reports an unresponsive infant, not breathing. Mother is hysterical. Address is clear.",
@@ -509,7 +525,7 @@
                 correctPriority: "high"
             },
             {
-                scenario: "Neighbor reports a burglary in progress. Suspects are currently inside the residence. Homeowners are on vacation.",
+                scenario: "Neighbour reports a burglary in progress. Suspects are currently inside the residence. Homeowners are on vacation.",
                 correctServices: ["police"],
                 correctPriority: "high"
             },
@@ -520,7 +536,7 @@
             },
             {
                 scenario: "Structure fire fully involved, multiple floors. Building is a commercial warehouse. All occupants have evacuated safely.",
-                correctServices: ["fire", "police"],
+                correctServices: ["fire"],
                 correctPriority: "high"
             },
             {
@@ -535,7 +551,7 @@
             },
             {
                 scenario: "Tree branch fell on power lines during storm. Sparking visible. Lines are across the roadway blocking both lanes.",
-                correctServices: ["fire", "police", "utilities"],
+                correctServices: ["fire", "utilities"],
                 correctPriority: "high"
             },
             {
@@ -544,12 +560,12 @@
                 correctPriority: "low"
             },
             {
-                scenario: "Domestic disturbance. Neighbors report shouting and sounds of items breaking. Children's voices heard crying.",
+                scenario: "Domestic disturbance. Neighbours report shouting and sounds of items breaking. Children's voices heard crying.",
                 correctServices: ["police"],
                 correctPriority: "high"
             },
             {
-                scenario: "Gas leak reported at a restaurant. Strong odor throughout the building. Building has been evacuated.",
+                scenario: "Gas leak reported at a restaurant. Strong odor throughout the building. Building has been evacuated. No illness",
                 correctServices: ["fire", "utilities"],
                 correctPriority: "high"
             },
@@ -560,7 +576,7 @@
             },
             {
                 scenario: "Caller locked keys in car with infant inside. Weather is hot, approximately 85°F. Infant appears alert through window.",
-                correctServices: ["fire", "police"],
+                correctServices: ["fire"],
                 correctPriority: "high"
             }
         ];
@@ -694,11 +710,20 @@
             correctAnswers = 0;
             totalQuestions = 0;
             audioPlayCount = 0;
+            
+            // Clear memory timer if it exists
+            if (memoryTimerInterval) {
+                clearInterval(memoryTimerInterval);
+                memoryTimerInterval = null;
+            }
         }
         
         // DATA ENTRY MODULE
         function showDataEntry() {
             document.getElementById('moduleTitle').textContent = '📝 Data Entry Practice';
+            
+            // Reset audio play count for new scenario
+            audioPlayCount = 0;
             
             // For demo purposes, we'll use a random scenario
             // In production, you'd cycle through them or let teacher select
@@ -708,12 +733,12 @@
             content.innerHTML = `
                 <div class="audio-container">
                     <h3>🎧 Listen Carefully to the Emergency Call</h3>
-                    <p>You may play the audio as many times as needed. Take notes if necessary.</p>
+                    <p><strong>⚠ You can only play this audio ONCE - listen carefully and type as you hear the information!</strong></p>
                     <audio id="emergencyAudio" class="audio-player" controls>
                         <source src="${scenario.audioFile}" type="audio/mpeg">
                         Your browser does not support the audio element.
                     </audio>
-                    <p class="play-count">Times played: <span id="playCount">0</span></p>
+                    <p class="play-count">Audio status: <span id="playCount" style="font-weight: bold; color: #007bff;">Ready to play</span></p>
                 </div>
                 
                 <div class="data-entry-form">
@@ -737,11 +762,32 @@
                 </div>
             `;
             
-            // Track audio plays
+            // Track audio plays and disable after first play
             const audio = document.getElementById('emergencyAudio');
+            let hasPlayed = false;
+            
             audio.addEventListener('play', function() {
-                audioPlayCount++;
-                document.getElementById('playCount').textContent = audioPlayCount;
+                if (!hasPlayed) {
+                    audioPlayCount++;
+                    hasPlayed = true;
+                    document.getElementById('playCount').textContent = 'Played once (disabled)';
+                    document.getElementById('playCount').style.color = '#dc3545';
+                }
+            });
+            
+            audio.addEventListener('ended', function() {
+                // Disable audio controls after it finishes playing
+                audio.controls = false;
+                audio.style.opacity = '0.5';
+                document.getElementById('playCount').textContent = 'Audio completed (cannot replay)';
+            });
+            
+            // Also disable if they try to replay before it ends
+            audio.addEventListener('pause', function() {
+                if (hasPlayed) {
+                    audio.controls = false;
+                    audio.style.opacity = '0.5';
+                }
             });
             
             // Store correct answers for checking
@@ -979,6 +1025,13 @@
         // MEMORY RECALL MODULE
         function showMemoryRecall() {
             document.getElementById('moduleTitle').textContent = '🧠 Memory Recall Practice';
+            
+            // Clear any existing timer when going back to difficulty selection
+            if (memoryTimerInterval) {
+                clearInterval(memoryTimerInterval);
+                memoryTimerInterval = null;
+            }
+            
             const content = document.getElementById('moduleContent');
             
             content.innerHTML = `
@@ -992,6 +1045,12 @@
         }
         
         function startMemoryTest(difficulty) {
+            // Clear any existing timer first
+            if (memoryTimerInterval) {
+                clearInterval(memoryTimerInterval);
+                memoryTimerInterval = null;
+            }
+            
             const testData = memoryQuestions[difficulty][Math.floor(Math.random() * memoryQuestions[difficulty].length)];
             
             // Show memory items
@@ -1008,12 +1067,16 @@
             
             // Countdown timer
             let timeLeft = 30;
-            const timerInterval = setInterval(() => {
+            memoryTimerInterval = setInterval(() => {
                 timeLeft--;
-                document.getElementById('timer').textContent = timeLeft;
+                const timerElement = document.getElementById('timer');
+                if (timerElement) {
+                    timerElement.textContent = timeLeft;
+                }
                 
                 if (timeLeft <= 0) {
-                    clearInterval(timerInterval);
+                    clearInterval(memoryTimerInterval);
+                    memoryTimerInterval = null;
                     showMemoryQuestions(testData.questions);
                 }
             }, 1000);
