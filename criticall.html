@@ -417,10 +417,30 @@
                 <h3>🔄 Split Attention</h3>
                 <p></p>
             </div>
+
+            <div class="module-card" onclick="openModule('readingComprehension')">
+                <h3>📘 Reading Comprehension</h3>
+                <p>Read passages and answer questions about policies, procedures, and call details.</p>
+            </div>
+            
+            <div class="module-card" onclick="openModule('spelling')">
+                <h3>✏️ Spelling</h3>
+                <p>Identify correctly spelled words commonly used in emergency dispatch.</p>
+            </div>
+            
+            <div class="module-card" onclick="openModule('sentenceClarity')">
+                <h3>🗣️ Sentence Clarity</h3>
+                <p>Select the clearest and most grammatically correct way to communicate information.</p>
+            </div>
+            
+            <div class="module-card" onclick="openModule('mathematics')">
+                <h3>➕ Mathematics</h3>
+                <p>Solve real-world math problems including time calculations and basic arithmetic.</p>
+            </div>
             
             <div class="module-card coming-soon">
-                <h3>📻 Radio Codes</h3>
-                <p>Learn and practice 10-codes and radio communication protocols.</p>
+                <h3>📻 </h3>
+                <p></p>
             </div>
             
             <div class="module-card coming-soon">
@@ -673,6 +693,350 @@
                 avoidStreets: ["Elm St (one-way east)"]
             }
         ];
+
+        // Reading Comprehension Passages
+        const readingPassages = [
+            {
+                title: "Emergency Response Protocol",
+                passage: "When a dispatcher receives a call regarding an unresponsive person, the first priority is to establish the exact location and ensure emergency medical services are dispatched immediately. The dispatcher must remain on the line with the caller and provide pre-arrival instructions if the caller is willing and able to assist. If the caller becomes unresponsive or disconnects, the dispatcher should attempt to call back using the registered phone number. If no callback is possible, units should still be dispatched to the last known location. Under no circumstances should the dispatcher delay sending help while attempting to gather additional information.",
+                questions: [
+                    {
+                        q: "According to the text, what is the FIRST priority when receiving a call about an unresponsive person?",
+                        options: [
+                            "Provide pre-arrival instructions",
+                            "Establish the exact location",
+                            "Attempt to call the caller back",
+                            "Gather additional medical information"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        q: "What should the dispatcher do if the caller becomes unresponsive?",
+                        options: [
+                            "End the call and move to the next one",
+                            "Delay dispatch until contact is re-established",
+                            "Attempt to call back using the registered phone number",
+                            "Send only police to investigate"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        q: "According to the passage, when should help be delayed?",
+                        options: [
+                            "When gathering additional information",
+                            "When the caller disconnects",
+                            "When the location is uncertain",
+                            "Under no circumstances"
+                        ],
+                        correct: 3
+                    }
+                ]
+            },
+            {
+                title: "Vehicle Pursuit Policy",
+                passage: "Officers may initiate a vehicle pursuit only when the suspect poses an immediate threat to public safety and the benefits of apprehension outweigh the risks of pursuit. Pursuits must never be initiated for traffic violations alone, regardless of severity. The pursuing officer must continuously broadcast updates including location, direction of travel, speed, and traffic conditions. A supervisor must approve continuation of any pursuit beyond two minutes. All pursuits must be terminated immediately if weather conditions deteriorate, traffic density increases significantly, or the suspect's identity is known and apprehension can be made at a later time.",
+                questions: [
+                    {
+                        q: "When may officers initiate a vehicle pursuit?",
+                        options: [
+                            "For any traffic violation",
+                            "Only for severe traffic violations",
+                            "When the suspect poses an immediate threat to public safety",
+                            "Whenever they have supervisor approval"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        q: "What must happen after two minutes of pursuit?",
+                        options: [
+                            "The pursuit must be terminated",
+                            "A supervisor must approve continuation",
+                            "Speed must be reduced",
+                            "Additional units must join"
+                        ],
+                        correct: 1
+                    },
+                    {
+                        q: "Which situation would require immediate termination of a pursuit?",
+                        options: [
+                            "The suspect speeds up",
+                            "The suspect's identity becomes known",
+                            "Additional units arrive",
+                            "The pursuit reaches residential areas"
+                        ],
+                        correct: 1
+                    }
+                ]
+            },
+            {
+                title: "Hazardous Materials Response",
+                passage: "Upon receiving a report of a hazardous materials incident, the dispatcher must immediately establish a safe perimeter and ensure no personnel enter the area without proper protective equipment. The fire department hazmat team must be notified regardless of the substance involved. If the caller can safely provide information about the material, the dispatcher should request container labels, placards, or shipping documents. However, the caller must never be instructed to approach or handle hazardous materials. Wind direction and weather conditions must be documented as they are critical for evacuation decisions. Adjacent buildings and facilities must be notified if there is any risk of exposure.",
+                questions: [
+                    {
+                        q: "What must be done immediately upon receiving a hazmat report?",
+                        options: [
+                            "Send the fire department only",
+                            "Request container labels from the caller",
+                            "Establish a safe perimeter",
+                            "Document weather conditions"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        q: "Should the caller be instructed to approach hazardous materials to get information?",
+                        options: [
+                            "Yes, if they can do so safely",
+                            "Yes, but only to read labels",
+                            "No, never",
+                            "Only if trained"
+                        ],
+                        correct: 2
+                    },
+                    {
+                        q: "Why must wind direction be documented?",
+                        options: [
+                            "For fire department records",
+                            "It is critical for evacuation decisions",
+                            "To predict weather changes",
+                            "For insurance purposes"
+                        ],
+                        correct: 1
+                    }
+                ]
+            }
+        ];
+        
+        // Spelling Questions
+        const spellingQuestions = [
+            { word: "separate", options: ["seperate", "separate", "separete", "separat"], correct: 1 },
+            { word: "receive", options: ["recieve", "receive", "receve", "receeve"], correct: 1 },
+            { word: "license", options: ["licence", "lisense", "license", "lisence"], correct: 2 },
+            { word: "accident", options: ["accident", "accedent", "axident", "acident"], correct: 0 },
+            { word: "vehicle", options: ["vehical", "veicle", "vehicle", "vehicel"], correct: 2 },
+            { word: "immediately", options: ["imediately", "immediatly", "immediately", "imediatlly"], correct: 2 },
+            { word: "necessary", options: ["necesary", "neccesary", "necessary", "neccessary"], correct: 2 },
+            { word: "occurrence", options: ["occurence", "occurance", "occurrence", "occurrance"], correct: 2 },
+            { word: "personnel", options: ["personel", "personnel", "personell", "personnell"], correct: 1 },
+            { word: "conscious", options: ["concious", "consious", "conscious", "conscous"], correct: 2 },
+            { word: "defendant", options: ["defendent", "defendant", "defendint", "defandant"], correct: 1 },
+            { word: "dispatch", options: ["dispach", "dispatche", "dispatch", "dispetch"], correct: 2 },
+            { word: "emergency", options: ["emergancy", "emergency", "emergencey", "emergensy"], correct: 1 },
+            { word: "principal", options: ["principle", "principal", "prinsipal", "prinsiple"], correct: 1 },
+            { word: "their", options: ["there", "their", "thier", "they're"], correct: 1 },
+            { word: "definitely", options: ["definately", "definitly", "definitely", "definetly"], correct: 2 },
+            { word: "accommodate", options: ["acommodate", "accomodate", "accommodate", "acomodate"], correct: 2 },
+            { word: "existence", options: ["existance", "existence", "existense", "existents"], correct: 1 },
+            { word: "maintenance", options: ["maintainance", "maintenence", "maintenance", "maintanence"], correct: 2 },
+            { word: "pursuing", options: ["persuing", "pursuing", "pursueing", "persewing"], correct: 1 }
+        ];
+        
+        // Sentence Clarity Questions
+        const sentenceClarityQuestions = [
+            {
+                question: "Which sentence is the clearest?",
+                options: [
+                    "The car, which was red in color, was observed to be traveling at a high rate of speed down the road.",
+                    "The red car was speeding down the road.",
+                    "Down the road, there was a car that was red in color and it was speeding.",
+                    "A car that was speeding, red in color, was going down the road."
+                ],
+                correct: 1
+            },
+            {
+                question: "Which sentence communicates the information most effectively?",
+                options: [
+                    "The suspect, who was wearing a blue jacket, ran from the officers.",
+                    "From the officers, the suspect wearing a blue jacket ran.",
+                    "The suspect in the blue jacket fled from officers.",
+                    "Running from the officers was the suspect in a jacket that was blue."
+                ],
+                correct: 2
+            },
+            {
+                question: "Select the clearest version:",
+                options: [
+                    "The dispatcher was informed by the caller that there was a fire.",
+                    "A fire was what the caller informed the dispatcher about.",
+                    "The caller informed the dispatcher of a fire.",
+                    "It was a fire that the dispatcher was informed of by the caller."
+                ],
+                correct: 2
+            },
+            {
+                question: "Which sentence is most appropriate for a dispatch report?",
+                options: [
+                    "There were three units that responded to the scene where the accident occurred.",
+                    "Three units responded to the accident scene.",
+                    "To the scene of the accident, three units responded.",
+                    "The accident scene was where three units responded to."
+                ],
+                correct: 1
+            },
+            {
+                question: "Choose the clearest sentence:",
+                options: [
+                    "Medical assistance was being requested by a male caller for his wife.",
+                    "A male caller's wife needed medical assistance which he requested.",
+                    "A male caller requested medical assistance for his wife.",
+                    "For his wife, a male caller was requesting that medical assistance be provided."
+                ],
+                correct: 2
+            },
+            {
+                question: "Which version is best for radio communication?",
+                options: [
+                    "The vehicle that was stolen was located at the mall parking lot.",
+                    "Located at the mall parking lot was the vehicle that had been stolen.",
+                    "The stolen vehicle was located in the mall parking lot.",
+                    "At the mall parking lot, the vehicle, which was stolen, was located."
+                ],
+                correct: 2
+            },
+            {
+                question: "Select the most concise and clear option:",
+                options: [
+                    "The officer, who arrived at the scene first, secured the perimeter.",
+                    "Securing the perimeter was done by the officer who arrived first.",
+                    "The first officer on scene secured the perimeter.",
+                    "The perimeter was secured by the officer who was first to arrive at the scene."
+                ],
+                correct: 2
+            },
+            {
+                question: "Which sentence follows proper active voice?",
+                options: [
+                    "The suspect was apprehended by two officers.",
+                    "By two officers, the suspect was apprehended.",
+                    "Two officers apprehended the suspect.",
+                    "The apprehension of the suspect was made by two officers."
+                ],
+                correct: 2
+            },
+            {
+                question: "Choose the clearest way to report this information:",
+                options: [
+                    "In the direction of northbound on Highway 5, the suspect vehicle was last observed traveling.",
+                    "The suspect vehicle was last seen traveling northbound on Highway 5.",
+                    "Traveling northbound on Highway 5 is where the suspect vehicle was last seen.",
+                    "Last seen was the suspect vehicle, traveling in a northbound direction on Highway 5."
+                ],
+                correct: 1
+            },
+            {
+                question: "Which option is most appropriate for written documentation?",
+                options: [
+                    "At 15:30 hours, Officers Martinez and Chen were the ones who arrived at the location.",
+                    "The arrival at the location by Officers Martinez and Chen occurred at 15:30 hours.",
+                    "Officers Martinez and Chen arrived at the location at 15:30 hours.",
+                    "It was at 15:30 hours that Officers Martinez and Chen arrived at the location."
+                ],
+                correct: 2
+            }
+        ];
+        
+        // Mathematics Questions
+        const mathQuestions = [
+            {
+                question: "An officer began a traffic stop at 14:25 and completed it at 14:47. How long did the stop take?",
+                options: ["22 minutes", "32 minutes", "18 minutes", "25 minutes"],
+                correct: 0
+            },
+            {
+                question: "If three patrol units respond every 4 minutes, how many units will have responded after 12 minutes?",
+                options: ["6 units", "9 units", "12 units", "15 units"],
+                correct: 1
+            },
+            {
+                question: "A dispatcher handles 8 calls per hour. How many calls would they handle in a 12-hour shift?",
+                options: ["84 calls", "96 calls", "102 calls", "108 calls"],
+                correct: 1
+            },
+            {
+                question: "Convert 45 miles to kilometers (1 mile = 1.6 km):",
+                options: ["72 km", "68 km", "70 km", "75 km"],
+                correct: 0
+            },
+            {
+                question: "An officer drives 60 miles per hour. How far will they travel in 15 minutes?",
+                options: ["10 miles", "12 miles", "15 miles", "20 miles"],
+                correct: 2
+            },
+            {
+                question: "If 60% of calls are medical emergencies and you receive 150 calls, how many are medical?",
+                options: ["80", "85", "90", "95"],
+                correct: 2
+            },
+            {
+                question: "What is 24 × 15?",
+                options: ["340", "350", "360", "370"],
+                correct: 2
+            },
+            {
+                question: "A suspect is 3.5 miles away traveling at 50 mph. An officer is 2 miles away traveling at 60 mph. Who arrives first?",
+                options: ["Suspect", "Officer", "They arrive together", "Cannot determine"],
+                correct: 1
+            },
+            {
+                question: "Convert 135 minutes to hours and minutes:",
+                options: ["2 hours 15 minutes", "2 hours 25 minutes", "2 hours 35 minutes", "1 hour 75 minutes"],
+                correct: 0
+            },
+            {
+                question: "If a fire truck uses 12 gallons of fuel per hour, how much fuel is used in 45 minutes?",
+                options: ["8 gallons", "9 gallons", "10 gallons", "11 gallons"],
+                correct: 1
+            },
+            {
+                question: "What is 456 + 789?",
+                options: ["1,235", "1,245", "1,255", "1,265"],
+                correct: 1
+            },
+            {
+                question: "A dispatcher works from 06:00 to 18:00. How many hours is this shift?",
+                options: ["10 hours", "11 hours", "12 hours", "13 hours"],
+                correct: 2
+            },
+            {
+                question: "If response time averages 6.5 minutes and you have 8 calls, what is total response time?",
+                options: ["48 minutes", "50 minutes", "52 minutes", "54 minutes"],
+                correct: 2
+            },
+            {
+                question: "What is 20% of 250?",
+                options: ["40", "45", "50", "55"],
+                correct: 2
+            },
+            {
+                question: "An incident began at 09:35 and ended at 11:10. What was the duration?",
+                options: ["1 hour 25 minutes", "1 hour 35 minutes", "1 hour 45 minutes", "1 hour 55 minutes"],
+                correct: 1
+            },
+            {
+                question: "Divide 1,440 by 12:",
+                options: ["110", "115", "120", "125"],
+                correct: 2
+            },
+            {
+                question: "If you need 3 officers per scene and have 7 scenes, how many officers are needed?",
+                options: ["18", "19", "20", "21"],
+                correct: 3
+            },
+            {
+                question: "Convert 2.5 hours to minutes:",
+                options: ["130 minutes", "140 minutes", "150 minutes", "160 minutes"],
+                correct: 2
+            },
+            {
+                question: "What is the average of 12, 18, 24, and 30?",
+                options: ["19", "21", "23", "25"],
+                correct: 1
+            },
+            {
+                question: "If a call center receives 480 calls in 8 hours, what is the average per hour?",
+                options: ["55", "60", "65", "70"],
+                correct: 1
+            }
+        ];
         
         function openModule(moduleName) {
             if (event.target.classList.contains('coming-soon')) {
@@ -697,6 +1061,18 @@
                     break;
                 case 'mapReading':
                     showMapReading();
+                    break;
+                case 'readingComprehension':
+                    showReadingComprehension();
+                    break;
+                case 'spelling':
+                    showSpelling();
+                    break;
+                case 'sentenceClarity':
+                    showSentenceClarity();
+                    break;
+                case 'mathematics':
+                    showMathematics();
                     break;
             }
         }
@@ -1422,6 +1798,453 @@
                 if (a[i] !== b[i]) return false;
             }
             return true;
+        }
+        
+        // READING COMPREHENSION MODULE
+        function showReadingComprehension() {
+            document.getElementById('moduleTitle').textContent = '📘 Reading Comprehension Practice';
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = 0;
+            
+            // Calculate total questions across all passages
+            readingPassages.forEach(passage => {
+                totalQuestions += passage.questions.length;
+            });
+            
+            showNextPassage(0, 0);
+        }
+        
+        function showNextPassage(passageIndex, questionIndex) {
+            if (passageIndex >= readingPassages.length) {
+                showReadingResults();
+                return;
+            }
+            
+            const passage = readingPassages[passageIndex];
+            const question = passage.questions[questionIndex];
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0; border: 2px solid #007bff;">
+                    <h3 style="color: #007bff; margin-bottom: 15px;">${passage.title}</h3>
+                    <p style="line-height: 1.8; font-size: 16px; text-align: justify;">${passage.passage}</p>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 10px; border: 2px solid #28a745;">
+                    <h4 style="margin-bottom: 15px;">${question.q}</h4>
+                    ${question.options.map((opt, i) => `
+                        <div style="margin: 10px 0;">
+                            <label style="display: flex; align-items: center; padding: 12px; background: #f8f9fa; border-radius: 5px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
+                                <input type="radio" name="answer" value="${i}" style="margin-right: 10px; width: 20px; height: 20px;">
+                                <span style="font-size: 16px;">${opt}</span>
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitReadingAnswer(${passageIndex}, ${questionIndex})">Submit Answer</button>
+                </div>
+            `;
+        }
+        
+        function submitReadingAnswer(passageIndex, questionIndex) {
+            const selected = document.querySelector('input[name="answer"]:checked');
+            
+            if (!selected) {
+                alert('Please select an answer before submitting.');
+                return;
+            }
+            
+            const passage = readingPassages[passageIndex];
+            const question = passage.questions[questionIndex];
+            const userAnswer = parseInt(selected.value);
+            const correct = userAnswer === question.correct;
+            
+            if (correct) {
+                correctAnswers++;
+            }
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 15px; border-radius: 10px; margin-top: 15px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545');
+            feedback.innerHTML = `
+                <p style="font-size: 18px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                ${!correct ? `<p style="margin: 10px 0 0 0;">Correct answer: ${question.options[question.correct]}</p>` : ''}
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            // Move to next question
+            currentQuestion++;
+            setTimeout(() => {
+                questionIndex++;
+                if (questionIndex >= passage.questions.length) {
+                    passageIndex++;
+                    questionIndex = 0;
+                }
+                showNextPassage(passageIndex, questionIndex);
+            }, 1500);
+        }
+        
+        function showReadingResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Reading Comprehension Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Correct</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showReadingComprehension()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'readingComprehension',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // SPELLING MODULE
+        function showSpelling() {
+            document.getElementById('moduleTitle').textContent = '✏️ Spelling Practice';
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = spellingQuestions.length;
+            
+            showNextSpellingQuestion();
+        }
+        
+        function showNextSpellingQuestion() {
+            if (currentQuestion >= spellingQuestions.length) {
+                showSpellingResults();
+                return;
+            }
+            
+            const question = spellingQuestions[currentQuestion];
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin: 20px 0; text-align: center;">
+                    <h3 style="margin-bottom: 20px;">Which spelling is correct?</h3>
+                    <p style="font-size: 14px; color: #666; margin-bottom: 30px;">Select the correctly spelled word</p>
+                    
+                    ${question.options.map((opt, i) => `
+                        <div style="margin: 15px 0;">
+                            <label style="display: block; padding: 15px; background: white; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-size: 20px; font-family: monospace;" onmouseover="this.style.borderColor='#007bff'; this.style.transform='translateY(-2px)'" onmouseout="this.style.borderColor='#e0e0e0'; this.style.transform='translateY(0)'">
+                                <input type="radio" name="spelling" value="${i}" style="margin-right: 15px; width: 20px; height: 20px;">
+                                ${opt}
+                            </label>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitSpellingAnswer()">Submit Answer</button>
+                </div>
+            `;
+        }
+        
+        function submitSpellingAnswer() {
+            const selected = document.querySelector('input[name="spelling"]:checked');
+            
+            if (!selected) {
+                alert('Please select an answer before submitting.');
+                return;
+            }
+            
+            const question = spellingQuestions[currentQuestion];
+            const userAnswer = parseInt(selected.value);
+            const correct = userAnswer === question.correct;
+            
+            if (correct) {
+                correctAnswers++;
+            }
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 15px; border-radius: 10px; margin-top: 15px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545');
+            feedback.innerHTML = `
+                <p style="font-size: 18px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                ${!correct ? `<p style="margin: 10px 0 0 0; font-family: monospace; font-size: 20px;">Correct spelling: <strong>${question.options[question.correct]}</strong></p>` : ''}
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            // Move to next question
+            setTimeout(() => {
+                currentQuestion++;
+                showNextSpellingQuestion();
+            }, 1500);
+        }
+        
+        function showSpellingResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Spelling Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Correct</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showSpelling()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'spelling',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // SENTENCE CLARITY MODULE
+        function showSentenceClarity() {
+            document.getElementById('moduleTitle').textContent = '🗣️ Sentence Clarity Practice';
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = sentenceClarityQuestions.length;
+            
+            showNextClarityQuestion();
+        }
+        
+        function showNextClarityQuestion() {
+            if (currentQuestion >= sentenceClarityQuestions.length) {
+                showClarityResults();
+                return;
+            }
+            
+            const question = sentenceClarityQuestions[currentQuestion];
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin: 20px 0; border: 2px solid #ffc107; text-align: center;">
+                    <h3 style="color: #856404;">${question.question}</h3>
+                    <p style="font-size: 14px; color: #856404; margin-top: 10px;">Choose the clearest, most concise sentence</p>
+                </div>
+                
+                ${question.options.map((opt, i) => `
+                    <div style="margin: 15px 0;">
+                        <label style="display: block; padding: 15px; background: #f8f9fa; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#007bff'; this.style.transform='translateX(5px)'" onmouseout="this.style.borderColor='#e0e0e0'; this.style.transform='translateX(0)'">
+                            <input type="radio" name="clarity" value="${i}" style="margin-right: 10px; width: 18px; height: 18px;">
+                            <span style="font-size: 16px; line-height: 1.6;">${opt}</span>
+                        </label>
+                    </div>
+                `).join('')}
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitClarityAnswer()">Submit Answer</button>
+                </div>
+            `;
+        }
+        
+        function submitClarityAnswer() {
+            const selected = document.querySelector('input[name="clarity"]:checked');
+            
+            if (!selected) {
+                alert('Please select an answer before submitting.');
+                return;
+            }
+            
+            const question = sentenceClarityQuestions[currentQuestion];
+            const userAnswer = parseInt(selected.value);
+            const correct = userAnswer === question.correct;
+            
+            if (correct) {
+                correctAnswers++;
+            }
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 15px; border-radius: 10px; margin-top: 15px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545');
+            feedback.innerHTML = `
+                <p style="font-size: 18px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                ${!correct ? `<p style="margin: 10px 0 0 0;">Correct answer: ${question.options[question.correct]}</p>` : ''}
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            // Move to next question
+            setTimeout(() => {
+                currentQuestion++;
+                showNextClarityQuestion();
+            }, 1500);
+        }
+        
+        function showClarityResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Sentence Clarity Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Correct</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showSentenceClarity()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'sentenceClarity',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // MATHEMATICS MODULE
+        function showMathematics() {
+            document.getElementById('moduleTitle').textContent = '➕ Mathematics Practice';
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = mathQuestions.length;
+            
+            showNextMathQuestion();
+        }
+        
+        function showNextMathQuestion() {
+            if (currentQuestion >= mathQuestions.length) {
+                showMathResults();
+                return;
+            }
+            
+            const question = mathQuestions[currentQuestion];
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 25px; border-radius: 10px; margin: 20px 0; border: 2px solid #2196f3;">
+                    <h3 style="color: #1976d2; margin-bottom: 20px; text-align: center;">${question.question}</h3>
+                    <p style="text-align: center; color: #1976d2; font-size: 14px;">⚠ No calculator allowed - work it out mentally or on paper</p>
+                </div>
+                
+                ${question.options.map((opt, i) => `
+                    <div style="margin: 12px 0;">
+                        <label style="display: block; padding: 15px; background: white; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s; font-size: 18px;" onmouseover="this.style.borderColor='#2196f3'; this.style.background='#f5f5f5'" onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='white'">
+                            <input type="radio" name="math" value="${i}" style="margin-right: 12px; width: 20px; height: 20px;">
+                            <strong style="margin-right: 10px;">${String.fromCharCode(65 + i)})</strong> ${opt}
+                        </label>
+                    </div>
+                `).join('')}
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitMathAnswer()">Submit Answer</button>
+                </div>
+            `;
+        }
+        
+        function submitMathAnswer() {
+            const selected = document.querySelector('input[name="math"]:checked');
+            
+            if (!selected) {
+                alert('Please select an answer before submitting.');
+                return;
+            }
+            
+            const question = mathQuestions[currentQuestion];
+            const userAnswer = parseInt(selected.value);
+            const correct = userAnswer === question.correct;
+            
+            if (correct) {
+                correctAnswers++;
+            }
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 15px; border-radius: 10px; margin-top: 15px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545');
+            feedback.innerHTML = `
+                <p style="font-size: 18px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                ${!correct ? `<p style="margin: 10px 0 0 0;">Correct answer: ${question.options[question.correct]}</p>` : ''}
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            // Move to next question
+            setTimeout(() => {
+                currentQuestion++;
+                showNextMathQuestion();
+            }, 1500);
+        }
+        
+        function showMathResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Mathematics Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Correct</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showMathematics()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'mathematics',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
         }
     </script>
 </body>
