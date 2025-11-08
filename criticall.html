@@ -42,9 +42,27 @@
             cursor: pointer;
             transition: all 0.3s;
             min-height: 180px;
+            position: relative;
         }
         
-        .module-card:hover {
+        .module-card.coming-soon {
+            background: linear-gradient(135deg, #999 0%, #666 100%);
+            opacity: 0.7;
+        }
+        
+        .module-card.coming-soon::after {
+            content: "COMING SOON";
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(255,255,255,0.3);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .module-card:hover:not(.coming-soon) {
             transform: translateY(-5px);
             box-shadow: 0 15px 30px rgba(0,0,0,0.3);
         }
@@ -59,35 +77,94 @@
             font-size: 14px;
         }
         
-        .full-test-card {
-            grid-column: span 2;
-            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-        }
-        
-        .practice-area {
+        .module-overlay {
             display: none;
-            padding: 30px;
-            background: #f8f9fa;
-            margin: 20px;
-            border-radius: 15px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 9998;
         }
         
-        .practice-area.active {
+        .module-overlay.active {
             display: block;
         }
         
+        .module-container {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            max-width: 900px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            z-index: 9999;
+        }
+        
+        .module-container.active {
+            display: block;
+        }
+        
+        .module-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .close-btn {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        /* Audio Player Styles */
+        .audio-container {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .audio-player {
+            width: 100%;
+            margin: 15px 0;
+        }
+        
+        .play-count {
+            color: #666;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        /* Data Entry Form */
         .data-entry-form {
             background: white;
             padding: 20px;
             border-radius: 10px;
-            margin-bottom: 20px;
+            border: 2px solid #e0e0e0;
         }
         
         .form-row {
             display: grid;
-            grid-template-columns: 1fr 2fr;
+            grid-template-columns: 200px 1fr;
             gap: 15px;
             margin-bottom: 15px;
+            align-items: center;
         }
         
         .form-row label {
@@ -104,26 +181,21 @@
             font-size: 16px;
         }
         
-        .alert-popup {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
+        .form-row input:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        
+        /* Call Summarization Styles */
+        .incident-scenario {
             background: #fff3cd;
-            border: 3px solid #ffc107;
+            border: 2px solid #ffc107;
             padding: 20px;
             border-radius: 10px;
-            z-index: 9999;
-            animation: shake 0.5s;
+            margin: 20px 0;
         }
         
-        @keyframes shake {
-            0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
-            25% { transform: translate(-52%, -50%) rotate(-1deg); }
-            75% { transform: translate(-48%, -50%) rotate(1deg); }
-        }
-        
-        .decision-box {
+        .decision-section {
             background: white;
             border: 2px solid #007bff;
             padding: 20px;
@@ -131,106 +203,184 @@
             margin: 20px 0;
         }
         
-        .decision-buttons {
-            display: flex;
-            gap: 15px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        .priority-high { background: #dc3545; }
-        .priority-medium { background: #ffc107; color: black; }
-        .priority-low { background: #28a745; }
-                .difficulty-selector {
-            display: flex;
+        .checkbox-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
             gap: 10px;
-            margin: 20px 0;
-            justify-content: center;
+            margin: 15px 0;
         }
         
-        .difficulty-btn {
-            padding: 10px 20px;
-            border: 2px solid #007bff;
-            background: white;
-            cursor: pointer;
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: #f8f9fa;
             border-radius: 5px;
         }
         
-        .difficulty-btn.active {
-            background: #007bff;
-            color: white;
+        .checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
         }
         
-        .audio-player {
+        .priority-buttons {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .priority-btn {
+            flex: 1;
+            padding: 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .priority-btn.high { background: #dc3545; color: white; }
+        .priority-btn.medium { background: #ffc107; color: black; }
+        .priority-btn.low { background: #28a745; color: white; }
+        
+        .priority-btn.selected {
+            transform: scale(1.05);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        
+        /* Score Display */
+        .score-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        
+        .score-display h2 {
+            font-size: 48px;
+            margin: 20px 0;
+        }
+        
+        /* Memory Recall Styles */
+        .memory-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+            padding: 20px;
             background: #f8f9fa;
+            border-radius: 10px;
+        }
+        
+        .memory-item {
+            padding: 15px;
+            background: white;
+            border: 2px solid #007bff;
+            border-radius: 10px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .memory-question {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            margin: 15px 0;
+        }
+        
+        /* Map Styles */
+        .map-container {
+            background: white;
             padding: 20px;
             border-radius: 10px;
             margin: 20px 0;
-            text-align: center;
         }
         
         .map-grid {
             display: grid;
-            grid-template-columns: repeat(8, 80px);
+            grid-template-columns: repeat(10, 60px);
             gap: 0;
-            background: white;
-            padding: 20px;
-            position: relative;
+            margin: 20px 0;
+            border: 2px solid #333;
         }
         
         .map-cell {
-            border: 1px solid #ccc;
-            height: 80px;
+            border: 1px solid #ddd;
+            height: 60px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 10px;
+            font-size: 9px;
             position: relative;
-            background: #f9f9f9;
+            background: #f5f5f5;
+            text-align: center;
+            padding: 2px;
         }
         
-        .road { background: #ddd; }
-        .one-way-north::after { content: "↑"; position: absolute; color: blue; font-size: 20px; }
-        .one-way-south::after { content: "↓"; position: absolute; color: blue; font-size: 20px; }
-        .one-way-east::after { content: "→"; position: absolute; color: blue; font-size: 20px; }
-        .one-way-west::after { content: "←"; position: absolute; color: blue; font-size: 20px; }
+        .street-h, .street-v {
+            background: #999;
+            color: white;
+            font-weight: bold;
+        }
         
-        .building-hospital { background: #ff6b6b !important; color: white; }
-        .building-police { background: #4dabf7 !important; color: white; }
-        .building-fire { background: #ff8787 !important; color: white; }
-        .building-mall { background: #69db7c !important; }
-        .building-school { background: #ffd43b !important; }
+        .building {
+            font-size: 8px;
+            font-weight: bold;
+            padding: 2px;
+        }
         
-        .visual-memory-grid {
+        .building-hospital { background: #ff6b6b; color: white; }
+        .building-police { background: #4dabf7; color: white; }
+        .building-fire { background: #ff8787; color: white; }
+        .building-school { background: #ffd43b; }
+        .building-mall { background: #69db7c; }
+        .building-library { background: #da77f2; color: white; }
+        .building-park { background: #8ce99a; }
+        
+        .one-way::after {
+            position: absolute;
+            font-size: 20px;
+            color: #ff0000;
+            font-weight: bold;
+        }
+        
+        .one-way-n::after { content: "↑"; }
+        .one-way-s::after { content: "↓"; }
+        .one-way-e::after { content: "→"; }
+        .one-way-w::after { content: "←"; }
+        
+        .map-legend {
             display: grid;
-            grid-template-columns: repeat(3, 150px);
-            gap: 15px;
-            margin: 20px auto;
-            width: fit-content;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 10px;
+            margin: 15px 0;
         }
         
-        .memory-image {
-            width: 150px;
-            height: 150px;
-            border: 3px solid #ddd;
-            cursor: pointer;
-            border-radius: 10px;
-            padding: 10px;
+        .legend-item {
             display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 48px;
-            background: white;
+            gap: 10px;
+            font-size: 12px;
         }
         
-        .memory-image:hover {
-            border-color: #007bff;
-            transform: scale(1.05);
+        .legend-color {
+            width: 30px;
+            height: 20px;
+            border-radius: 3px;
         }
         
-        .memory-image.selected {
-            border-color: #28a745;
-            background: #d4edda;
+        .route-input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            font-size: 14px;
+            margin: 10px 0;
         }
     </style>
 </head>
@@ -238,707 +388,978 @@
     <div class="criticall-container">
         <div class="criticall-header">
             <h1>🚨 CritiCall Practice Modules</h1>
-            <p>Train for the 911 Dispatcher Assessment</p>
-            <button onclick="window.location.href='typing.html'" class="btn" style="background: white; color: #333;">← Back to Main</button>
+            <p>Emergency Services Dispatcher Training</p>
+            <button onclick="window.location.href='index.html'" class="btn btn-primary" style="margin-top: 15px;">← Back to Main Menu</button>
         </div>
         
-        <div class="module-grid" id="moduleGrid">
-            <!-- Enhanced modules with all CritiCall components -->
+        <div class="module-grid">
             <div class="module-card" onclick="openModule('dataEntry')">
-                <h3>⌨️ Data Entry</h3>
-                <p>Listen to calls and enter information accurately</p>
-                <small>Audio-based with multitasking</small>
+                <h3>📝 Data Entry</h3>
+                <p>Listen to emergency calls and accurately record caller information, location, and incident type.</p>
             </div>
             
-            <div class="module-card" onclick="openModule('decision')">
+            <div class="module-card" onclick="openModule('callSummarization')">
                 <h3>🎯 Call Summarization</h3>
-                <p>Listen and decide service + priority</p>
-                <small>Police, Fire, EMS, Utilities</small>
+                <p>Analyze emergency scenarios and determine appropriate services and priority levels.</p>
             </div>
             
-            <div class="module-card" onclick="openModule('memory')">
+            <div class="module-card" onclick="openModule('memoryRecall')">
                 <h3>🧠 Memory Recall</h3>
-                <p>Visual and audio memory tests</p>
-                <small>Progressive difficulty</small>
+                <p>Memorize and recall critical information from emergency scenarios.</p>
             </div>
             
-            <div class="module-card" onclick="openModule('map')">
+            <div class="module-card" onclick="openModule('mapReading')">
                 <h3>🗺️ Map Reading</h3>
-                <p>Complex navigation with one-way streets</p>
-                <small>Buildings and landmarks</small>
+                <p>Navigate city streets and determine optimal routes for emergency response.</p>
             </div>
             
-            <div class="module-card" onclick="openModule('multitask')">
-                <h3>🔄 Split Attention</h3>
-                <p>Multiple simultaneous tasks</p>
-                <small>The core CritiCall challenge</small>
+            <div class="module-card coming-soon">
+                <h3>📻 Radio Codes</h3>
+                <p>Learn and practice 10-codes and radio communication protocols.</p>
             </div>
             
-            <div class="module-card" onclick="openModule('priority')">
-                <h3>📊 Call Prioritization</h3>
-                <p>Triage multiple emergencies</p>
-                <small>Time-critical decisions</small>
+            <div class="module-card coming-soon">
+                <h3>🔊 Radio Traffic</h3>
+                <p>Practice listening to and interpreting emergency radio communications.</p>
             </div>
             
-            <div class="module-card" onclick="openModule('listening')">
-                <h3>👂 Listening Skills</h3>
-                <p>Radio traffic comprehension</p>
-                <small>No replay allowed</small>
+            <div class="module-card coming-soon">
+                <h3>🚗 VIN/License Entry</h3>
+                <p>Accurately enter vehicle identification numbers and license plates.</p>
             </div>
             
-            <div class="module-card" onclick="openModule('vinnumber')">
-                <h3>🚗 VIN/Plate Entry</h3>
-                <p>Alphanumeric accuracy test</p>
-                <small>Speed and precision</small>
-            </div>
-            
-            <div class="module-card" onclick="openModule('crossref')">
+            <div class="module-card coming-soon">
                 <h3>🔍 Cross-Reference</h3>
-                <p>Verify data across multiple sources</p>
-                <small>Database checking</small>
-            </div>
-            
-            <div class="module-card" onclick="openModule('character')">
-                <h3>📝 Character Comparison</h3>
-                <p>Spot differences in text strings</p>
-                <small>Attention to detail</small>
-            </div>
-            
-            <div class="module-card" onclick="openModule('spelling')">
-                <h3>✏️ Spelling/Grammar</h3>
-                <p>Professional report writing</p>
-                <small>Error detection</small>
-            </div>
-            
-            <div class="module-card" onclick="openModule('math')">
-                <h3>🧮 Math/Logic</h3>
-                <p>Calculate times and distances</p>
-                <small>Problem solving</small>
-            </div>
-            
-            <div class="module-card full-test-card" onclick="startFullTest()">
-                <h3>📝 Full CritiCall Simulation</h3>
-                <p>Complete 45-minute assessment</p>
-                <small>All modules, timed and scored</small>
+                <p>Verify caller information against database records.</p>
             </div>
         </div>
     </div>
-
-    <!-- Module Container - Hidden by default -->
-    <div id="moduleContainer" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: white; z-index: 9999; overflow-y: auto;">
-        <div style="max-width: 1200px; margin: 0 auto; padding: 20px;">
-            <button onclick="closeModule()" class="btn btn-danger" style="position: fixed; top: 20px; right: 20px; z-index: 10000;">✖ Close Module</button>
-            <div id="moduleContent"></div>
+    
+    <div class="module-overlay" id="moduleOverlay" onclick="closeModule()"></div>
+    <div class="module-container" id="moduleContainer">
+        <div class="module-header">
+            <h2 id="moduleTitle"></h2>
+            <button class="close-btn" onclick="closeModule()">✕ Close</button>
         </div>
+        <div id="moduleContent"></div>
     </div>
 
     <script>
-        // Enhanced module system with difficulty levels
-        let currentDifficulty = 'easy';
+        let auth, db;
         let currentModule = null;
-        let moduleScore = 0;
+        let currentQuestion = 0;
+        let correctAnswers = 0;
+        let totalQuestions = 0;
+        let audioPlayCount = 0;
+        let selectedPriority = null;
+        let selectedServices = [];
         
-        // Audio scenarios for data entry
-        const callScenarios = {
+        // Initialize Firebase
+        auth = firebase.auth();
+        db = firebase.firestore();
+        
+        // Data Entry Audio Files Database
+        const dataEntryScenarios = [
+            {
+                audioFile: "scenario1.mp3", // You'll add your actual audio files
+                answers: {
+                    callerName: "Sarah Johnson",
+                    address: "1245 Oak Street",
+                    incidentType: "Medical Emergency"
+                }
+            },
+            {
+                audioFile: "scenario2.mp3",
+                answers: {
+                    callerName: "Michael Chen",
+                    address: "789 Maple Avenue",
+                    incidentType: "House Fire"
+                }
+            },
+            {
+                audioFile: "scenario3.mp3",
+                answers: {
+                    callerName: "Emily Rodriguez",
+                    address: "456 Pine Boulevard",
+                    incidentType: "Car Accident"
+                }
+            }
+        ];
+        
+        // Call Summarization Scenarios
+        const callScenarios = [
+            {
+                scenario: "A 45-year-old male is experiencing severe chest pain and difficulty breathing. He is conscious but in obvious distress. His wife reports he has a history of heart problems.",
+                correctServices: ["ems"],
+                correctPriority: "high"
+            },
+            {
+                scenario: "Caller reports seeing smoke coming from a neighbor's garage. No flames visible yet, but the smell is getting stronger. No one appears to be home.",
+                correctServices: ["fire"],
+                correctPriority: "medium"
+            },
+            {
+                scenario: "A two-car collision at Main St and 5th Ave. Minor injuries reported, one vehicle is blocking the right lane. Both drivers are out of their vehicles.",
+                correctServices: ["police", "ems"],
+                correctPriority: "medium"
+            },
+            {
+                scenario: "Caller reports an unresponsive infant, not breathing. Mother is hysterical. Address is clear.",
+                correctServices: ["ems"],
+                correctPriority: "high"
+            },
+            {
+                scenario: "Neighbor reports a burglary in progress. Suspects are currently inside the residence. Homeowners are on vacation.",
+                correctServices: ["police"],
+                correctPriority: "high"
+            },
+            {
+                scenario: "Elderly woman fell in her bathroom. She is conscious and alert but cannot get up. No visible injuries but complaining of hip pain.",
+                correctServices: ["ems"],
+                correctPriority: "medium"
+            },
+            {
+                scenario: "Structure fire fully involved, multiple floors. Building is a commercial warehouse. All occupants have evacuated safely.",
+                correctServices: ["fire", "police"],
+                correctPriority: "high"
+            },
+            {
+                scenario: "Carbon monoxide alarm sounding in a residence. Family members are feeling dizzy and nauseous. They are outside now.",
+                correctServices: ["fire", "ems"],
+                correctPriority: "high"
+            },
+            {
+                scenario: "Suspicious person loitering near a school playground. School is currently in session. Individual is not responding to staff requests to leave.",
+                correctServices: ["police"],
+                correctPriority: "medium"
+            },
+            {
+                scenario: "Tree branch fell on power lines during storm. Sparking visible. Lines are across the roadway blocking both lanes.",
+                correctServices: ["fire", "police", "utilities"],
+                correctPriority: "high"
+            },
+            {
+                scenario: "Caller reports her medication was stolen from her vehicle overnight. Vehicle was parked in her driveway.",
+                correctServices: ["police"],
+                correctPriority: "low"
+            },
+            {
+                scenario: "Domestic disturbance. Neighbors report shouting and sounds of items breaking. Children's voices heard crying.",
+                correctServices: ["police"],
+                correctPriority: "high"
+            },
+            {
+                scenario: "Gas leak reported at a restaurant. Strong odor throughout the building. Building has been evacuated.",
+                correctServices: ["fire", "utilities"],
+                correctPriority: "high"
+            },
+            {
+                scenario: "Vehicle vs pedestrian accident. Pedestrian is conscious, sitting on curb. Visible leg injury. Driver remained on scene.",
+                correctServices: ["police", "ems"],
+                correctPriority: "high"
+            },
+            {
+                scenario: "Caller locked keys in car with infant inside. Weather is hot, approximately 85°F. Infant appears alert through window.",
+                correctServices: ["fire", "police"],
+                correctPriority: "high"
+            }
+        ];
+        
+        // Memory Recall Questions by Difficulty
+        const memoryQuestions = {
             easy: [
                 {
-                    audio: "911, what's your emergency? ... My name is John Smith ... I'm at 123 Main Street ... There's been a car accident ... No one appears hurt",
-                    expectedData: {
-                        name: "John Smith",
-                        address: "123 Main Street",
-                        incident: "Car accident",
-                        injuries: "None"
-                    }
+                    items: ["Badge 423", "Unit 7", "Oak Street", "10-4", "Engine 2"],
+                    questions: [
+                        { q: "What badge number was shown?", a: "423" },
+                        { q: "What unit number was mentioned?", a: "7" },
+                        { q: "What street name appeared?", a: "Oak Street" }
+                    ]
                 },
                 {
-                    audio: "I need help! ... Mary Johnson ... 456 Oak Avenue, Apartment 3B ... My mother is having chest pains ... She's conscious but struggling",
-                    expectedData: {
-                        name: "Mary Johnson",
-                        address: "456 Oak Avenue Apt 3B",
-                        incident: "Chest pains",
-                        status: "Conscious"
-                    }
+                    items: ["Code 3", "Maple Ave", "Badge 156", "Squad 9", "10-23"],
+                    questions: [
+                        { q: "What code was displayed?", a: "Code 3" },
+                        { q: "What avenue was shown?", a: "Maple Ave" },
+                        { q: "What was the badge number?", a: "156" }
+                    ]
                 }
             ],
             medium: [
                 {
-                    audio: "There's a fire! ... Dave Wilson ... 789 Pine Street, between 5th and 6th Avenue ... Smoke from the second floor ... I think someone's inside",
-                    expectedData: {
-                        name: "Dave Wilson",
-                        address: "789 Pine Street",
-                        cross: "5th and 6th Avenue",
-                        incident: "Structure fire",
-                        occupants: "Possible trapped"
-                    }
+                    items: ["Suspect: Male, 6'2\"", "Weapon: Handgun", "Vehicle: Blue Sedan", "Plate: ABC 1234", "Direction: Northbound", "Last Seen: 5th & Main"],
+                    questions: [
+                        { q: "What was the suspect's height?", a: "6'2\"" },
+                        { q: "What type of weapon was mentioned?", a: "Handgun" },
+                        { q: "What color was the vehicle?", a: "Blue" },
+                        { q: "What was the license plate number?", a: "ABC 1234" },
+                        { q: "Which direction was the suspect heading?", a: "Northbound" }
+                    ]
+                },
+                {
+                    items: ["DOB: 03/15/1985", "Lic#: D532-8877-2341", "Height: 5'9\"", "Eyes: Brown", "Hair: Black", "Weight: 180 lbs"],
+                    questions: [
+                        { q: "What was the date of birth?", a: "03/15/1985" },
+                        { q: "What was the license number?", a: "D532-8877-2341" },
+                        { q: "What was the eye color?", a: "Brown" },
+                        { q: "What was the person's height?", a: "5'9\"" },
+                        { q: "What was the weight listed?", a: "180 lbs" }
+                    ]
                 }
             ],
             hard: [
                 {
-                    audio: "Multiple injuries ... Sarah Chen ... Highway 401 eastbound near exit 42 ... Three vehicle collision ... Entrapment ... Fuel leaking",
-                    expectedData: {
-                        name: "Sarah Chen",
-                        location: "Highway 401 EB near exit 42",
-                        incident: "Multi-vehicle collision",
-                        hazards: "Entrapment, fuel leak"
-                    }
+                    items: ["Call#: 2024-7893", "Time: 14:37", "Caller: Martinez, J.", "Location: 4521 Elmwood Dr, Apt 3B", "DOB: 11/22/1978", "Lic#: M582-3344-9871", "Responding: Units 7, 12, Engine 4", "Code: 10-52 with 10-18"],
+                    questions: [
+                        { q: "What was the call number?", a: "2024-7893" },
+                        { q: "What time was the call received?", a: "14:37" },
+                        { q: "What was the complete address including apartment?", a: "4521 Elmwood Dr, Apt 3B" },
+                        { q: "What was the caller's date of birth?", a: "11/22/1978" },
+                        { q: "List all responding units (separated by commas)", a: "7, 12, Engine 4" },
+                        { q: "What codes were mentioned?", a: "10-52 with 10-18" }
+                    ]
+                },
+                {
+                    items: ["Incident#: 2024-15673", "Complainant: Rodriguez-Smith, M.", "Address: 8934 Pinecrest Blvd #215", "Vehicle: 2019 Toyota Camry, Gray", "VIN: 4T1BF1FK3KU123456", "Suspect: White Male, 5'11\", 175lbs", "Clothing: Blue hoodie, jeans", "Time: 09:15 - 09:42"],
+                    questions: [
+                        { q: "What was the incident number?", a: "2024-15673" },
+                        { q: "What was the complainant's full name?", a: "Rodriguez-Smith, M." },
+                        { q: "What was the complete address?", a: "8934 Pinecrest Blvd #215" },
+                        { q: "What was the vehicle VIN?", a: "4T1BF1FK3KU123456" },
+                        { q: "Describe the suspect's clothing", a: "Blue hoodie, jeans" },
+                        { q: "What was the time frame of the incident?", a: "09:15 - 09:42" }
+                    ]
                 }
             ]
         };
         
+        // Map Reading Scenarios
+        const mapScenarios = [
+            {
+                question: "Route from Hospital to the Fire at Main St & 4th Ave",
+                start: "Hospital",
+                end: "Fire",
+                correctRoute: ["Main St south", "4th Ave east"],
+                avoidStreets: ["Oak St (one-way north)"]
+            },
+            {
+                question: "Route from Police Station to accident at Oak St & 2nd Ave",
+                start: "Police",
+                end: "Accident",
+                correctRoute: ["1st Ave north", "Oak St east"],
+                avoidStreets: []
+            },
+            {
+                question: "Route from Fire Station to School emergency",
+                start: "Fire Station",
+                end: "School",
+                correctRoute: ["3rd Ave south", "Pine St west", "2nd Ave south"],
+                avoidStreets: ["Elm St (one-way east)"]
+            }
+        ];
+        
         function openModule(moduleName) {
+            if (event.target.classList.contains('coming-soon')) {
+                alert('This module is coming soon! Check back later.');
+                return;
+            }
+            
             currentModule = moduleName;
-            const container = document.getElementById('moduleContainer');
-            const content = document.getElementById('moduleContent');
-            
-            container.style.display = 'block';
+            document.getElementById('moduleOverlay').classList.add('active');
+            document.getElementById('moduleContainer').classList.add('active');
             document.body.style.overflow = 'hidden';
-            
-            // Show difficulty selector
-            content.innerHTML = `
-                <h2 style="text-align: center; margin: 30px 0;">Select Difficulty Level</h2>
-                <div class="difficulty-selector">
-                    <button class="difficulty-btn ${currentDifficulty === 'easy' ? 'active' : ''}" onclick="setDifficulty('easy')">Easy</button>
-                    <button class="difficulty-btn ${currentDifficulty === 'medium' ? 'active' : ''}" onclick="setDifficulty('medium')">Medium</button>
-                    <button class="difficulty-btn ${currentDifficulty === 'hard' ? 'active' : ''}" onclick="setDifficulty('hard')">Hard</button>
-                </div>
-                <div style="text-align: center; margin-top: 30px;">
-                    <button class="btn btn-success" onclick="startModule('${moduleName}')">Start ${getModuleTitle(moduleName)}</button>
-                </div>
-            `;
-        }
-        
-        function getModuleTitle(moduleName) {
-            const titles = {
-                dataEntry: 'Data Entry',
-                decision: 'Call Summarization',
-                memory: 'Memory Recall',
-                map: 'Map Reading',
-                multitask: 'Split Attention',
-                priority: 'Call Prioritization',
-                listening: 'Listening Skills',
-                vinnumber: 'VIN/Plate Entry',
-                crossref: 'Cross-Reference',
-                character: 'Character Comparison',
-                spelling: 'Spelling/Grammar',
-                math: 'Math/Logic'
-            };
-            return titles[moduleName] || moduleName;
-        }
-        
-        function setDifficulty(level) {
-            currentDifficulty = level;
-            document.querySelectorAll('.difficulty-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
-        }
-        
-        function startModule(moduleName) {
-            const content = document.getElementById('moduleContent');
             
             switch(moduleName) {
                 case 'dataEntry':
-                    showEnhancedDataEntry();
+                    showDataEntry();
                     break;
-                case 'decision':
-                    showEnhancedDecision();
+                case 'callSummarization':
+                    showCallSummarization();
                     break;
-                case 'memory':
-                    showEnhancedMemory();
+                case 'memoryRecall':
+                    showMemoryRecall();
                     break;
-                case 'map':
-                    showEnhancedMap();
+                case 'mapReading':
+                    showMapReading();
                     break;
-                case 'listening':
-                    showListeningSkills();
-                    break;
-                case 'vinnumber':
-                    showVINEntry();
-                    break;
-                case 'crossref':
-                    showCrossReference();
-                    break;
-                default:
-                    alert('Module coming soon!');
-                    closeModule();
             }
-        }
-        
-        function showEnhancedDataEntry() {
-            const scenario = callScenarios[currentDifficulty][0];
-            const content = document.getElementById('moduleContent');
-            
-            // Create audio simulation
-            const audioText = scenario.audio;
-            const words = audioText.split(' ');
-            let currentWord = 0;
-            
-            content.innerHTML = `
-                <h2>📞 Data Entry - ${currentDifficulty.toUpperCase()} Level</h2>
-                
-                <div class="audio-player">
-                    <h3>Incoming 911 Call</h3>
-                    <button class="btn btn-primary" onclick="playCallAudio()">▶️ Play Call Audio</button>
-                    <p style="margin-top: 15px; font-style: italic;">Note: In the real test, you cannot replay the audio</p>
-                    <div id="audioTranscript" style="margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px; min-height: 60px; display: none;">
-                        <span id="audioText"></span>
-                    </div>
-                </div>
-                
-                <div class="data-entry-form">
-                    <h3>Enter Call Information:</h3>
-                    <div class="form-row">
-                        <label>Caller Name:</label>
-                        <input type="text" id="callerName" placeholder="Enter caller's full name">
-                    </div>
-                    <div class="form-row">
-                        <label>Address/Location:</label>
-                        <input type="text" id="address" placeholder="Enter complete address">
-                    </div>
-                    <div class="form-row">
-                        <label>Incident Type:</label>
-                        <input type="text" id="incident" placeholder="Type of emergency">
-                    </div>
-                    <div class="form-row">
-                        <label>Additional Details:</label>
-                        <input type="text" id="details" placeholder="Important information">
-                    </div>
-                </div>
-                
-                <button class="btn btn-success" onclick="submitDataEntry()">Submit Entry</button>
-                
-                <div id="interruptionZone"></div>
-            `;
-            
-            // Function to simulate audio playback
-            window.playCallAudio = function() {
-                const btn = event.target;
-                btn.disabled = true;
-                btn.textContent = '🔊 Playing...';
-                
-                document.getElementById('audioTranscript').style.display = 'block';
-                const textElement = document.getElementById('audioText');
-                
-                // Simulate audio playback with text
-                const interval = setInterval(() => {
-                    if (currentWord < words.length) {
-                        textElement.textContent += words[currentWord] + ' ';
-                        currentWord++;
-                    } else {
-                        clearInterval(interval);
-                        btn.textContent = '✓ Call Completed';
-                        
-                        // Simulate interruption after 3 seconds
-                        setTimeout(() => {
-                            showDataEntryInterruption();
-                        }, 3000);
-                    }
-                }, 200); // Simulate speaking speed
-            };
-        }
-        
-        function showDataEntryInterruption() {
-            const zone = document.getElementById('interruptionZone');
-            zone.innerHTML = `
-                <div class="alert-popup" style="position: relative; margin-top: 20px;">
-                    <h3>⚠️ PRIORITY DISPATCH</h3>
-                    <p>Unit 24 requesting immediate backup - Code 3</p>
-                    <p>Location: 500 Block of Elm Street</p>
-                    <button onclick="this.parentElement.remove()">Acknowledge (SPACE)</button>
-                </div>
-            `;
-        }
-        
-        function showEnhancedDecision() {
-            const content = document.getElementById('moduleContent');
-            
-            const scenarios = {
-                easy: [
-                    {
-                        call: "Caller reports their car was broken into overnight. Windows smashed, stereo stolen.",
-                        correctService: "police",
-                        correctPriority: "low"
-                    }
-                ],
-                medium: [
-                    {
-                        call: "Elderly man fell down stairs. Conscious but confused, possible head injury. Wife on scene.",
-                        correctService: "ems",
-                        correctPriority: "high"
-                    }
-                ],
-                hard: [
-                    {
-                        call: "Power lines down across road after storm. Sparking visible. Car trapped underneath, occupants inside.",
-                        correctService: "multi",
-                        correctPriority: "critical"
-                    }
-                ]
-            };
-            
-            const scenario = scenarios[currentDifficulty][0];
-            
-            content.innerHTML = `
-                <h2>🎯 Call Summarization - ${currentDifficulty.toUpperCase()}</h2>
-                
-                <div class="decision-box">
-                    <h3>Incoming Call:</h3>
-                    <p style="font-size: 18px; padding: 20px; background: #f8f9fa; border-radius: 10px;">
-                        "${scenario.call}"
-                    </p>
-                    
-                    <h4>Select ALL appropriate services:</h4>
-                    <div class="decision-buttons">
-                        <label><input type="checkbox" id="police"> 👮 Police</label>
-                        <label><input type="checkbox" id="fire"> 🚒 Fire</label>
-                        <label><input type="checkbox" id="ems"> 🚑 EMS</label>
-                        <label><input type="checkbox" id="utilities"> ⚡ Utilities</label>
-                    </div>
-                    
-                    <h4>Select Priority Level:</h4>
-                    <div class="decision-buttons">
-                        <button class="btn priority-low" onclick="selectPriority('low')">LOW - Routine</button>
-                        <button class="btn priority-medium" onclick="selectPriority('medium')">MEDIUM - Urgent</button>
-                        <button class="btn priority-high" onclick="selectPriority('high')">HIGH - Emergency</button>
-                        ${currentDifficulty === 'hard' ? '<button class="btn" style="background: purple; color: white;" onclick="selectPriority(\'critical\')">CRITICAL - Life Threat</button>' : ''}
-                    </div>
-                    
-                    <button class="btn btn-success" style="margin-top: 20px;" onclick="submitDecision()">Submit Decision</button>
-                </div>
-            `;
-        }
-        
-        function showEnhancedMemory() {
-            const content = document.getElementById('moduleContent');
-            
-            if (currentDifficulty === 'easy') {
-                // Visual memory with images
-                const items = ['🚗', '🏠', '👤', '📱', '🔥', '🚑'];
-                const toRemember = items.slice(0, 4);
-                
-                content.innerHTML = `
-                    <h2>🧠 Visual Memory - EASY</h2>
-                    <p>Memorize these items. They will disappear in 10 seconds.</p>
-                    
-                    <div id="memoryDisplay" style="font-size: 72px; text-align: center; padding: 40px; background: white; border-radius: 10px;">
-                        ${toRemember.join(' ')}
-                    </div>
-                    
-                    <div id="memoryTest" style="display: none;">
-                        <h3>Which items did you see? Select all that apply:</h3>
-                        <div class="visual-memory-grid">
-                            ${items.concat(['🎯', '💊']).sort(() => Math.random() - 0.5).map((item, i) => 
-                                `<div class="memory-image" onclick="toggleMemorySelection(this)" data-item="${item}">${item}</div>`
-                            ).join('')}
-                        </div>
-                        <button class="btn btn-success" onclick="checkVisualMemory()">Submit</button>
-                    </div>
-                `;
-                
-                setTimeout(() => {
-                    document.getElementById('memoryDisplay').style.display = 'none';
-                    document.getElementById('memoryTest').style.display = 'block';
-                }, 10000);
-                
-                window.toggleMemorySelection = function(element) {
-                    element.classList.toggle('selected');
-                };
-                
-                window.checkVisualMemory = function() {
-                    const selected = Array.from(document.querySelectorAll('.memory-image.selected'))
-                        .map(el => el.dataset.item);
-                    const correct = toRemember.filter(item => selected.includes(item)).length;
-                    const incorrect = selected.filter(item => !toRemember.includes(item)).length;
-                    const score = Math.max(0, (correct - incorrect) / toRemember.length * 100);
-                    
-                    alert(`Score: ${Math.round(score)}%\nCorrect: ${correct}/${toRemember.length}`);
-                    saveModuleResult('memory', score);
-                };
-            } else {
-                // Audio memory for medium/hard
-                showStandardMemory();
-            }
-        }
-        
-        function showEnhancedMap() {
-            const content = document.getElementById('moduleContent');
-            
-            // Create a more complex map
-            const buildings = {
-                'B2': '🏥 Hospital',
-                'F2': '👮 Police',
-                'D4': '🚒 Fire',
-                'G6': '🏪 Mall',
-                'B6': '🏫 School',
-                'E3': '🏢 Office'
-            };
-            
-            content.innerHTML = `
-                <h2>🗺️ Advanced Map Navigation</h2>
-                
-                <div class="map-grid">
-                    ${Array.from({length: 64}, (_, i) => {
-                        const row = Math.floor(i / 8);
-                        const col = i % 8;
-                        const coord = String.fromCharCode(65 + col) + (row + 1);
-                        const building = buildings[coord];
-                        
-                        // Create roads and one-way streets
-                        let classes = 'map-cell';
-                        let content = coord;
-                        
-                        if (building) {
-                            classes += ' building-' + (building.includes('Hospital') ? 'hospital' : 
-                                                    building.includes('Police') ? 'police' :
-                                                    building.includes('Fire') ? 'fire' :
-                                                    building.includes('School') ? 'school' : 'mall');
-                            content = building;
-                        } else if (row % 2 === 1 || col % 2 === 1) {
-                            classes += ' road';
-                            
-                            // Add one-way streets
-                            if (row === 3 && col % 2 === 1) classes += ' one-way-east';
-                            if (row === 5 && col % 2 === 1) classes += ' one-way-west';
-                            if (col === 3 && row % 2 === 1) classes += ' one-way-north';
-                        }
-                        
-                        return `<div class="${classes}">${content}</div>`;
-                    }).join('')}
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <h3>Scenario:</h3>
-                    <p>Ambulance at the Hospital (B2) needs to reach the School (B6). Note the one-way streets!</p>
-                    <input type="text" id="routeAnswer" placeholder="Enter route (e.g., B2-B3-B4-B5-B6)" style="width: 100%; padding: 10px;">
-                    <button class="btn btn-success" onclick="checkRoute()">Submit Route</button>
-                </div>
-            `;
-        }
-        
-        function showListeningSkills() {
-            const content = document.getElementById('moduleContent');
-            
-            const radioTraffic = {
-                easy: "Unit 12 responding to 456 Main Street. ETA 5 minutes.",
-                medium: "Unit 12 and Unit 37 responding Code 3 to 456 Main Street. Backup requested. Suspect described as male, 6 feet, blue jacket.",
-                hard: "Multiple units responding. Unit 12 at Main and 5th. Unit 37 proceeding northbound on Oak. Unit 45 establishing perimeter at Pine and 3rd. Suspect last seen eastbound on foot, white male, 6 feet, blue jacket, possibly armed."
-            };
-            
-            const traffic = radioTraffic[currentDifficulty];
-            
-            content.innerHTML = `
-                <h2>👂 Radio Traffic Comprehension</h2>
-                
-                <div class="audio-player">
-                    <h3>Listen carefully - you can only play this ONCE</h3>
-                    <button class="btn btn-primary" id="radioPlayBtn" onclick="playRadioTraffic()">▶️ Play Radio Traffic</button>
-                    <div id="radioText" style="display: none; margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 10px;"></div>
-                </div>
-                
-                <div id="radioQuestions" style="display: none; margin-top: 30px;">
-                    <h3>Answer these questions:</h3>
-                    <div style="margin: 15px 0;">
-                        <label>Which unit(s) responded?</label>
-                        <input type="text" id="q1" style="width: 100%; padding: 10px;">
-                    </div>
-                    <div style="margin: 15px 0;">
-                        <label>What was the location?</label>
-                        <input type="text" id="q2" style="width: 100%; padding: 10px;">
-                    </div>
-                    ${currentDifficulty !== 'easy' ? `
-                    <div style="margin: 15px 0;">
-                        <label>Describe the suspect (if mentioned):</label>
-                        <input type="text" id="q3" style="width: 100%; padding: 10px;">
-                    </div>` : ''}
-                    <button class="btn btn-success" onclick="checkListening()">Submit Answers</button>
-                </div>
-            `;
-            
-            window.playRadioTraffic = function() {
-                const btn = document.getElementById('radioPlayBtn');
-                btn.disabled = true;
-                btn.textContent = '🔊 Playing...';
-                
-                // Simulate radio static and voice
-                const words = traffic.split(' ');
-                let index = 0;
-                
-                const radioText = document.getElementById('radioText');
-                radioText.style.display = 'block';
-                radioText.innerHTML = '<em>*static* ...</em>';
-                
-                const interval = setInterval(() => {
-                    if (index < words.length) {
-                        radioText.innerHTML = '<em>*radio traffic playing*</em> ' + '█'.repeat(index % 10);
-                        index++;
-                    } else {
-                        clearInterval(interval);
-                        radioText.innerHTML = '<em>*transmission ended*</em>';
-                        btn.textContent = '✓ Transmission Complete';
-                        document.getElementById('radioQuestions').style.display = 'block';
-                    }
-                }, 150);
-            };
-        }
-        
-        function showVINEntry() {
-            const content = document.getElementById('moduleContent');
-            
-            const vins = {
-                easy: ["ABC123", "XYZ789", "DEF456"],
-                medium: ["1HGBH41JXMN109186", "2G1WF52E059246031", "JH4KA8260MC000000"],
-                hard: ["WBAVM1C50EVW48592", "1FTFW1ET5DFC10312", "5YJSA1DN5CFP01785"]
-            };
-            
-            const currentVINs = vins[currentDifficulty];
-            
-            content.innerHTML = `
-                <h2>🚗 VIN/License Plate Entry</h2>
-                <p>Enter these ${currentDifficulty === 'easy' ? 'license plates' : 'VIN numbers'} exactly as shown:</p>
-                
-                <div style="background: white; padding: 30px; border-radius: 10px; font-family: monospace; font-size: 24px; letter-spacing: 2px;">
-                    ${currentVINs.map((vin, i) => `
-                        <div style="margin: 20px 0;">
-                            <div style="background: #f8f9fa; padding: 10px; border: 2px solid #333; display: inline-block;">
-                                ${vin}
-                            </div>
-                            <div style="margin-top: 10px;">
-                                <input type="text" id="vin${i}" placeholder="Type exactly what you see above" 
-                                       style="font-family: monospace; font-size: 20px; padding: 10px; width: 400px;">
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-                
-                <button class="btn btn-success" onclick="checkVINEntry()">Submit</button>
-            `;
-            
-            window.checkVINEntry = function() {
-                let correct = 0;
-                currentVINs.forEach((vin, i) => {
-                    const entered = document.getElementById(`vin${i}`).value;
-                    if (entered === vin) correct++;
-                });
-                
-                const score = (correct / currentVINs.length) * 100;
-                alert(`Accuracy: ${score}%\n${correct}/${currentVINs.length} correct`);
-                saveModuleResult('vinnumber', score);
-            };
-        }
-        
-        function showCrossReference() {
-            const content = document.getElementById('moduleContent');
-            
-            // Create a database to check against
-            const database = [
-                { name: "John Smith", dob: "01/15/1985", license: "S530-1234-5678" },
-                { name: "Jane Doe", dob: "06/22/1990", license: "D000-9876-5432" },
-                { name: "Robert Johnson", dob: "11/30/1978", license: "J525-5555-1111" },
-                { name: "Mary Williams", dob: "03/10/1992", license: "W425-3333-2222" }
-            ];
-            
-            content.innerHTML = `
-                <h2>🔍 Cross-Reference Check</h2>
-                
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div>
-                        <h3>Caller Information:</h3>
-                        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px;">
-                            <p>Name: John Smith</p>
-                            <p>DOB: 01/15/1985</p>
-                            <p>License: S530-1234-5679</p>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <h3>Database Records:</h3>
-                        <div style="background: white; border: 1px solid #ddd; padding: 10px; border-radius: 10px; max-height: 300px; overflow-y: auto;">
-                            ${database.map((record, i) => `
-                                <div style="margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 5px;">
-                                    <strong>Record ${i + 1}:</strong><br>
-                                    ${record.name}<br>
-                                    DOB: ${record.dob}<br>
-                                    License: ${record.license}
-                                </div>
-                            `).join('')}
-                        </div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 20px;">
-                    <h3>Verification Questions:</h3>
-                    <p>Does the caller's information match the database?</p>
-                    <button class="btn btn-success" onclick="verifyMatch(false)">✓ Exact Match</button>
-                    <button class="btn btn-warning" onclick="verifyMatch(true)">⚠ Discrepancy Found</button>
-                </div>
-            `;
-            
-            window.verifyMatch = function(foundDiscrepancy) {
-                // The license number is off by one digit (5679 vs 5678)
-                if (foundDiscrepancy) {
-                    alert('Correct! You found the discrepancy in the license number.');
-                    saveModuleResult('crossref', 100);
-                } else {
-                    alert('Look closer - there is a discrepancy in the data.');
-                    saveModuleResult('crossref', 0);
-                }
-            };
         }
         
         function closeModule() {
-            document.getElementById('moduleContainer').style.display = 'none';
+            document.getElementById('moduleOverlay').classList.remove('active');
+            document.getElementById('moduleContainer').classList.remove('active');
             document.body.style.overflow = 'auto';
             currentModule = null;
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = 0;
+            audioPlayCount = 0;
         }
         
-        function saveModuleResult(module, score) {
+        // DATA ENTRY MODULE
+        function showDataEntry() {
+            document.getElementById('moduleTitle').textContent = '📝 Data Entry Practice';
+            
+            // For demo purposes, we'll use a random scenario
+            // In production, you'd cycle through them or let teacher select
+            const scenario = dataEntryScenarios[Math.floor(Math.random() * dataEntryScenarios.length)];
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <div class="audio-container">
+                    <h3>🎧 Listen Carefully to the Emergency Call</h3>
+                    <p>You may play the audio as many times as needed. Take notes if necessary.</p>
+                    <audio id="emergencyAudio" class="audio-player" controls>
+                        <source src="${scenario.audioFile}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    <p class="play-count">Times played: <span id="playCount">0</span></p>
+                </div>
+                
+                <div class="data-entry-form">
+                    <h3>Enter the information from the call:</h3>
+                    <div class="form-row">
+                        <label>Caller Name:</label>
+                        <input type="text" id="callerName" placeholder="First and Last Name">
+                    </div>
+                    <div class="form-row">
+                        <label>Address/Location:</label>
+                        <input type="text" id="address" placeholder="Street address or location">
+                    </div>
+                    <div class="form-row">
+                        <label>Incident Type:</label>
+                        <input type="text" id="incidentType" placeholder="Type of emergency">
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitDataEntry()">Submit Entry</button>
+                </div>
+            `;
+            
+            // Track audio plays
+            const audio = document.getElementById('emergencyAudio');
+            audio.addEventListener('play', function() {
+                audioPlayCount++;
+                document.getElementById('playCount').textContent = audioPlayCount;
+            });
+            
+            // Store correct answers for checking
+            window.currentDataEntryAnswers = scenario.answers;
+        }
+        
+        function submitDataEntry() {
+            const userAnswers = {
+                callerName: document.getElementById('callerName').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                incidentType: document.getElementById('incidentType').value.trim()
+            };
+            
+            const correctAnswers = window.currentDataEntryAnswers;
+            let score = 0;
+            let feedback = [];
+            
+            // Check Caller Name (case-insensitive, flexible matching)
+            if (userAnswers.callerName.toLowerCase() === correctAnswers.callerName.toLowerCase()) {
+                score += 33.33;
+                feedback.push('✓ Caller Name: Correct');
+            } else {
+                feedback.push('✗ Caller Name: Incorrect (Correct: ' + correctAnswers.callerName + ')');
+            }
+            
+            // Check Address (case-insensitive, flexible matching)
+            if (userAnswers.address.toLowerCase() === correctAnswers.address.toLowerCase()) {
+                score += 33.33;
+                feedback.push('✓ Address: Correct');
+            } else {
+                feedback.push('✗ Address: Incorrect (Correct: ' + correctAnswers.address + ')');
+            }
+            
+            // Check Incident Type (case-insensitive, flexible matching)
+            if (userAnswers.incidentType.toLowerCase() === correctAnswers.incidentType.toLowerCase()) {
+                score += 33.34;
+                feedback.push('✓ Incident Type: Correct');
+            } else {
+                feedback.push('✗ Incident Type: Incorrect (Correct: ' + correctAnswers.incidentType + ')');
+            }
+            
+            // Display results
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Data Entry Results</h3>
+                    <h2>${Math.round(score)}%</h2>
+                    <p>Audio played ${audioPlayCount} time(s)</p>
+                </div>
+                <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px;">
+                    <h3>Detailed Feedback:</h3>
+                    ${feedback.map(f => `<p style="margin: 10px 0; font-size: 16px;">${f}</p>`).join('')}
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showDataEntry()">Try Another Scenario</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
             if (auth.currentUser) {
                 db.collection('users').doc(auth.currentUser.uid)
                   .collection('criticallScores').add({
-                    module: module,
-                    difficulty: currentDifficulty,
-                    score: score,
+                    module: 'dataEntry',
+                    score: Math.round(score),
+                    audioPlays: audioPlayCount,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                   });
             }
         }
         
-        // Global functions needed for buttons
-        window.selectPriority = function(priority) {
-            // Store selected priority
-            window.selectedPriority = priority;
-            event.target.style.background = '#28a745';
-        };
-        
-        window.submitDecision = function() {
-            const services = [];
-            if (document.getElementById('police').checked) services.push('police');
-            if (document.getElementById('fire').checked) services.push('fire');
-            if (document.getElementById('ems').checked) services.push('ems');
-            if (document.getElementById('utilities').checked) services.push('utilities');
+        // CALL SUMMARIZATION MODULE
+        function showCallSummarization() {
+            document.getElementById('moduleTitle').textContent = '🎯 Call Summarization Practice';
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = callScenarios.length;
             
-            alert(`Submitted:\nServices: ${services.join(', ')}\nPriority: ${window.selectedPriority || 'not selected'}`);
-            saveModuleResult('decision', 85);
-            closeModule();
-        };
+            showNextCallScenario();
+        }
         
-        window.checkRoute = function() {
-            const route = document.getElementById('routeAnswer').value;
-            // Check for valid route considering one-way streets
-            let score = 50;
-            if (route.includes('B2') && route.includes('B6')) score = 75;
-            if (!route.includes('B4')) score = 100; // Avoided the one-way street
+        function showNextCallScenario() {
+            if (currentQuestion >= callScenarios.length) {
+                showCallSummarizationResults();
+                return;
+            }
             
-            alert(`Route Score: ${score}%`);
-            saveModuleResult('map', score);
-        };
+            const scenario = callScenarios[currentQuestion];
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div class="incident-scenario">
+                    <h3>📞 Emergency Call</h3>
+                    <p style="font-size: 16px; line-height: 1.6;">${scenario.scenario}</p>
+                </div>
+                
+                <div class="decision-section">
+                    <h3>Select Appropriate Services:</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="service-police" value="police">
+                            <label for="service-police">🚔 Police</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="service-fire" value="fire">
+                            <label for="service-fire">🚒 Fire Department</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="service-ems" value="ems">
+                            <label for="service-ems">🚑 EMS/Medical</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="service-utilities" value="utilities">
+                            <label for="service-utilities">⚡ Utilities</label>
+                        </div>
+                    </div>
+                    
+                    <h3 style="margin-top: 20px;">Select Priority Level:</h3>
+                    <div class="priority-buttons">
+                        <button class="priority-btn high" onclick="selectPriority('high')">HIGH<br><small>Life-threatening / Immediate danger</small></button>
+                        <button class="priority-btn medium" onclick="selectPriority('medium')">MEDIUM<br><small>Urgent but not life-threatening</small></button>
+                        <button class="priority-btn low" onclick="selectPriority('low')">LOW<br><small>Non-urgent / Routine</small></button>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitCallDecision()">Submit Decision</button>
+                </div>
+            `;
+        }
         
-        window.checkListening = function() {
-            // Check answers based on difficulty
-            alert('Listening comprehension submitted!');
-            saveModuleResult('listening', 80);
-            closeModule();
-        };
+        function selectPriority(priority) {
+            // Remove selection from all buttons
+            document.querySelectorAll('.priority-btn').forEach(btn => {
+                btn.classList.remove('selected');
+            });
+            
+            // Add selection to clicked button
+            event.target.classList.add('selected');
+            selectedPriority = priority;
+        }
+        
+        function submitCallDecision() {
+            const scenario = callScenarios[currentQuestion];
+            
+            // Get selected services
+            selectedServices = [];
+            if (document.getElementById('service-police').checked) selectedServices.push('police');
+            if (document.getElementById('service-fire').checked) selectedServices.push('fire');
+            if (document.getElementById('service-ems').checked) selectedServices.push('ems');
+            if (document.getElementById('service-utilities').checked) selectedServices.push('utilities');
+            
+            // Check if user made selections
+            if (selectedServices.length === 0 || !selectedPriority) {
+                alert('Please select at least one service and a priority level.');
+                return;
+            }
+            
+            // Check if answer is correct
+            const servicesCorrect = arraysEqual(selectedServices.sort(), scenario.correctServices.sort());
+            const priorityCorrect = selectedPriority === scenario.correctPriority;
+            
+            if (servicesCorrect && priorityCorrect) {
+                correctAnswers++;
+            }
+            
+            // Show feedback
+            let feedback = '<div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px;">';
+            feedback += '<h3>Feedback:</h3>';
+            feedback += `<p><strong>Services:</strong> ${servicesCorrect ? '✓ Correct' : '✗ Incorrect'}</p>`;
+            if (!servicesCorrect) {
+                feedback += `<p style="margin-left: 20px;">Correct services: ${scenario.correctServices.join(', ')}</p>`;
+            }
+            feedback += `<p><strong>Priority:</strong> ${priorityCorrect ? '✓ Correct' : '✗ Incorrect'}</p>`;
+            if (!priorityCorrect) {
+                feedback += `<p style="margin-left: 20px;">Correct priority: ${scenario.correctPriority}</p>`;
+            }
+            feedback += '</div>';
+            
+            document.getElementById('moduleContent').innerHTML += feedback;
+            
+            // Add continue button
+            setTimeout(() => {
+                const continueBtn = document.createElement('div');
+                continueBtn.style.textAlign = 'center';
+                continueBtn.style.marginTop = '20px';
+                continueBtn.innerHTML = '<button class="btn btn-primary" onclick="nextCallQuestion()">Continue to Next Call</button>';
+                document.getElementById('moduleContent').appendChild(continueBtn);
+            }, 500);
+        }
+        
+        function nextCallQuestion() {
+            currentQuestion++;
+            selectedPriority = null;
+            selectedServices = [];
+            showNextCallScenario();
+        }
+        
+        function showCallSummarizationResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Call Summarization Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Correct</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showCallSummarization()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'callSummarization',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // MEMORY RECALL MODULE
+        function showMemoryRecall() {
+            document.getElementById('moduleTitle').textContent = '🧠 Memory Recall Practice';
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <h3>Select Difficulty Level:</h3>
+                <div style="display: flex; gap: 15px; justify-content: center; margin: 30px 0;">
+                    <button class="btn btn-success" onclick="startMemoryTest('easy')" style="min-width: 150px;">Easy<br><small>3 questions</small></button>
+                    <button class="btn btn-primary" onclick="startMemoryTest('medium')" style="min-width: 150px;">Medium<br><small>5 questions</small></button>
+                    <button class="btn btn-danger" onclick="startMemoryTest('hard')" style="min-width: 150px;">Hard<br><small>6 questions</small></button>
+                </div>
+            `;
+        }
+        
+        function startMemoryTest(difficulty) {
+            const testData = memoryQuestions[difficulty][Math.floor(Math.random() * memoryQuestions[difficulty].length)];
+            
+            // Show memory items
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <h3>Memorize the following information (30 seconds):</h3>
+                <div class="memory-items">
+                    ${testData.items.map(item => `<div class="memory-item">${item}</div>`).join('')}
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <p style="font-size: 24px; font-weight: bold; color: #007bff;">Time remaining: <span id="timer">30</span>s</p>
+                </div>
+            `;
+            
+            // Countdown timer
+            let timeLeft = 30;
+            const timerInterval = setInterval(() => {
+                timeLeft--;
+                document.getElementById('timer').textContent = timeLeft;
+                
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    showMemoryQuestions(testData.questions);
+                }
+            }, 1000);
+        }
+        
+        function showMemoryQuestions(questions) {
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = questions.length;
+            window.currentMemoryQuestions = questions;
+            
+            showNextMemoryQuestion();
+        }
+        
+        function showNextMemoryQuestion() {
+            const questions = window.currentMemoryQuestions;
+            
+            if (currentQuestion >= questions.length) {
+                showMemoryResults();
+                return;
+            }
+            
+            const question = questions[currentQuestion];
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div class="memory-question">
+                    <h3>${question.q}</h3>
+                    <input type="text" id="memoryAnswer" placeholder="Your answer" style="width: 100%; padding: 15px; font-size: 18px; border: 2px solid #007bff; border-radius: 5px; margin-top: 15px;">
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitMemoryAnswer()">Submit Answer</button>
+                </div>
+            `;
+            
+            // Focus on input
+            document.getElementById('memoryAnswer').focus();
+            
+            // Allow Enter key to submit
+            document.getElementById('memoryAnswer').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    submitMemoryAnswer();
+                }
+            });
+        }
+        
+        function submitMemoryAnswer() {
+            const questions = window.currentMemoryQuestions;
+            const question = questions[currentQuestion];
+            const userAnswer = document.getElementById('memoryAnswer').value.trim();
+            
+            // Flexible matching (case-insensitive, whitespace tolerant)
+            const correct = userAnswer.toLowerCase().replace(/\s+/g, ' ') === question.a.toLowerCase().replace(/\s+/g, ' ');
+            
+            if (correct) {
+                correctAnswers++;
+            }
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 15px; border-radius: 10px; margin-top: 15px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545');
+            feedback.innerHTML = `
+                <p style="font-size: 18px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                ${!correct ? `<p style="margin: 10px 0 0 0;">Correct answer: ${question.a}</p>` : ''}
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            // Add continue button
+            setTimeout(() => {
+                const continueBtn = document.createElement('div');
+                continueBtn.style.textAlign = 'center';
+                continueBtn.style.marginTop = '20px';
+                continueBtn.innerHTML = '<button class="btn btn-primary" onclick="nextMemoryQuestion()">Next Question</button>';
+                document.getElementById('moduleContent').appendChild(continueBtn);
+            }, 500);
+        }
+        
+        function nextMemoryQuestion() {
+            currentQuestion++;
+            showNextMemoryQuestion();
+        }
+        
+        function showMemoryResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Memory Recall Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Correct</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showMemoryRecall()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'memoryRecall',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // MAP READING MODULE
+        function showMapReading() {
+            document.getElementById('moduleTitle').textContent = '🗺️ Map Reading & Navigation';
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = mapScenarios.length;
+            
+            showNextMapQuestion();
+        }
+        
+        function showNextMapQuestion() {
+            if (currentQuestion >= mapScenarios.length) {
+                showMapResults();
+                return;
+            }
+            
+            const scenario = mapScenarios[currentQuestion];
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Scenario ${currentQuestion + 1} of ${totalQuestions}</p>
+                </div>
+                
+                <h3>${scenario.question}</h3>
+                
+                <div class="map-container">
+                    <div class="map-legend">
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff6b6b;"></div>
+                            <span>Hospital</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #4dabf7;"></div>
+                            <span>Police Station</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ff8787;"></div>
+                            <span>Fire Station</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #ffd43b;"></div>
+                            <span>School</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #69db7c;"></div>
+                            <span>Shopping Mall</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #da77f2;"></div>
+                            <span>Library</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color" style="background: #8ce99a;"></div>
+                            <span>Park</span>
+                        </div>
+                        <div class="legend-item">
+                            <span style="color: #ff0000; font-size: 20px;">↑↓→←</span>
+                            <span>One-way streets</span>
+                        </div>
+                    </div>
+                    
+                    ${generateCityMap()}
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 10px; border: 2px solid #007bff;">
+                    <h3>Enter your route:</h3>
+                    <p>Describe the streets and directions (e.g., "Main St south, then 4th Ave east")</p>
+                    <textarea id="routeAnswer" class="route-input" rows="3" placeholder="Type your route here..."></textarea>
+                    
+                    ${scenario.avoidStreets.length > 0 ? `
+                        <p style="color: #dc3545; margin-top: 10px;"><strong>⚠ Note:</strong> ${scenario.avoidStreets.join(', ')}</p>
+                    ` : ''}
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitMapRoute()">Submit Route</button>
+                </div>
+            `;
+        }
+        
+        function generateCityMap() {
+            // 10x10 grid city map
+            const map = [
+                // Row 0 - Header with avenue names
+                ['', '1st Ave', '2nd Ave', '3rd Ave', '4th Ave', '5th Ave', '6th Ave', '7th Ave', '8th Ave', ''],
+                // Row 1
+                ['Main St', 'building-hospital', 'street-h', 'street-h', 'street-h', 'street-h', 'street-h', 'street-h', 'street-h', 'Main St'],
+                // Row 2
+                ['', 'street-v', 'building-police', '', 'building-park', '', '', 'building-library', '', ''],
+                // Row 3
+                ['Oak St', 'street-v one-way-n', 'street-h', 'street-h', 'street-h', 'street-h', 'street-h', 'street-h', 'street-h', 'Oak St'],
+                // Row 4
+                ['', 'street-v', '', 'building-school', '', '', 'building-mall', '', '', ''],
+                // Row 5
+                ['Elm St', 'street-v', 'street-h one-way-e', 'street-h one-way-e', 'street-h one-way-e', 'street-h one-way-e', 'street-h one-way-e', 'street-h', 'street-h', 'Elm St'],
+                // Row 6
+                ['', 'street-v', '', '', '', 'building-fire', '', '', '', ''],
+                // Row 7
+                ['Pine St', 'street-v', 'street-h', 'street-h', 'street-h', 'street-h', 'street-h', 'street-h', 'street-h', 'Pine St'],
+                // Row 8
+                ['', 'street-v', '', '', '', '', '', '', '', ''],
+                // Row 9 - Footer
+                ['', '1st Ave', '2nd Ave', '3rd Ave', '4th Ave', '5th Ave', '6th Ave', '7th Ave', '8th Ave', '']
+            ];
+            
+            let html = '<div class="map-grid">';
+            for (let row of map) {
+                for (let cell of row) {
+                    if (cell.includes('building')) {
+                        const buildingType = cell.split(' ')[0];
+                        const extraClass = cell.includes('one-way') ? cell.split(' ')[1] : '';
+                        const buildingName = buildingType.replace('building-', '').toUpperCase();
+                        html += `<div class="map-cell ${cell}">${buildingName}</div>`;
+                    } else if (cell.includes('street')) {
+                        html += `<div class="map-cell ${cell}"></div>`;
+                    } else if (cell === '') {
+                        html += `<div class="map-cell"></div>`;
+                    } else {
+                        html += `<div class="map-cell" style="background: #fff; font-weight: bold;">${cell}</div>`;
+                    }
+                }
+            }
+            html += '</div>';
+            return html;
+        }
+        
+        function submitMapRoute() {
+            const scenario = mapScenarios[currentQuestion];
+            const userRoute = document.getElementById('routeAnswer').value.trim().toLowerCase();
+            
+            // Simple route validation - check if key streets are mentioned
+            let routeScore = 0;
+            let feedback = [];
+            
+            // Check if route includes correct streets
+            scenario.correctRoute.forEach(street => {
+                const streetName = street.toLowerCase().split(' ')[0];
+                if (userRoute.includes(streetName)) {
+                    routeScore += (100 / scenario.correctRoute.length);
+                    feedback.push(`✓ Correctly included ${street}`);
+                } else {
+                    feedback.push(`✗ Missing: ${street}`);
+                }
+            });
+            
+            // Check if route avoids restricted streets
+            let avoidedRestrictions = true;
+            scenario.avoidStreets.forEach(avoid => {
+                const streetName = avoid.toLowerCase().split(' ')[0];
+                if (userRoute.includes(streetName)) {
+                    routeScore = Math.max(0, routeScore - 30);
+                    feedback.push(`✗ Should avoid ${avoid}`);
+                    avoidedRestrictions = false;
+                }
+            });
+            
+            if (avoidedRestrictions && scenario.avoidStreets.length > 0) {
+                feedback.push(`✓ Correctly avoided restricted streets`);
+            }
+            
+            if (routeScore >= 80) {
+                correctAnswers++;
+            }
+            
+            // Show feedback
+            const content = document.getElementById('moduleContent');
+            content.innerHTML += `
+                <div style="background: ${routeScore >= 80 ? '#d4edda' : '#fff3cd'}; padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px solid ${routeScore >= 80 ? '#28a745' : '#ffc107'};">
+                    <h3>Route Evaluation: ${Math.round(routeScore)}%</h3>
+                    ${feedback.map(f => `<p style="margin: 5px 0;">${f}</p>`).join('')}
+                    <p style="margin-top: 15px;"><strong>Optimal route:</strong> ${scenario.correctRoute.join(', ')}</p>
+                </div>
+            `;
+            
+            // Add continue button
+            setTimeout(() => {
+                const continueBtn = document.createElement('div');
+                continueBtn.style.textAlign = 'center';
+                continueBtn.style.marginTop = '20px';
+                continueBtn.innerHTML = '<button class="btn btn-primary" onclick="nextMapQuestion()">Next Scenario</button>';
+                document.getElementById('moduleContent').appendChild(continueBtn);
+            }, 500);
+        }
+        
+        function nextMapQuestion() {
+            currentQuestion++;
+            showNextMapQuestion();
+        }
+        
+        function showMapResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Map Reading Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Routes Correct</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showMapReading()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'mapReading',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // Helper function to compare arrays
+        function arraysEqual(a, b) {
+            if (a.length !== b.length) return false;
+            for (let i = 0; i < a.length; i++) {
+                if (a[i] !== b[i]) return false;
+            }
+            return true;
+        }
     </script>
 </body>
 </html>
