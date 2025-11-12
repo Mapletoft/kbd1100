@@ -31,7 +31,7 @@
     <div class="nav-tabs">
       <button class="tab active" onclick="switchTab('lessons', this)">📚 Skill Building</button>
       <button class="tab" onclick="switchTab('progress', this)">📊 My Progress</button>
-      <button class="tab" onclick="switchTab('tests', this)" id="testsTab">🔒 Timed Tests</button>
+      <button class="tab" onclick="switchTab('tests', this)" id="testsTab" disabled>🔒 Timed Tests</button>
       <button class="tab" onclick="switchTab('office', this)">💼 Office Practice</button>
       <button class="tab" onclick="window.location.href='criticall.html'" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">🚨 CritiCall Practice</button>
     </div>
@@ -1628,18 +1628,26 @@ function finishTimedTest() {
             ...result,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
         }).then((docRef) => {
-            result.id = docRef.id;  // Store the document ID for later use
+            result.id = docRef.id;  // Store the document ID
+            
+            // Show result AFTER we have the ID
+            const message = result.duration === 3 
+                ? `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\n⭐ This 3-minute test is ready to submit for grading.\n\nScroll down to see your test results. Select your best 5 tests and click "Submit Selected for Grading".`
+                : `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\nPractice test - not graded.`;
+            alert(message);
+            
+            // Add to table with the document ID
             addToTestHistory(result);
+        }).catch(error => {
+            console.error('Error saving test:', error);
+            alert('Error saving test. Please try again.');
         });
     } else {
+        // Not logged in - just show in table without saving
+        const message = `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\nPlease log in to save your results.`;
+        alert(message);
         addToTestHistory(result);
     }
-    
-    // Show result
-    const message = result.duration === 3 
-        ? `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\n⭐ This 3-minute test is ready to submit for grading.\nGo to test results and select your best 5 tests to submit.`
-        : `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\nPractice test - not graded.`;
-    alert(message);
     
     // Reset
     document.getElementById('startTimedBtn').disabled = false;
@@ -1688,6 +1696,17 @@ function addToTestHistory(result) {
         <td style="padding: 10px;">${result.accuracy}%</td>
         <td style="padding: 10px;">${statusText}</td>
     `;
+    
+    // Highlight the new row briefly
+    row.style.background = '#d4edda';
+    setTimeout(() => {
+        row.style.background = '';
+    }, 2000);
+    
+    // Scroll to the test results table
+    setTimeout(() => {
+        document.getElementById('testHistory').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 300);
 }
 
 // Submit selected tests for grading
