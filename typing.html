@@ -31,7 +31,7 @@
     <div class="nav-tabs">
       <button class="tab active" onclick="switchTab('lessons', this)">📚 Skill Building</button>
       <button class="tab" onclick="switchTab('progress', this)">📊 My Progress</button>
-      <button class="tab" onclick="switchTab('tests', this)" id="testsTab" disabled>🔒 Timed Tests</button>
+      <button class="tab" onclick="switchTab('tests', this)" id="testsTab">🔒 Timed Tests</button>
       <button class="tab" onclick="switchTab('office', this)">💼 Office Practice</button>
       <button class="tab" onclick="window.location.href='criticall.html'" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">🚨 CritiCall Practice</button>
     </div>
@@ -273,15 +273,27 @@
               <table style="width: 100%; border-collapse: collapse;">
                   <thead>
                       <tr style="background: #f5f5f5;">
+                          <th style="padding: 10px; width: 50px;">Select</th>
                           <th style="padding: 10px;">Date</th>
                           <th style="padding: 10px;">Duration</th>
                           <th style="padding: 10px;">WPM</th>
                           <th style="padding: 10px;">Accuracy</th>
-                          <th style="padding: 10px;">Grade</th>
+                          <th style="padding: 10px;">Status</th>
                       </tr>
                   </thead>
                   <tbody id="testHistoryBody"></tbody>
               </table>
+              
+              <!-- Submit Button -->
+              <div class="control-buttons" style="margin-top: 20px;">
+                  <button class="btn btn-success" onclick="submitSelectedTests()">
+                      📝 Submit Selected for Grading (5 Required)
+                  </button>
+                  <p style="color: #666; font-size: 14px; margin-top: 10px; text-align: center;">
+                      Select your best 5 three-minute tests to submit for grading. 
+                      You can take as many tests as you want, but only 5 will be graded.
+                  </p>
+              </div>
           </div>
       </div>
     </div>
@@ -718,6 +730,7 @@
       document.getElementById(tabName).classList.add('active');
 
       if (tabName === 'progress') updateProgressReport();
+      if (tabName === 'tests') loadTestHistory();  // Load test history when tests tab opens
     }
 
     function updateProgressDisplay() {
@@ -1604,23 +1617,29 @@ function finishTimedTest() {
         duration: timedTest.testType,
         wpm: parseInt(wpm),
         accuracy: parseInt(accuracy),
-        forGrade: timedTest.testType === 3
+        forGrade: false,  // Don't mark as graded automatically
+        submitted: false  // Track submission status
     };
     
-    // Save to Firebase
+    // Save to Firebase and capture the document ID
     if (auth.currentUser) {
         db.collection('users').doc(auth.currentUser.uid)
           .collection('timedTests').add({
             ...result,
             timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        }).then((docRef) => {
+            result.id = docRef.id;  // Store the document ID for later use
+            addToTestHistory(result);
         });
+    } else {
+        addToTestHistory(result);
     }
     
     // Show result
-    alert(`Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n${result.forGrade ? 'This test counts toward your grade.' : 'Practice test - not graded.'}`);
-    
-    // Add to history table
-    addToTestHistory(result);
+    const message = result.duration === 3 
+        ? `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\n⭐ This 3-minute test is ready to submit for grading.\nGo to test results and select your best 5 tests to submit.`
+        : `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\nPractice test - not graded.`;
+    alert(message);
     
     // Reset
     document.getElementById('startTimedBtn').disabled = false;
@@ -1645,20 +1664,107 @@ function addToTestHistory(result) {
     const tbody = document.getElementById('testHistoryBody');
     const row = tbody.insertRow(0); // Add at top
     
+    // Only show checkbox for 3-minute tests that haven't been submitted
+    const showCheckbox = result.duration === 3 && !result.submitted;
+    const checkboxHtml = showCheckbox 
+        ? `<input type="checkbox" class="test-checkbox" data-test-id="${result.id || ''}" ${!result.id ? 'disabled' : ''}>` 
+        : '';
+    
+    // Determine status text
+    let statusText = 'Practice';
+    if (result.duration === 3) {
+        if (result.submitted) {
+            statusText = '✅ Submitted';
+        } else {
+            statusText = '⭐ Ready to Submit';
+        }
+    }
+    
     row.innerHTML = `
+        <td style="padding: 10px; text-align: center;">${checkboxHtml}</td>
         <td style="padding: 10px;">${result.date} ${result.time}</td>
         <td style="padding: 10px;">${result.duration} min</td>
         <td style="padding: 10px;">${result.wpm}</td>
         <td style="padding: 10px;">${result.accuracy}%</td>
-        <td style="padding: 10px;">${result.forGrade ? '⭐ Graded' : 'Practice'}</td>
+        <td style="padding: 10px;">${statusText}</td>
     `;
+}
+
+// Submit selected tests for grading
+function submitSelectedTests() {
+    const checkboxes = document.querySelectorAll('.test-checkbox:checked');
+    
+    if (checkboxes.length !== 5) {
+        alert(`Please select exactly 5 tests to submit.\nYou currently have ${checkboxes.length} selected.`);
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to submit these 5 tests for grading?\n\nThis action cannot be undone. Once submitted, you cannot change your selection.')) {
+        return;
+    }
+    
+    // Update each test in Firebase
+    let updatedCount = 0;
+    checkboxes.forEach(checkbox => {
+        const testId = checkbox.getAttribute('data-test-id');
+        if (testId && auth.currentUser) {
+            db.collection('users').doc(auth.currentUser.uid)
+              .collection('timedTests').doc(testId).update({
+                submitted: true,
+                forGrade: true,
+                submittedAt: firebase.firestore.FieldValue.serverTimestamp()
+              }).then(() => {
+                updatedCount++;
+                if (updatedCount === 5) {
+                    alert('✅ Successfully submitted 5 tests for grading!\n\nYour submitted tests are now locked and will be used for your final grade.');
+                    // Reload the test history to show updated status
+                    setTimeout(() => {
+                        loadTestHistory();
+                    }, 500);
+                }
+              }).catch(error => {
+                console.error('Error updating test:', error);
+                alert('Error submitting tests. Please try again.');
+              });
+        }
+    });
+}
+
+// Load test history from Firebase
+function loadTestHistory() {
+    if (!auth.currentUser) return;
+    
+    db.collection('users').doc(auth.currentUser.uid)
+      .collection('timedTests')
+      .orderBy('timestamp', 'desc')
+      .get()
+      .then(snapshot => {
+          const tbody = document.getElementById('testHistoryBody');
+          tbody.innerHTML = ''; // Clear existing
+          
+          snapshot.forEach(doc => {
+              const data = doc.data();
+              const result = {
+                  id: doc.id,
+                  date: data.date,
+                  time: data.time,
+                  duration: data.duration,
+                  wpm: data.wpm,
+                  accuracy: data.accuracy,
+                  submitted: data.submitted || false,
+                  forGrade: data.forGrade || false
+              };
+              addToTestHistory(result);
+          });
+          
+          if (!snapshot.empty) {
+              document.getElementById('testHistory').style.display = 'block';
+          }
+      })
+      .catch(error => {
+          console.error('Error loading test history:', error);
+      });
 }
   </script>
 </body>
 </html>
-
-
-
-
-
-
