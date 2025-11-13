@@ -453,14 +453,14 @@
                 <p>Spot discrepancies between caller information and database records.</p>
             </div>
             
-            <div class="module-card" onclick="openModule('multitasking')">
+            <div class="module-card coming-soon" onclick="openModule('multitasking')">
                 <h3>🎮 Multitasking</h3>
                 <p>Handle multiple emergency calls simultaneously while prioritizing urgency.</p>
             </div>
             
-            <div class="module-card coming-soon">
+            <div class="module-card" onclick="openModule('decisionMaking')">
                 <h3>🎯 Decision Making</h3>
-                <p>Make critical decisions about resource allocation and emergency response priorities.</p>
+                <p>Prioritize emergency calls by severity - people over property, in-progress over after-the-fact.</p>
             </div>
             
             <div class="module-card coming-soon">
@@ -1157,8 +1157,16 @@
             const part1 = Math.floor(1000 + Math.random() * 9000);
             const dob = year + month + day;
             
+            // Create part2 by combining first digit of DOB with 4 additional random digits
+            const firstDobDigit = dob.charAt(0);
+            const additionalDigits = Math.floor(1000 + Math.random() * 9000);
+            const part2 = firstDobDigit + additionalDigits.toString();
+            
+            // Remove first digit from DOB for the final section
+            const dobRemaining = dob.substring(1);
+            
             return {
-                license: `${letter}${part1}-${part1}-${dob}`,
+                license: `${letter}${part1}-${part2}-${dobRemaining}`,
                 year: "19" + year,
                 month: birthMonth.padStart(2, '0'),
                 day: day,
@@ -1349,6 +1357,9 @@
                     break;
                 case 'multitasking':
                     showMultitasking();
+                    break;
+                case 'decisionMaking':
+                    showDecisionMaking();
                     break;
             }
         }
@@ -2536,7 +2547,7 @@
         // SPLIT ATTENTION MODULE
         let splitAttentionState = {
             targetNumbers: [33, 55, 77],
-            displayNumbers: [12, 23, 34, 45, 56, 67, 78, 89, 91, 33, 55, 77],
+            displayNumbers: [11, 12, 13, 21, 22, 23, 24, 31, 32, 34, 41, 42, 43, 44, 51, 52, 53, 54, 61, 62, 63, 64, 71, 72, 73, 74, 81, 82, 83, 84, 91, 92, 93, 94, 33, 55, 77], // Reduced target frequency
             corners: [null, null, null, null], // Current numbers in each corner
             typingText: '',
             typedText: '',
@@ -2557,7 +2568,7 @@
                     <p><strong>This test measures your ability to split attention between two tasks:</strong></p>
                     <ol style="margin: 10px 0; padding-left: 20px;">
                         <li><strong>Type the passage</strong> shown in the center text box</li>
-                        <li><strong>Watch the 4 corner boxes</strong> - numbers will cycle every 2 seconds</li>
+                        <li><strong>Watch the 4 corner boxes</strong> - numbers will cycle every 4 seconds</li>
                         <li><strong>Click a box immediately</strong> when it shows a target number: <span style="background: #ff6b6b; color: white; padding: 3px 8px; border-radius: 3px;">33</span> <span style="background: #ff6b6b; color: white; padding: 3px 8px; border-radius: 3px;">55</span> <span style="background: #ff6b6b; color: white; padding: 3px 8px; border-radius: 3px;">77</span></li>
                         <li>Ignore all other numbers</li>
                     </ol>
@@ -2660,7 +2671,7 @@
                         }
                     }
                 }
-            }, 2000);
+            }, 4000);
         }
         
         function clickCorner(cornerIndex) {
@@ -3749,6 +3760,396 @@
                     callsHandled: multitaskingState.callsHandled,
                     correctPicks: multitaskingState.correctPicks,
                     incorrectPicks: multitaskingState.incorrectPicks,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // DECISION MAKING MODULE
+        let decisionMakingState = {
+            currentStage: 0,
+            stages: [],
+            score: 0,
+            totalStages: 4,
+            stageAnswers: []
+        };
+        
+        const decisionMakingStages = [
+            {
+                title: "Stage 1: High Priority Emergencies",
+                description: "Three high-priority emergency calls - order them from highest to lowest priority based on immediate threat to life.",
+                calls: [
+                    {
+                        id: 1,
+                        title: "Cardiac Arrest",
+                        details: "65-year-old male, unconscious, not breathing, CPR in progress",
+                        priority: "Life-threatening",
+                        correctRank: 1
+                    },
+                    {
+                        id: 2,
+                        title: "House Fire with Entrapment",
+                        details: "Structure fire, 2 children trapped on second floor, smoke visible",
+                        priority: "Life-threatening",
+                        correctRank: 2
+                    },
+                    {
+                        id: 3,
+                        title: "Severe Motor Vehicle Accident",
+                        details: "Head-on collision, driver trapped, severe bleeding, conscious but critical",
+                        priority: "Life-threatening",
+                        correctRank: 3
+                    }
+                ]
+            },
+            {
+                title: "Stage 2: Mixed Priority Scenarios",
+                description: "Mix of high, medium, and low priority calls - prioritize based on urgency and threat level.",
+                calls: [
+                    {
+                        id: 1,
+                        title: "Active Chest Pains",
+                        details: "45-year-old female, crushing chest pain, difficulty breathing, conscious",
+                        priority: "High",
+                        correctRank: 1
+                    },
+                    {
+                        id: 2,
+                        title: "Domestic Disturbance",
+                        details: "Loud argument reported, no weapons mentioned, neighbors concerned",
+                        priority: "Medium",
+                        correctRank: 3
+                    },
+                    {
+                        id: 3,
+                        title: "Armed Robbery in Progress",
+                        details: "Convenience store robbery, suspect has gun, employees and customers inside",
+                        priority: "High",
+                        correctRank: 2
+                    }
+                ]
+            },
+            {
+                title: "Stage 3: Property vs. Personal Safety",
+                description: "Calls involving both property damage and personal safety - remember: people over property.",
+                calls: [
+                    {
+                        id: 1,
+                        title: "Break-in Completed",
+                        details: "Homeowner returned to find house burglarized, suspect gone, no one injured",
+                        priority: "Low",
+                        correctRank: 3
+                    },
+                    {
+                        id: 2,
+                        title: "Assault in Progress",
+                        details: "Physical altercation outside bar, multiple people involved, injuries reported",
+                        priority: "High",
+                        correctRank: 1
+                    },
+                    {
+                        id: 3,
+                        title: "Vehicle Theft in Progress",
+                        details: "Suspect attempting to steal car in parking lot, owner confronting thief",
+                        priority: "Medium",
+                        correctRank: 2
+                    }
+                ]
+            },
+            {
+                title: "Stage 4: Complex Prioritization",
+                description: "Complex scenarios mixing intimate partner violence, property crimes, and disturbances.",
+                calls: [
+                    {
+                        id: 1,
+                        title: "Domestic Violence",
+                        details: "Female caller whispering, says boyfriend is threatening her with knife",
+                        priority: "High",
+                        correctRank: 1
+                    },
+                    {
+                        id: 2,
+                        title: "Commercial Alarm",
+                        details: "Silent alarm at electronics store, no response from owner, possible burglary",
+                        priority: "Medium",
+                        correctRank: 3
+                    },
+                    {
+                        id: 3,
+                        title: "Welfare Check",
+                        details: "Elderly man hasn't been seen for 3 days, family concerned, no answer at door",
+                        priority: "Medium-High",
+                        correctRank: 2
+                    }
+                ]
+            }
+        ];
+        
+        function showDecisionMaking() {
+            document.getElementById('moduleTitle').textContent = '🎯 Decision Making Practice';
+            
+            // Reset state
+            decisionMakingState.currentStage = 0;
+            decisionMakingState.score = 0;
+            decisionMakingState.stageAnswers = [];
+            decisionMakingState.stages = [...decisionMakingStages];
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <h3>Instructions:</h3>
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; margin-bottom: 20px;">
+                    <p><strong>Emergency Call Prioritization Training</strong></p>
+                    <p>You will be presented with 4 stages of emergency scenarios. For each stage:</p>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Review all 3 calls</strong> carefully</li>
+                        <li><strong>Prioritize them</strong> by clicking "1st Priority", "2nd Priority", or "3rd Priority" for each call</li>
+                        <li><strong>Remember the key principles:</strong>
+                            <ul style="margin: 5px 0;">
+                                <li>People over property</li>
+                                <li>In-progress over after-the-fact</li>
+                                <li>Immediate threat to life over injury</li>
+                                <li>Confirmed emergencies over possible emergencies</li>
+                            </ul>
+                        </li>
+                    </ol>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button class="btn btn-success" onclick="startDecisionMaking()">Begin Training</button>
+                </div>
+            `;
+        }
+        
+        function startDecisionMaking() {
+            showDecisionMakingStage();
+        }
+        
+        function showDecisionMakingStage() {
+            const stage = decisionMakingState.stages[decisionMakingState.currentStage];
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3>${stage.title}</h3>
+                    <p>${stage.description}</p>
+                    <div style="background: rgba(255,255,255,0.1); padding: 10px; border-radius: 5px; margin-top: 10px;">
+                        Stage ${decisionMakingState.currentStage + 1} of ${decisionMakingState.totalStages}
+                    </div>
+                </div>
+                
+                <div id="callCards" style="display: grid; gap: 20px;">
+                    ${stage.calls.map(call => `
+                        <div class="call-card" data-call-id="${call.id}" style="background: white; border: 3px solid #ddd; border-radius: 10px; padding: 20px; position: relative;">
+                            <h4 style="color: #333; margin-bottom: 10px;">${call.title}</h4>
+                            <p style="color: #666; margin-bottom: 15px;">${call.details}</p>
+                            <div style="background: #f8f9fa; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                                <strong>Classification:</strong> <span style="color: ${call.priority === 'High' || call.priority === 'Life-threatening' ? '#dc3545' : call.priority === 'Medium' || call.priority === 'Medium-High' ? '#ffc107' : '#28a745'}">${call.priority}</span>
+                            </div>
+                            <div class="priority-buttons" style="display: flex; gap: 10px; justify-content: center;">
+                                <button class="priority-btn btn" onclick="setPriority(${call.id}, 1)" style="background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">1st Priority</button>
+                                <button class="priority-btn btn" onclick="setPriority(${call.id}, 2)" style="background: #ffc107; color: black; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">2nd Priority</button>
+                                <button class="priority-btn btn" onclick="setPriority(${call.id}, 3)" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">3rd Priority</button>
+                            </div>
+                            <div class="selected-priority" style="margin-top: 10px; text-align: center; font-weight: bold; color: #007bff;"></div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="text-align: center; margin-top: 30px;">
+                    <button id="submitStage" class="btn btn-primary" onclick="submitStageAnswers()" style="background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer; opacity: 0.5;" disabled>Submit Rankings</button>
+                </div>
+            `;
+            
+            // Initialize tracking for this stage
+            decisionMakingState.stageAnswers[decisionMakingState.currentStage] = {};
+        }
+        
+        function setPriority(callId, priority) {
+            // Clear any previous assignment of this priority
+            const currentStageAnswers = decisionMakingState.stageAnswers[decisionMakingState.currentStage];
+            
+            // Remove this priority from other calls
+            Object.keys(currentStageAnswers).forEach(id => {
+                if (currentStageAnswers[id] === priority) {
+                    delete currentStageAnswers[id];
+                    // Update visual
+                    const otherCard = document.querySelector(`[data-call-id="${id}"] .selected-priority`);
+                    if (otherCard) otherCard.textContent = '';
+                    // Reset button styles for that card
+                    const otherButtons = document.querySelectorAll(`[data-call-id="${id}"] .priority-btn`);
+                    otherButtons.forEach(btn => {
+                        btn.style.opacity = '1';
+                        btn.style.fontWeight = 'normal';
+                    });
+                }
+            });
+            
+            // Set new priority
+            currentStageAnswers[callId] = priority;
+            
+            // Update visual feedback
+            const priorityText = priority === 1 ? '1st Priority' : priority === 2 ? '2nd Priority' : '3rd Priority';
+            const selectedDiv = document.querySelector(`[data-call-id="${callId}"] .selected-priority`);
+            selectedDiv.textContent = `Selected: ${priorityText}`;
+            
+            // Highlight selected button
+            const buttons = document.querySelectorAll(`[data-call-id="${callId}"] .priority-btn`);
+            buttons.forEach((btn, index) => {
+                if (index + 1 === priority) {
+                    btn.style.opacity = '1';
+                    btn.style.fontWeight = 'bold';
+                    btn.style.transform = 'scale(1.05)';
+                } else {
+                    btn.style.opacity = '0.6';
+                    btn.style.fontWeight = 'normal';
+                    btn.style.transform = 'scale(1)';
+                }
+            });
+            
+            // Check if all priorities are assigned
+            const assignedPriorities = Object.keys(currentStageAnswers).length;
+            const submitButton = document.getElementById('submitStage');
+            if (assignedPriorities === 3) {
+                submitButton.disabled = false;
+                submitButton.style.opacity = '1';
+            }
+        }
+        
+        function submitStageAnswers() {
+            const stage = decisionMakingState.stages[decisionMakingState.currentStage];
+            const answers = decisionMakingState.stageAnswers[decisionMakingState.currentStage];
+            let stageScore = 0;
+            
+            // Calculate score for this stage
+            stage.calls.forEach(call => {
+                if (answers[call.id] === call.correctRank) {
+                    stageScore++;
+                }
+            });
+            
+            // Show results for this stage
+            showStageResults(stage, answers, stageScore);
+        }
+        
+        function showStageResults(stage, answers, stageScore) {
+            const content = document.getElementById('moduleContent');
+            const percentage = Math.round((stageScore / 3) * 100);
+            
+            content.innerHTML = `
+                <div style="background: ${percentage >= 67 ? '#d4edda' : '#f8d7da'}; border: 2px solid ${percentage >= 67 ? '#c3e6cb' : '#f5c6cb'}; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <h3>Stage ${decisionMakingState.currentStage + 1} Results</h3>
+                    <h2>Score: ${stageScore}/3 (${percentage}%)</h2>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 10px;">
+                    <h4>Correct Rankings:</h4>
+                    ${stage.calls.sort((a, b) => a.correctRank - b.correctRank).map(call => `
+                        <div style="margin: 15px 0; padding: 15px; border: 2px solid ${answers[call.id] === call.correctRank ? '#28a745' : '#dc3545'}; border-radius: 5px;">
+                            <div style="display: flex; justify-content: between; align-items: center;">
+                                <div style="flex: 1;">
+                                    <strong>${call.correctRank}. ${call.title}</strong>
+                                    <p style="margin: 5px 0; color: #666;">${call.details}</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <span style="color: ${answers[call.id] === call.correctRank ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                                        Your Choice: ${answers[call.id] === 1 ? '1st' : answers[call.id] === 2 ? '2nd' : '3rd'} 
+                                        ${answers[call.id] === call.correctRank ? '✓' : '✗'}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+                
+                <div style="background: #f8f9fa; padding: 15px; border-radius: 10px; margin: 20px 0;">
+                    <h4>Learning Points:</h4>
+                    <p><strong>Key Principles Applied:</strong></p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Life over injury:</strong> Immediate threats to life (cardiac arrest, entrapment) get highest priority</li>
+                        <li><strong>In-progress over after-the-fact:</strong> Active emergencies take precedence over completed crimes</li>
+                        <li><strong>People over property:</strong> Personal safety always comes before property damage</li>
+                        <li><strong>Confirmed vs possible:</strong> Verified emergencies rank higher than potential situations</li>
+                    </ul>
+                </div>
+                
+                <div style="text-align: center;">
+                    ${decisionMakingState.currentStage < decisionMakingState.totalStages - 1 ? 
+                        `<button class="btn btn-primary" onclick="nextStage()" style="background: #007bff; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer;">Next Stage</button>` :
+                        `<button class="btn btn-success" onclick="finishDecisionMaking()" style="background: #28a745; color: white; border: none; padding: 12px 30px; border-radius: 5px; cursor: pointer;">View Final Results</button>`
+                    }
+                </div>
+            `;
+            
+            decisionMakingState.score += stageScore;
+        }
+        
+        function nextStage() {
+            decisionMakingState.currentStage++;
+            showDecisionMakingStage();
+        }
+        
+        function finishDecisionMaking() {
+            const finalPercentage = Math.round((decisionMakingState.score / (decisionMakingState.totalStages * 3)) * 100);
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px;">
+                    <h3>🎯 Decision Making Training Complete!</h3>
+                    <h2>Final Score: ${decisionMakingState.score}/${decisionMakingState.totalStages * 3} (${finalPercentage}%)</h2>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <h3>Performance Summary:</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                        ${decisionMakingState.stages.map((stage, index) => {
+                            const stageAnswers = decisionMakingState.stageAnswers[index];
+                            let stageScore = 0;
+                            stage.calls.forEach(call => {
+                                if (stageAnswers && stageAnswers[call.id] === call.correctRank) {
+                                    stageScore++;
+                                }
+                            });
+                            const stagePercentage = Math.round((stageScore / 3) * 100);
+                            return `
+                                <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                                    <h4>Stage ${index + 1}</h4>
+                                    <div style="color: ${stagePercentage >= 67 ? '#28a745' : '#dc3545'}; font-weight: bold; font-size: 18px;">
+                                        ${stageScore}/3 (${stagePercentage}%)
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+                
+                <div style="background: #e7f3ff; padding: 20px; border-radius: 10px; border: 2px solid #007bff;">
+                    <h4>📋 Assessment Feedback:</h4>
+                    <p>${
+                        finalPercentage >= 85 ? 
+                            "<strong>Excellent!</strong> You demonstrate strong understanding of emergency prioritization principles. You're ready for real-world dispatch scenarios." :
+                        finalPercentage >= 70 ?
+                            "<strong>Good work!</strong> You understand most prioritization concepts. Review the scenarios where you lost points to strengthen your decision-making." :
+                        finalPercentage >= 50 ?
+                            "<strong>Needs improvement.</strong> Focus on the core principles: people over property, in-progress over completed, life-threatening over injury. Practice more scenarios." :
+                            "<strong>Requires additional training.</strong> Review emergency prioritization guidelines thoroughly. The key is always immediate threat to life, then safety, then property."
+                    }</p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="startDecisionMaking()" style="background: #007bff; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'decisionMaking',
+                    totalScore: decisionMakingState.score,
+                    totalPossible: decisionMakingState.totalStages * 3,
+                    percentage: finalPercentage,
+                    stagesCompleted: decisionMakingState.totalStages,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                   });
             }
