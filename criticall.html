@@ -453,7 +453,7 @@
                 <p>Spot discrepancies between caller information and database records.</p>
             </div>
             
-            <div class="module-card coming-soon" onclick="openModule('multitasking')">
+            <div class="module-card" onclick="openModule('multitasking')">
                 <h3>🎮 Multitasking</h3>
                 <p>Handle multiple emergency calls simultaneously while prioritizing urgency.</p>
             </div>
@@ -1046,13 +1046,20 @@
             }
         ];
         
-        // Split Attention - Typing passages
+        // Split Attention - Typing passages (expanded set)
         const splitAttentionPassages = [
             "Emergency dispatchers must maintain composure under pressure while managing multiple information streams simultaneously. This requires exceptional multitasking abilities and sustained concentration throughout extended shifts.",
             "Effective communication is critical in emergency services. Dispatchers must quickly gather accurate information, relay instructions clearly, and coordinate responses between multiple agencies and units.",
             "Modern dispatch centers utilize advanced computer-aided dispatch systems to track unit locations, manage call queues, and maintain comprehensive incident records for legal and operational purposes.",
             "Time management skills are essential for dispatchers who must prioritize incoming calls based on urgency, allocate appropriate resources, and ensure timely response to life-threatening situations.",
-            "Dispatchers serve as the vital link between callers in crisis and emergency responders in the field. Their ability to remain calm and professional can significantly impact outcomes."
+            "Dispatchers serve as the vital link between callers in crisis and emergency responders in the field. Their ability to remain calm and professional can significantly impact outcomes.",
+            "Public safety telecommunications requires precise attention to detail when recording addresses, license plate numbers, physical descriptions, and other critical incident information.",
+            "Emergency call processing involves continuous assessment of caller credibility, threat levels, and resource availability while maintaining empathetic communication with distressed individuals.",
+            "Dispatchers must master geographic knowledge of their service area including street layouts, landmark locations, and jurisdictional boundaries to ensure accurate resource deployment.",
+            "Radio communication protocols demand clear enunciation, proper terminology, and strategic timing to coordinate multiple units responding to complex emergency situations.",
+            "Crisis intervention skills enable dispatchers to provide pre-arrival instructions for medical emergencies, de-escalate volatile situations, and maintain caller cooperation during investigations.",
+            "Technology proficiency is crucial as dispatchers operate multiple computer systems simultaneously while monitoring radio traffic, telephone calls, and automated alert systems.",
+            "Documentation accuracy ensures legal compliance and operational continuity. Every detail recorded during emergency calls may become evidence in subsequent legal proceedings."
         ];
         
         // Listening Skills - Audio scenarios with questions (you'll add audio files)
@@ -2546,109 +2553,185 @@
         
         // SPLIT ATTENTION MODULE
         let splitAttentionState = {
-            targetNumbers: [33, 55, 77],
-            displayNumbers: [11, 12, 13, 21, 22, 23, 24, 31, 32, 34, 41, 42, 43, 44, 51, 52, 53, 54, 61, 62, 63, 64, 71, 72, 73, 74, 81, 82, 83, 84, 91, 92, 93, 94, 33, 55, 77], // Reduced target frequency
-            corners: [null, null, null, null], // Current numbers in each corner
+            currentRound: 1,
+            totalRounds: 4,
+            rounds: [
+                {
+                    roundNumber: 1,
+                    targetNumbers: [33], // 1 target number
+                    interval: 5000, // 5 seconds - slower for first round
+                    duration: 90, // 1.5 minutes
+                    description: "Round 1: Watch for number 33"
+                },
+                {
+                    roundNumber: 2,
+                    targetNumbers: [33, 55], // 2 target numbers
+                    interval: 4000, // 4 seconds
+                    duration: 90,
+                    description: "Round 2: Watch for numbers 33 and 55"
+                },
+                {
+                    roundNumber: 3,
+                    targetNumbers: [33, 55, 77], // 3 target numbers
+                    interval: 3000, // 3 seconds
+                    duration: 90,
+                    description: "Round 3: Watch for numbers 33, 55, and 77"
+                },
+                {
+                    roundNumber: 4,
+                    targetNumbers: [22, 44, 66, 88], // 4 different target numbers, fastest
+                    interval: 2500, // 2.5 seconds - fastest round
+                    duration: 120, // 2 minutes for final challenge
+                    description: "Round 4: Watch for numbers 22, 44, 66, and 88"
+                }
+            ],
+            displayNumbers: [11, 12, 13, 14, 21, 23, 24, 31, 32, 34, 41, 42, 43, 51, 52, 53, 54, 61, 62, 63, 64, 71, 72, 73, 74, 81, 82, 83, 84, 91, 92, 93, 94],
+            corners: [null, null, null, null],
             typingText: '',
             typedText: '',
             correctClicks: 0,
             missedTargets: 0,
             falseClicks: 0,
             startTime: null,
-            duration: 120 // 2 minutes
+            roundStartTime: null,
+            currentTargets: [],
+            currentInterval: null,
+            roundResults: []
         };
         
         function showSplitAttention() {
-            document.getElementById('moduleTitle').textContent = '👁️ Split Attention Practice';
-            const content = document.getElementById('moduleContent');
+            document.getElementById('moduleTitle').textContent = '👁️ Progressive Split Attention Training';
             
+            // Reset state
+            splitAttentionState.currentRound = 1;
+            splitAttentionState.roundResults = [];
+            
+            const content = document.getElementById('moduleContent');
             content.innerHTML = `
-                <h3>Instructions:</h3>
+                <h3>Progressive Training Overview:</h3>
                 <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; margin-bottom: 20px;">
-                    <p><strong>This test measures your ability to split attention between two tasks:</strong></p>
-                    <ol style="margin: 10px 0; padding-left: 20px;">
-                        <li><strong>Type the passage</strong> shown in the center text box</li>
-                        <li><strong>Watch the 4 corner boxes</strong> - numbers will cycle every 4 seconds</li>
-                        <li><strong>Click a box immediately</strong> when it shows a target number: <span style="background: #ff6b6b; color: white; padding: 3px 8px; border-radius: 3px;">33</span> <span style="background: #ff6b6b; color: white; padding: 3px 8px; border-radius: 3px;">55</span> <span style="background: #ff6b6b; color: white; padding: 3px 8px; border-radius: 3px;">77</span></li>
-                        <li>Ignore all other numbers</li>
-                    </ol>
-                    <p style="color: #856404; margin-top: 10px;"><strong>⏱️ Duration: 2 minutes</strong></p>
+                    <p><strong>This training consists of 4 progressive rounds to build your divided attention skills:</strong></p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin: 15px 0;">
+                        ${splitAttentionState.rounds.map(round => `
+                            <div style="background: white; padding: 15px; border-radius: 8px; border: 2px solid #007bff;">
+                                <h4 style="color: #007bff; margin-bottom: 8px;">Round ${round.roundNumber}</h4>
+                                <p style="margin: 5px 0; font-size: 14px;"><strong>Targets:</strong> ${round.targetNumbers.join(', ')}</p>
+                                <p style="margin: 5px 0; font-size: 14px;"><strong>Speed:</strong> ${round.interval/1000}s intervals</p>
+                                <p style="margin: 5px 0; font-size: 14px;"><strong>Duration:</strong> ${Math.floor(round.duration/60)}:${(round.duration%60).toString().padStart(2,'0')}</p>
+                            </div>
+                        `).join('')}
+                    </div>
+                    
+                    <div style="background: #e7f3ff; padding: 15px; border-radius: 5px; margin-top: 15px;">
+                        <h4 style="margin-bottom: 10px;">Training Instructions:</h4>
+                        <ol style="margin: 10px 0; padding-left: 20px;">
+                            <li><strong>Type the passage</strong> shown in the center - accuracy and speed matter</li>
+                            <li><strong>Watch the 4 corner boxes</strong> for target numbers (they change at different speeds each round)</li>
+                            <li><strong>Click immediately</strong> when you see a target number appear</li>
+                            <li><strong>Progress through rounds</strong> - each gets faster with more targets</li>
+                        </ol>
+                        <p style="color: #0066cc; margin-top: 10px;"><strong>💡 Tip:</strong> Focus primarily on typing, but stay alert for targets in your peripheral vision!</p>
+                    </div>
                 </div>
                 
                 <div style="text-align: center;">
-                    <button class="btn btn-success" onclick="startSplitAttention()">Start Test</button>
+                    <button class="btn btn-success" onclick="startSplitAttentionRound(1)" style="background: #28a745; color: white; border: none; padding: 15px 30px; border-radius: 8px; font-size: 16px; cursor: pointer;">Begin Round 1</button>
                 </div>
             `;
         }
         
-        function startSplitAttention() {
-            // Reset state
+        function startSplitAttentionRound(roundNumber) {
+            // Reset state for new round
+            const currentRound = splitAttentionState.rounds[roundNumber - 1];
+            splitAttentionState.currentRound = roundNumber;
+            splitAttentionState.currentTargets = currentRound.targetNumbers;
+            splitAttentionState.currentInterval = currentRound.interval;
             splitAttentionState.typingText = splitAttentionPassages[Math.floor(Math.random() * splitAttentionPassages.length)];
             splitAttentionState.typedText = '';
             splitAttentionState.correctClicks = 0;
             splitAttentionState.missedTargets = 0;
             splitAttentionState.falseClicks = 0;
-            splitAttentionState.startTime = Date.now();
+            splitAttentionState.roundStartTime = Date.now();
             
             const content = document.getElementById('moduleContent');
             content.innerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                    <h3>${currentRound.description}</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 10px;">
+                        <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; text-align: center;">
+                            <strong>Round ${roundNumber}/4</strong>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; text-align: center;">
+                            <strong>Speed: ${currentRound.interval/1000}s</strong>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; text-align: center;">
+                            <strong>Targets: ${currentRound.targetNumbers.map(n => `<span style="background: #ff6b6b; padding: 2px 6px; border-radius: 3px; margin: 0 2px;">${n}</span>`).join('')}</strong>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.1); padding: 8px; border-radius: 5px; text-align: center;">
+                            <strong>Time: <span id="splitTimeLeft">${Math.floor(currentRound.duration/60)}:${(currentRound.duration%60).toString().padStart(2,'0')}</span></strong>
+                        </div>
+                    </div>
+                </div>
+                
                 <div style="position: relative; min-height: 500px; background: #f8f9fa; padding: 40px; border-radius: 10px;">
                     <!-- Corner Boxes -->
-                    <div id="corner0" class="corner-box" style="position: absolute; top: 20px; left: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(0)">12</div>
-                    <div id="corner1" class="corner-box" style="position: absolute; top: 20px; right: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(1)">23</div>
-                    <div id="corner2" class="corner-box" style="position: absolute; bottom: 20px; left: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(2)">34</div>
-                    <div id="corner3" class="corner-box" style="position: absolute; bottom: 20px; right: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(3)">45</div>
+                    <div id="corner0" class="corner-box" style="position: absolute; top: 20px; left: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(0)">--</div>
+                    <div id="corner1" class="corner-box" style="position: absolute; top: 20px; right: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(1)">--</div>
+                    <div id="corner2" class="corner-box" style="position: absolute; bottom: 20px; left: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(2)">--</div>
+                    <div id="corner3" class="corner-box" style="position: absolute; bottom: 20px; right: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(3)">--</div>
                     
                     <!-- Center Typing Area -->
                     <div style="margin: 60px 120px; text-align: center;">
                         <div style="background: white; padding: 20px; border-radius: 10px; border: 2px solid #28a745; margin-bottom: 15px;">
                             <p style="font-size: 18px; line-height: 1.8; color: #333;">${splitAttentionState.typingText}</p>
                         </div>
-                        <textarea id="splitTypingInput" style="width: 100%; min-height: 120px; padding: 15px; font-size: 16px; border: 2px solid #007bff; border-radius: 5px;" placeholder="Type the passage above..."></textarea>
                         
-                        <div style="display: flex; justify-content: space-around; margin-top: 15px; flex-wrap: wrap; gap: 10px;">
-                            <div style="background: white; padding: 10px; border-radius: 5px; min-width: 100px;">
-                                <div style="font-size: 12px; color: #666;">Time Left</div>
-                                <div id="splitTimeLeft" style="font-size: 24px; font-weight: bold; color: #007bff;">2:00</div>
+                        <textarea id="splitTypingInput" style="width: 100%; height: 120px; padding: 15px; border: 2px solid #007bff; border-radius: 10px; font-size: 16px; line-height: 1.6; resize: vertical;" placeholder="Start typing the passage above..."></textarea>
+                        
+                        <!-- Stats Display -->
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 15px; text-align: center;">
+                            <div style="background: #d4edda; padding: 10px; border-radius: 5px; border: 1px solid #c3e6cb;">
+                                <strong>Correct Clicks</strong><br>
+                                <span id="splitCorrectClicks" style="font-size: 24px; color: #28a745;">0</span>
                             </div>
-                            <div style="background: white; padding: 10px; border-radius: 5px; min-width: 100px;">
-                                <div style="font-size: 12px; color: #666;">Correct Clicks</div>
-                                <div id="splitCorrectClicks" style="font-size: 24px; font-weight: bold; color: #28a745;">0</div>
+                            <div style="background: #f8d7da; padding: 10px; border-radius: 5px; border: 1px solid #f5c6cb;">
+                                <strong>Missed Targets</strong><br>
+                                <span id="splitMissed" style="font-size: 24px; color: #dc3545;">0</span>
                             </div>
-                            <div style="background: white; padding: 10px; border-radius: 5px; min-width: 100px;">
-                                <div style="font-size: 12px; color: #666;">Missed</div>
-                                <div id="splitMissed" style="font-size: 24px; font-weight: bold; color: #ffc107;">0</div>
-                            </div>
-                            <div style="background: white; padding: 10px; border-radius: 5px; min-width: 100px;">
-                                <div style="font-size: 12px; color: #666;">False Clicks</div>
-                                <div id="splitFalse" style="font-size: 24px; font-weight: bold; color: #dc3545;">0</div>
+                            <div style="background: #fff3cd; padding: 10px; border-radius: 5px; border: 1px solid #ffeaa7;">
+                                <strong>False Clicks</strong><br>
+                                <span id="splitFalse" style="font-size: 24px; color: #856404;">0</span>
                             </div>
                         </div>
                     </div>
                 </div>
             `;
             
-            // Focus on typing input
-            document.getElementById('splitTypingInput').focus();
-            
-            // Start cycling numbers
-            cycleSplitAttentionNumbers();
-            
-            // Track typing
-            document.getElementById('splitTypingInput').addEventListener('input', function(e) {
+            // Set up input listener for typing
+            document.getElementById('splitTypingInput').addEventListener('input', (e) => {
                 splitAttentionState.typedText = e.target.value;
             });
             
-            // Start timer countdown
+            // Focus on typing input
+            document.getElementById('splitTypingInput').focus();
+            
+            // Start the round
+            cycleSplitAttentionNumbers();
             updateSplitAttentionTimer();
         }
         
         function cycleSplitAttentionNumbers() {
+            if (splitAttentionInterval) {
+                clearInterval(splitAttentionInterval);
+            }
+            
             splitAttentionInterval = setInterval(() => {
                 // Randomly update each corner
                 for (let i = 0; i < 4; i++) {
                     const oldNumber = splitAttentionState.corners[i];
-                    const newNumber = splitAttentionState.displayNumbers[Math.floor(Math.random() * splitAttentionState.displayNumbers.length)];
+                    // Combine display numbers with current round's targets for selection
+                    const allNumbers = [...splitAttentionState.displayNumbers, ...splitAttentionState.currentTargets];
+                    const newNumber = allNumbers[Math.floor(Math.random() * allNumbers.length)];
                     splitAttentionState.corners[i] = newNumber;
                     
                     const cornerElement = document.getElementById(`corner${i}`);
@@ -2656,13 +2739,13 @@
                         cornerElement.textContent = newNumber;
                         
                         // If this was a target that wasn't clicked, count as missed
-                        if (oldNumber && splitAttentionState.targetNumbers.includes(oldNumber)) {
+                        if (oldNumber && splitAttentionState.currentTargets.includes(oldNumber)) {
                             splitAttentionState.missedTargets++;
                             document.getElementById('splitMissed').textContent = splitAttentionState.missedTargets;
                         }
                         
                         // Highlight if target number
-                        if (splitAttentionState.targetNumbers.includes(newNumber)) {
+                        if (splitAttentionState.currentTargets.includes(newNumber)) {
                             cornerElement.style.background = '#ffebee';
                             cornerElement.style.borderColor = '#dc3545';
                         } else {
@@ -2671,14 +2754,14 @@
                         }
                     }
                 }
-            }, 4000);
+            }, splitAttentionState.currentInterval);
         }
         
         function clickCorner(cornerIndex) {
             const number = splitAttentionState.corners[cornerIndex];
             const cornerElement = document.getElementById(`corner${cornerIndex}`);
             
-            if (splitAttentionState.targetNumbers.includes(number)) {
+            if (splitAttentionState.currentTargets.includes(number)) {
                 // Correct click
                 splitAttentionState.correctClicks++;
                 document.getElementById('splitCorrectClicks').textContent = splitAttentionState.correctClicks;
@@ -2690,7 +2773,8 @@
                 }, 300);
                 
                 // Replace with new number immediately
-                splitAttentionState.corners[cornerIndex] = splitAttentionState.displayNumbers[Math.floor(Math.random() * splitAttentionState.displayNumbers.length)];
+                const allNumbers = [...splitAttentionState.displayNumbers, ...splitAttentionState.currentTargets];
+                splitAttentionState.corners[cornerIndex] = allNumbers[Math.floor(Math.random() * allNumbers.length)];
                 cornerElement.textContent = splitAttentionState.corners[cornerIndex];
             } else {
                 // False click
@@ -2706,12 +2790,18 @@
         }
         
         function updateSplitAttentionTimer() {
+            if (splitAttentionTimer) {
+                clearInterval(splitAttentionTimer);
+            }
+            
+            const currentRound = splitAttentionState.rounds[splitAttentionState.currentRound - 1];
+            
             splitAttentionTimer = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - splitAttentionState.startTime) / 1000);
-                const remaining = splitAttentionState.duration - elapsed;
+                const elapsed = Math.floor((Date.now() - splitAttentionState.roundStartTime) / 1000);
+                const remaining = currentRound.duration - elapsed;
                 
                 if (remaining <= 0) {
-                    finishSplitAttention();
+                    finishSplitAttentionRound();
                     return;
                 }
                 
@@ -2724,15 +2814,16 @@
             }, 1000);
         }
         
-        function finishSplitAttention() {
+        function finishSplitAttentionRound() {
             clearInterval(splitAttentionInterval);
             clearInterval(splitAttentionTimer);
             
-            // Calculate typing accuracy
-            const typedLength = splitAttentionState.typedText.length;
+            // Calculate round performance
+            const currentRound = splitAttentionState.rounds[splitAttentionState.currentRound - 1];
             const originalLength = splitAttentionState.typingText.length;
-            let correctChars = 0;
+            const typedLength = splitAttentionState.typedText.length;
             
+            let correctChars = 0;
             for (let i = 0; i < Math.min(typedLength, originalLength); i++) {
                 if (splitAttentionState.typedText[i] === splitAttentionState.typingText[i]) {
                     correctChars++;
@@ -2740,61 +2831,161 @@
             }
             
             const typingAccuracy = originalLength > 0 ? Math.round((correctChars / originalLength) * 100) : 0;
-            
-            // Calculate detection rate
             const totalTargets = splitAttentionState.correctClicks + splitAttentionState.missedTargets;
             const detectionRate = totalTargets > 0 ? Math.round((splitAttentionState.correctClicks / totalTargets) * 100) : 0;
+            const overallScore = Math.round((typingAccuracy * 0.6) + (detectionRate * 0.4));
             
-            // Overall score (weighted average)
-            const overallScore = Math.round((typingAccuracy * 0.5) + (detectionRate * 0.5));
+            // Store round result
+            splitAttentionState.roundResults.push({
+                round: splitAttentionState.currentRound,
+                typingAccuracy: typingAccuracy,
+                detectionRate: detectionRate,
+                overallScore: overallScore,
+                correctClicks: splitAttentionState.correctClicks,
+                missedTargets: splitAttentionState.missedTargets,
+                falseClicks: splitAttentionState.falseClicks,
+                typedLength: typedLength,
+                originalLength: originalLength
+            });
+            
+            showSplitAttentionRoundResults();
+        }
+        
+        function showSplitAttentionRoundResults() {
+            const roundResult = splitAttentionState.roundResults[splitAttentionState.currentRound - 1];
+            const currentRound = splitAttentionState.rounds[splitAttentionState.currentRound - 1];
             
             const content = document.getElementById('moduleContent');
             content.innerHTML = `
-                <div class="score-display">
-                    <h3>Split Attention Results</h3>
-                    <h2>Overall Score: ${overallScore}%</h2>
+                <div style="background: ${roundResult.overallScore >= 70 ? '#d4edda' : roundResult.overallScore >= 50 ? '#fff3cd' : '#f8d7da'}; border: 2px solid ${roundResult.overallScore >= 70 ? '#c3e6cb' : roundResult.overallScore >= 50 ? '#ffeaa7' : '#f5c6cb'}; border-radius: 10px; padding: 20px; margin-bottom: 20px;">
+                    <h3>Round ${splitAttentionState.currentRound} Complete!</h3>
+                    <h2>Overall Score: ${roundResult.overallScore}%</h2>
                 </div>
                 
                 <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                    <h3 style="margin-bottom: 15px;">Performance Breakdown:</h3>
+                    <h3 style="margin-bottom: 15px;">Round ${splitAttentionState.currentRound} Performance:</h3>
                     
-                    <div style="margin: 15px 0;">
-                        <strong>Typing Performance:</strong>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 5px;">
-                            <p>Accuracy: ${typingAccuracy}%</p>
-                            <p>Characters typed: ${typedLength} / ${originalLength}</p>
-                            <p>Correct characters: ${correctChars}</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h4>Typing Accuracy</h4>
+                            <div style="color: ${roundResult.typingAccuracy >= 70 ? '#28a745' : '#dc3545'}; font-weight: bold; font-size: 24px;">
+                                ${roundResult.typingAccuracy}%
+                            </div>
+                            <small>${roundResult.typedLength} / ${roundResult.originalLength} characters</small>
                         </div>
-                    </div>
-                    
-                    <div style="margin: 15px 0;">
-                        <strong>Target Detection:</strong>
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 5px;">
-                            <p>Detection rate: ${detectionRate}%</p>
-                            <p style="color: #28a745;">✓ Correct clicks: ${splitAttentionState.correctClicks}</p>
-                            <p style="color: #ffc107;">⚠ Missed targets: ${splitAttentionState.missedTargets}</p>
-                            <p style="color: #dc3545;">✗ False clicks: ${splitAttentionState.falseClicks}</p>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h4>Target Detection</h4>
+                            <div style="color: ${roundResult.detectionRate >= 70 ? '#28a745' : '#dc3545'}; font-weight: bold; font-size: 24px;">
+                                ${roundResult.detectionRate}%
+                            </div>
+                            <small>Correct: ${roundResult.correctClicks}, Missed: ${roundResult.missedTargets}</small>
+                        </div>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center;">
+                            <h4>Accuracy</h4>
+                            <div style="color: ${roundResult.falseClicks <= 2 ? '#28a745' : '#dc3545'}; font-weight: bold; font-size: 24px;">
+                                ${roundResult.falseClicks} false clicks
+                            </div>
+                            <small>Avoid clicking non-targets</small>
                         </div>
                     </div>
                 </div>
                 
+                <div style="background: #e7f3ff; padding: 15px; border-radius: 10px; margin: 20px 0; border: 1px solid #007bff;">
+                    <h4>📈 Progress Update:</h4>
+                    <p>${roundResult.overallScore >= 80 ? 
+                        "<strong>Excellent!</strong> You're mastering divided attention skills. Ready for more challenging rounds!" :
+                        roundResult.overallScore >= 60 ?
+                        "<strong>Good progress!</strong> Keep practicing the balance between typing accuracy and target detection." :
+                        "<strong>Keep practicing!</strong> Focus on maintaining typing rhythm while staying alert for targets."
+                    }</p>
+                </div>
+                
+                <div style="text-align: center;">
+                    ${splitAttentionState.currentRound < splitAttentionState.totalRounds ?
+                        `<button class="btn btn-primary" onclick="startSplitAttentionRound(${splitAttentionState.currentRound + 1})" style="background: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-right: 10px;">Continue to Round ${splitAttentionState.currentRound + 1}</button>` :
+                        `<button class="btn btn-success" onclick="showSplitAttentionFinalResults()" style="background: #28a745; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-right: 10px;">View Final Results</button>`
+                    }
+                    <button class="btn btn-danger" onclick="closeModule()" style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer;">Exit Training</button>
+                </div>
+            `;
+        }
+        
+        function showSplitAttentionFinalResults() {
+            const totalScore = Math.round(splitAttentionState.roundResults.reduce((sum, result) => sum + result.overallScore, 0) / splitAttentionState.roundResults.length);
+            const totalCorrectClicks = splitAttentionState.roundResults.reduce((sum, result) => sum + result.correctClicks, 0);
+            const totalMissedTargets = splitAttentionState.roundResults.reduce((sum, result) => sum + result.missedTargets, 0);
+            const totalFalseClicks = splitAttentionState.roundResults.reduce((sum, result) => sum + result.falseClicks, 0);
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; border-radius: 15px; text-align: center; margin-bottom: 30px;">
+                    <h3>🎯 Progressive Split Attention Training Complete!</h3>
+                    <h2>Final Average Score: ${totalScore}%</h2>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <h3>Round-by-Round Performance:</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 15px 0;">
+                        ${splitAttentionState.roundResults.map((result, index) => `
+                            <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; text-align: center; border: 2px solid ${result.overallScore >= 70 ? '#28a745' : '#ffc107'};">
+                                <h4>Round ${result.round}</h4>
+                                <div style="color: ${result.overallScore >= 70 ? '#28a745' : '#ffc107'}; font-weight: bold; font-size: 20px;">
+                                    ${result.overallScore}%
+                                </div>
+                                <small>Typing: ${result.typingAccuracy}% | Targets: ${result.detectionRate}%</small>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <h3>Overall Statistics:</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 15px 0;">
+                        <div style="background: #d4edda; padding: 15px; border-radius: 8px; text-align: center;">
+                            <strong>Total Correct Clicks</strong><br>
+                            <span style="font-size: 24px; color: #28a745;">${totalCorrectClicks}</span>
+                        </div>
+                        <div style="background: #f8d7da; padding: 15px; border-radius: 8px; text-align: center;">
+                            <strong>Total Missed</strong><br>
+                            <span style="font-size: 24px; color: #dc3545;">${totalMissedTargets}</span>
+                        </div>
+                        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; text-align: center;">
+                            <strong>Total False Clicks</strong><br>
+                            <span style="font-size: 24px; color: #856404;">${totalFalseClicks}</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #e7f3ff; padding: 20px; border-radius: 10px; border: 2px solid #007bff;">
+                    <h4>📋 Training Assessment:</h4>
+                    <p>${
+                        totalScore >= 85 ? 
+                            "<strong>Outstanding!</strong> You've demonstrated excellent divided attention skills across all difficulty levels. Your ability to multitask effectively will serve you well in emergency dispatch scenarios." :
+                        totalScore >= 70 ?
+                            "<strong>Great progress!</strong> You've shown solid improvement through the progressive training. Continue practicing to maintain and enhance these divided attention skills." :
+                        totalScore >= 55 ?
+                            "<strong>Good effort!</strong> The training shows you're developing divided attention abilities. Consider additional practice sessions to strengthen multitasking skills." :
+                            "<strong>Additional training recommended.</strong> Divided attention is a critical skill for dispatchers. Focus on maintaining steady typing while staying alert to visual cues."
+                    }</p>
+                </div>
+                
                 <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="showSplitAttention()">Practice Again</button>
-                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                    <button class="btn btn-primary" onclick="showSplitAttention()" style="background: #007bff; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer; margin-right: 10px;">Train Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()" style="background: #dc3545; color: white; border: none; padding: 12px 25px; border-radius: 8px; cursor: pointer;">Exit Training</button>
                 </div>
             `;
             
-            // Save score to Firebase
+            // Save comprehensive score to Firebase
             if (auth.currentUser) {
                 db.collection('users').doc(auth.currentUser.uid)
                   .collection('criticallScores').add({
                     module: 'splitAttention',
-                    overallScore: overallScore,
-                    typingAccuracy: typingAccuracy,
-                    detectionRate: detectionRate,
-                    correctClicks: splitAttentionState.correctClicks,
-                    missedTargets: splitAttentionState.missedTargets,
-                    falseClicks: splitAttentionState.falseClicks,
+                    finalAverageScore: totalScore,
+                    roundResults: splitAttentionState.roundResults,
+                    totalCorrectClicks: totalCorrectClicks,
+                    totalMissedTargets: totalMissedTargets,
+                    totalFalseClicks: totalFalseClicks,
+                    roundsCompleted: splitAttentionState.totalRounds,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                   });
             }
@@ -3770,10 +3961,10 @@
             currentStage: 0,
             stages: [],
             score: 0,
-            totalStages: 5,
+            totalStages: 4,
             stageAnswers: []
         };
-        
+
         const decisionMakingStages = [
             {
                 title: "Stage 1: High Priority Emergencies",
@@ -3911,6 +4102,8 @@
                 ]
             }
         ];
+
+        
         
         function showDecisionMaking() {
             document.getElementById('moduleTitle').textContent = '🎯 Decision Making Practice';
