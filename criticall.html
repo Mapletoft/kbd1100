@@ -1155,11 +1155,10 @@
             const day = birthDay.padStart(2, '0');
             
             const part1 = Math.floor(1000 + Math.random() * 9000);
-            const part2 = Math.floor(1000 + Math.random() * 90000);
             const dob = year + month + day;
             
             return {
-                license: `${letter}${part1}-${part2}-${dob}`,
+                license: `${letter}${part1}-${part1}-${dob}`,
                 year: "19" + year,
                 month: birthMonth.padStart(2, '0'),
                 day: day,
