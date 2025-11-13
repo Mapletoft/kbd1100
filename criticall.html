@@ -393,7 +393,7 @@
         </div>
         
         <div class="module-grid">
-            <div class="module-card coming-soon" onclick="openModule('dataEntry')">
+            <div class="module-card" onclick="openModule('dataEntry')">
                 <h3>📝 Data Entry</h3>
                 <p>Listen to emergency calls and accurately record caller information, location, and incident type.</p>
             </div>
@@ -413,11 +413,6 @@
                 <p>Navigate city streets and determine optimal routes for emergency response.</p>
             </div>
             
-            <div class="module-card coming-soon">
-                <h3>🔄 Split Attention</h3>
-                <p></p>
-            </div>
-
             <div class="module-card" onclick="openModule('readingComprehension')">
                 <h3>📘 Reading Comprehension</h3>
                 <p>Read passages and answer questions about policies, procedures, and call details.</p>
@@ -438,29 +433,39 @@
                 <p>Solve real-world math problems including time calculations and basic arithmetic.</p>
             </div>
             
-            <div class="module-card coming-soon">
-                <h3>📻 </h3>
-                <p></p>
+            <div class="module-card" onclick="openModule('splitAttention')">
+                <h3>👁️ Split Attention</h3>
+                <p>Type accurately while monitoring multiple displays for target numbers.</p>
             </div>
             
-            <div class="module-card coming-soon">
-                <h3>👂 Listening Skills</h3>
-                <p></p>
+            <div class="module-card" onclick="openModule('listeningSkills')">
+                <h3>🎧 Listening Skills</h3>
+                <p>Listen to emergency calls and answer detailed comprehension questions.</p>
             </div>
             
-            <div class="module-card coming-soon">
+            <div class="module-card" onclick="openModule('vinLicense')">
                 <h3>🚗 VIN/License Entry</h3>
-                <p>Accurately enter vehicle identification numbers and license plates.</p>
+                <p>Enter VINs and license numbers accurately, extract date of birth from licenses.</p>
             </div>
             
-            <div class="module-card coming-soon">
+            <div class="module-card" onclick="openModule('crossReference')">
                 <h3>🔍 Cross-Reference</h3>
-                <p>Verify caller information against database records.</p>
+                <p>Spot discrepancies between caller information and database records.</p>
+            </div>
+            
+            <div class="module-card" onclick="openModule('multitasking')">
+                <h3>🎮 Multitasking</h3>
+                <p>Handle multiple emergency calls simultaneously while prioritizing urgency.</p>
             </div>
             
             <div class="module-card coming-soon">
-                <h3>🎮 Multitasking</h3>
-                <p>Handle multiple tasks simultaneously under time pressure.</p>
+                <h3>🎯 Decision Making</h3>
+                <p>Make critical decisions about resource allocation and emergency response priorities.</p>
+            </div>
+            
+            <div class="module-card coming-soon">
+                <h3>📻 Radio Codes</h3>
+                <p>Learn and practice 10-codes and radio communication protocols.</p>
             </div>
             
             <div class="module-card coming-soon" style="grid-column: span 2; background: linear-gradient(135deg, #999 0%, #666 100%);">
@@ -489,6 +494,9 @@
         let selectedPriority = null;
         let selectedServices = [];
         let memoryTimerInterval = null; // Global variable to track memory timer
+        let splitAttentionInterval = null; // For split attention number cycling
+        let splitAttentionTimer = null; // For split attention test timer
+        let multitaskingState = { activeCall: null, callQueue: [], score: 0 }; // For multitasking module
         
         // Initialize Firebase
         auth = firebase.auth();
@@ -532,12 +540,12 @@
             {
                 scenario: "Caller reports seeing smoke coming from a neighbor's garage. No flames visible yet, but the smell is getting stronger. No one appears to be home.",
                 correctServices: ["fire"],
-                correctPriority: "high"
+                correctPriority: "medium"
             },
             {
-                scenario: "A two-car collision at Main St and 5th Ave. Minor injuries reported. Both drivers are out of their vehicles.",
-                correctServices: ["ems"],
-                correctPriority: "low"
+                scenario: "A two-car collision at Main St and 5th Ave. Minor injuries reported, one vehicle is blocking the right lane. Both drivers are out of their vehicles.",
+                correctServices: ["police", "ems"],
+                correctPriority: "medium"
             },
             {
                 scenario: "Caller reports an unresponsive infant, not breathing. Mother is hysterical. Address is clear.",
@@ -545,7 +553,7 @@
                 correctPriority: "high"
             },
             {
-                scenario: "Neighbour reports a burglary in progress. Suspects are currently inside the residence. Homeowners are on vacation.",
+                scenario: "Neighbor reports a burglary in progress. Suspects are currently inside the residence. Homeowners are on vacation.",
                 correctServices: ["police"],
                 correctPriority: "high"
             },
@@ -556,7 +564,7 @@
             },
             {
                 scenario: "Structure fire fully involved, multiple floors. Building is a commercial warehouse. All occupants have evacuated safely.",
-                correctServices: ["fire"],
+                correctServices: ["fire", "police"],
                 correctPriority: "high"
             },
             {
@@ -571,7 +579,7 @@
             },
             {
                 scenario: "Tree branch fell on power lines during storm. Sparking visible. Lines are across the roadway blocking both lanes.",
-                correctServices: ["fire", "utilities"],
+                correctServices: ["fire", "police", "utilities"],
                 correctPriority: "high"
             },
             {
@@ -580,12 +588,12 @@
                 correctPriority: "low"
             },
             {
-                scenario: "Domestic disturbance. Neighbours report shouting and sounds of items breaking. Children's voices heard crying.",
+                scenario: "Domestic disturbance. Neighbors report shouting and sounds of items breaking. Children's voices heard crying.",
                 correctServices: ["police"],
                 correctPriority: "high"
             },
             {
-                scenario: "Gas leak reported at a restaurant. Strong odor throughout the building. Building has been evacuated. No illness",
+                scenario: "Gas leak reported at a restaurant. Strong odor throughout the building. Building has been evacuated.",
                 correctServices: ["fire", "utilities"],
                 correctPriority: "high"
             },
@@ -596,7 +604,7 @@
             },
             {
                 scenario: "Caller locked keys in car with infant inside. Weather is hot, approximately 85°F. Infant appears alert through window.",
-                correctServices: ["fire"],
+                correctServices: ["fire", "police"],
                 correctPriority: "high"
             }
         ];
@@ -693,7 +701,7 @@
                 avoidStreets: ["Elm St (one-way east)"]
             }
         ];
-
+        
         // Reading Comprehension Passages
         const readingPassages = [
             {
@@ -822,7 +830,7 @@
             { word: "dispatch", options: ["dispach", "dispatche", "dispatch", "dispetch"], correct: 2 },
             { word: "emergency", options: ["emergancy", "emergency", "emergencey", "emergensy"], correct: 1 },
             { word: "principal", options: ["principle", "principal", "prinsipal", "prinsiple"], correct: 1 },
-            { word: "paraphernalia", options: ["parepharnalia", "paraphernalia", "parapharnalia", "parephernalia"], correct: 1 },
+            { word: "their", options: ["there", "their", "thier", "they're"], correct: 1 },
             { word: "definitely", options: ["definately", "definitly", "definitely", "definetly"], correct: 2 },
             { word: "accommodate", options: ["acommodate", "accomodate", "accommodate", "acomodate"], correct: 2 },
             { word: "existence", options: ["existance", "existence", "existense", "existents"], correct: 1 },
@@ -1038,6 +1046,260 @@
             }
         ];
         
+        // Split Attention - Typing passages
+        const splitAttentionPassages = [
+            "Emergency dispatchers must maintain composure under pressure while managing multiple information streams simultaneously. This requires exceptional multitasking abilities and sustained concentration throughout extended shifts.",
+            "Effective communication is critical in emergency services. Dispatchers must quickly gather accurate information, relay instructions clearly, and coordinate responses between multiple agencies and units.",
+            "Modern dispatch centers utilize advanced computer-aided dispatch systems to track unit locations, manage call queues, and maintain comprehensive incident records for legal and operational purposes.",
+            "Time management skills are essential for dispatchers who must prioritize incoming calls based on urgency, allocate appropriate resources, and ensure timely response to life-threatening situations.",
+            "Dispatchers serve as the vital link between callers in crisis and emergency responders in the field. Their ability to remain calm and professional can significantly impact outcomes."
+        ];
+        
+        // Listening Skills - Audio scenarios with questions (you'll add audio files)
+        const listeningScenarios = [
+            {
+                audioFile: "listening1.mp3", // You'll add your audio file
+                scenario: "911 call: House fire at 456 Elm Street. Caller reports seeing flames from second floor windows. Two children possibly trapped inside. Smoke visible from street.",
+                questions: [
+                    {
+                        q: "What is the address of the fire?",
+                        options: ["456 Elm Street", "456 Oak Street", "546 Elm Street", "456 Elm Avenue"],
+                        correct: 0
+                    },
+                    {
+                        q: "Where are the flames visible?",
+                        options: ["First floor", "Second floor", "Basement", "Roof"],
+                        correct: 1
+                    },
+                    {
+                        q: "How many children are possibly trapped?",
+                        options: ["One", "Two", "Three", "Unknown"],
+                        correct: 1
+                    },
+                    {
+                        q: "What did the caller report seeing from the street?",
+                        options: ["Only flames", "Only smoke", "Flames and smoke", "People at windows"],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                audioFile: "listening2.mp3",
+                scenario: "Dispatch: Two-vehicle collision at Main and 5th. Silver Honda and black pickup truck. Driver of Honda is unconscious. Pickup driver walked away from scene. Traffic backed up for several blocks.",
+                questions: [
+                    {
+                        q: "Where did the collision occur?",
+                        options: ["Main and 4th", "Main and 5th", "Main and 6th", "5th and Oak"],
+                        correct: 1
+                    },
+                    {
+                        q: "What color is the Honda?",
+                        options: ["Black", "White", "Silver", "Blue"],
+                        correct: 2
+                    },
+                    {
+                        q: "What is the condition of the Honda driver?",
+                        options: ["Conscious", "Unconscious", "Walked away", "Not mentioned"],
+                        correct: 1
+                    },
+                    {
+                        q: "What did the pickup driver do?",
+                        options: ["Remained at scene", "Walked away from scene", "Was transported", "Was unconscious"],
+                        correct: 1
+                    },
+                    {
+                        q: "How is traffic affected?",
+                        options: ["No impact", "Backed up one block", "Backed up several blocks", "Road closed"],
+                        correct: 2
+                    }
+                ]
+            },
+            {
+                audioFile: "listening3.mp3",
+                scenario: "Medical emergency: 78-year-old male experiencing chest pain at 123 Maple Avenue, Apartment 4B. Patient is diabetic, taking blood pressure medication. Wife is with him. Patient is conscious but in severe pain.",
+                questions: [
+                    {
+                        q: "What is the patient's age?",
+                        options: ["68", "78", "88", "87"],
+                        correct: 1
+                    },
+                    {
+                        q: "What is the main complaint?",
+                        options: ["Difficulty breathing", "Chest pain", "Abdominal pain", "Headache"],
+                        correct: 1
+                    },
+                    {
+                        q: "What is the apartment number?",
+                        options: ["3B", "4A", "4B", "5B"],
+                        correct: 2
+                    },
+                    {
+                        q: "What medical condition does the patient have?",
+                        options: ["Heart disease", "Diabetes", "Asthma", "Cancer"],
+                        correct: 1
+                    },
+                    {
+                        q: "Is the patient conscious?",
+                        options: ["Yes", "No", "Intermittent", "Not mentioned"],
+                        correct: 0
+                    }
+                ]
+            }
+        ];
+        
+        // VIN/License Entry - Generate license numbers with encoded DOB
+        function generateLicenseNumber(lastName, birthYear, birthMonth, birthDay, isFemale) {
+            const letter = lastName.charAt(0).toUpperCase();
+            const year = birthYear.toString().slice(-2);
+            const month = isFemale ? (parseInt(birthMonth) + 50).toString().padStart(2, '0') : birthMonth.padStart(2, '0');
+            const day = birthDay.padStart(2, '0');
+            
+            const part1 = Math.floor(1000 + Math.random() * 9000);
+            const part2 = Math.floor(10000 + Math.random() * 90000);
+            const dob = year + month + day;
+            
+            return {
+                license: `${letter}${part1}-${part2}-${dob}`,
+                year: "19" + year,
+                month: birthMonth.padStart(2, '0'),
+                day: day,
+                gender: isFemale ? "Female" : "Male"
+            };
+        }
+        
+        // Pre-generated VINs
+        const vinNumbers = [
+            "1HGBH41JXMN109186",
+            "2G1WF52E059246031",
+            "JH4KA8260MC000000",
+            "WBAVM1C50EVW48592",
+            "1FTFW1ET5DFC10312",
+            "5YJSA1DN5CFP01785",
+            "1FMCU0F70AUA27450",
+            "3GNDA13D76S000000",
+            "5TDZA23C88S000000",
+            "1G1ZT54806F109149"
+        ];
+        
+        // Cross-Reference Scenarios
+        const crossReferenceScenarios = [
+            {
+                title: "License Verification",
+                callerInfo: {
+                    name: "John Michael Smith",
+                    dob: "03/15/1985",
+                    license: "S1234-56789-85031",
+                    address: "123 Oak Street",
+                    phone: "705-555-1234"
+                },
+                databaseInfo: {
+                    name: "John Michael Smith",
+                    dob: "03/15/1985",
+                    license: "S1234-56789-85031",
+                    address: "123 Oak Street",
+                    phone: "705-555-1235"
+                },
+                discrepancy: "phone",
+                question: "What information does NOT match between the caller and database?"
+            },
+            {
+                title: "Warrant Check",
+                callerInfo: {
+                    name: "Sarah Elizabeth Johnson",
+                    dob: "07/22/1992",
+                    license: "J5678-12345-92722",
+                    address: "456 Maple Avenue"
+                },
+                databaseInfo: {
+                    name: "Sarah Elizabeth Johnson",
+                    dob: "07/22/1992",
+                    license: "J5678-12345-92722",
+                    address: "456 Maple Drive"
+                },
+                discrepancy: "address",
+                question: "Which field contains a discrepancy?"
+            },
+            {
+                title: "Vehicle Registration",
+                callerInfo: {
+                    name: "Michael Robert Chen",
+                    plate: "ABCD 123",
+                    vin: "1HGBH41JXMN109186",
+                    year: "2015",
+                    make: "Honda"
+                },
+                databaseInfo: {
+                    name: "Michael Robert Chen",
+                    plate: "ABCD 123",
+                    vin: "1HGBH41JXMN109186",
+                    year: "2016",
+                    make: "Honda"
+                },
+                discrepancy: "year",
+                question: "What vehicle information doesn't match?"
+            },
+            {
+                title: "Emergency Contact",
+                callerInfo: {
+                    name: "Emily Rose Martinez",
+                    dob: "11/30/1988",
+                    address: "789 Pine Boulevard Apt 3B",
+                    emergency_contact: "Carlos Martinez",
+                    emergency_phone: "705-555-9876"
+                },
+                databaseInfo: {
+                    name: "Emily Rose Martinez",
+                    dob: "11/03/1988",
+                    address: "789 Pine Boulevard Apt 3B",
+                    emergency_contact: "Carlos Martinez",
+                    emergency_phone: "705-555-9876"
+                },
+                discrepancy: "dob",
+                question: "Which piece of information is inconsistent?"
+            },
+            {
+                title: "Perfect Match",
+                callerInfo: {
+                    name: "David Lee Thompson",
+                    dob: "05/14/1979",
+                    license: "T2345-67890-79514",
+                    address: "321 Birch Lane"
+                },
+                databaseInfo: {
+                    name: "David Lee Thompson",
+                    dob: "05/14/1979",
+                    license: "T2345-67890-79514",
+                    address: "321 Birch Lane"
+                },
+                discrepancy: "none",
+                question: "Do all fields match?"
+            }
+        ];
+        
+        // Multitasking - Call scenarios with priorities
+        const multitaskingCalls = [
+            { id: 1, text: "Chest pain, difficulty breathing", priority: "high", service: "EMS" },
+            { id: 2, text: "Suspicious person near school", priority: "medium", service: "Police" },
+            { id: 3, text: "Noise complaint from neighbor", priority: "low", service: "Police" },
+            { id: 4, text: "Structure fire, flames visible", priority: "high", service: "Fire" },
+            { id: 5, text: "Traffic accident, injuries reported", priority: "high", service: "All" },
+            { id: 6, text: "Lost pet report", priority: "low", service: "Police" },
+            { id: 7, text: "Power lines down, sparking", priority: "high", service: "Fire/Utilities" },
+            { id: 8, text: "Theft report from yesterday", priority: "low", service: "Police" },
+            { id: 9, text: "Unresponsive person", priority: "high", service: "EMS" },
+            { id: 10, text: "Loud party after midnight", priority: "medium", service: "Police" },
+            { id: 11, text: "Gas odor in building", priority: "high", service: "Fire" },
+            { id: 12, text: "Vehicle blocking driveway", priority: "low", service: "Police" },
+            { id: 13, text: "Domestic disturbance, yelling heard", priority: "medium", service: "Police" },
+            { id: 14, text: "Child fell from playground equipment", priority: "high", service: "EMS" },
+            { id: 15, text: "Parking violation", priority: "low", service: "Police" },
+            { id: 16, text: "Overdose, not breathing", priority: "high", service: "EMS" },
+            { id: 17, text: "Smoke alarm activation", priority: "medium", service: "Fire" },
+            { id: 18, text: "Request for police report", priority: "low", service: "Police" },
+            { id: 19, text: "Armed robbery in progress", priority: "high", service: "Police" },
+            { id: 20, text: "Water main break", priority: "medium", service: "Utilities" }
+        ];
+        
         function openModule(moduleName) {
             if (event.target.classList.contains('coming-soon')) {
                 alert('This module is coming soon! Check back later.');
@@ -1074,6 +1336,21 @@
                 case 'mathematics':
                     showMathematics();
                     break;
+                case 'splitAttention':
+                    showSplitAttention();
+                    break;
+                case 'listeningSkills':
+                    showListeningSkills();
+                    break;
+                case 'vinLicense':
+                    showVinLicense();
+                    break;
+                case 'crossReference':
+                    showCrossReference();
+                    break;
+                case 'multitasking':
+                    showMultitasking();
+                    break;
             }
         }
         
@@ -1091,6 +1368,16 @@
             if (memoryTimerInterval) {
                 clearInterval(memoryTimerInterval);
                 memoryTimerInterval = null;
+            }
+            
+            // Clear split attention timers
+            if (splitAttentionInterval) {
+                clearInterval(splitAttentionInterval);
+                splitAttentionInterval = null;
+            }
+            if (splitAttentionTimer) {
+                clearInterval(splitAttentionTimer);
+                splitAttentionTimer = null;
             }
         }
         
@@ -2242,6 +2529,1227 @@
                     score: percentage,
                     correct: correctAnswers,
                     total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // SPLIT ATTENTION MODULE
+        let splitAttentionState = {
+            targetNumbers: [33, 55, 77],
+            displayNumbers: [12, 23, 34, 45, 56, 67, 78, 89, 91, 33, 55, 77],
+            corners: [null, null, null, null], // Current numbers in each corner
+            typingText: '',
+            typedText: '',
+            correctClicks: 0,
+            missedTargets: 0,
+            falseClicks: 0,
+            startTime: null,
+            duration: 120 // 2 minutes
+        };
+        
+        function showSplitAttention() {
+            document.getElementById('moduleTitle').textContent = '👁️ Split Attention Practice';
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <h3>Instructions:</h3>
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; margin-bottom: 20px;">
+                    <p><strong>This test measures your ability to split attention between two tasks:</strong></p>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Type the passage</strong> shown in the center text box</li>
+                        <li><strong>Watch the 4 corner boxes</strong> - numbers will cycle every 2 seconds</li>
+                        <li><strong>Click a box immediately</strong> when it shows a target number: <span style="background: #ff6b6b; color: white; padding: 3px 8px; border-radius: 3px;">33</span> <span style="background: #ff6b6b; color: white; padding: 3px 8px; border-radius: 3px;">55</span> <span style="background: #ff6b6b; color: white; padding: 3px 8px; border-radius: 3px;">77</span></li>
+                        <li>Ignore all other numbers</li>
+                    </ol>
+                    <p style="color: #856404; margin-top: 10px;"><strong>⏱️ Duration: 2 minutes</strong></p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button class="btn btn-success" onclick="startSplitAttention()">Start Test</button>
+                </div>
+            `;
+        }
+        
+        function startSplitAttention() {
+            // Reset state
+            splitAttentionState.typingText = splitAttentionPassages[Math.floor(Math.random() * splitAttentionPassages.length)];
+            splitAttentionState.typedText = '';
+            splitAttentionState.correctClicks = 0;
+            splitAttentionState.missedTargets = 0;
+            splitAttentionState.falseClicks = 0;
+            splitAttentionState.startTime = Date.now();
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <div style="position: relative; min-height: 500px; background: #f8f9fa; padding: 40px; border-radius: 10px;">
+                    <!-- Corner Boxes -->
+                    <div id="corner0" class="corner-box" style="position: absolute; top: 20px; left: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(0)">12</div>
+                    <div id="corner1" class="corner-box" style="position: absolute; top: 20px; right: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(1)">23</div>
+                    <div id="corner2" class="corner-box" style="position: absolute; bottom: 20px; left: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(2)">34</div>
+                    <div id="corner3" class="corner-box" style="position: absolute; bottom: 20px; right: 20px; width: 80px; height: 80px; background: white; border: 3px solid #007bff; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 28px; font-weight: bold; cursor: pointer;" onclick="clickCorner(3)">45</div>
+                    
+                    <!-- Center Typing Area -->
+                    <div style="margin: 60px 120px; text-align: center;">
+                        <div style="background: white; padding: 20px; border-radius: 10px; border: 2px solid #28a745; margin-bottom: 15px;">
+                            <p style="font-size: 18px; line-height: 1.8; color: #333;">${splitAttentionState.typingText}</p>
+                        </div>
+                        <textarea id="splitTypingInput" style="width: 100%; min-height: 120px; padding: 15px; font-size: 16px; border: 2px solid #007bff; border-radius: 5px;" placeholder="Type the passage above..."></textarea>
+                        
+                        <div style="display: flex; justify-content: space-around; margin-top: 15px; flex-wrap: wrap; gap: 10px;">
+                            <div style="background: white; padding: 10px; border-radius: 5px; min-width: 100px;">
+                                <div style="font-size: 12px; color: #666;">Time Left</div>
+                                <div id="splitTimeLeft" style="font-size: 24px; font-weight: bold; color: #007bff;">2:00</div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 5px; min-width: 100px;">
+                                <div style="font-size: 12px; color: #666;">Correct Clicks</div>
+                                <div id="splitCorrectClicks" style="font-size: 24px; font-weight: bold; color: #28a745;">0</div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 5px; min-width: 100px;">
+                                <div style="font-size: 12px; color: #666;">Missed</div>
+                                <div id="splitMissed" style="font-size: 24px; font-weight: bold; color: #ffc107;">0</div>
+                            </div>
+                            <div style="background: white; padding: 10px; border-radius: 5px; min-width: 100px;">
+                                <div style="font-size: 12px; color: #666;">False Clicks</div>
+                                <div id="splitFalse" style="font-size: 24px; font-weight: bold; color: #dc3545;">0</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Focus on typing input
+            document.getElementById('splitTypingInput').focus();
+            
+            // Start cycling numbers
+            cycleSplitAttentionNumbers();
+            
+            // Track typing
+            document.getElementById('splitTypingInput').addEventListener('input', function(e) {
+                splitAttentionState.typedText = e.target.value;
+            });
+            
+            // Start timer countdown
+            updateSplitAttentionTimer();
+        }
+        
+        function cycleSplitAttentionNumbers() {
+            splitAttentionInterval = setInterval(() => {
+                // Randomly update each corner
+                for (let i = 0; i < 4; i++) {
+                    const oldNumber = splitAttentionState.corners[i];
+                    const newNumber = splitAttentionState.displayNumbers[Math.floor(Math.random() * splitAttentionState.displayNumbers.length)];
+                    splitAttentionState.corners[i] = newNumber;
+                    
+                    const cornerElement = document.getElementById(`corner${i}`);
+                    if (cornerElement) {
+                        cornerElement.textContent = newNumber;
+                        
+                        // If this was a target that wasn't clicked, count as missed
+                        if (oldNumber && splitAttentionState.targetNumbers.includes(oldNumber)) {
+                            splitAttentionState.missedTargets++;
+                            document.getElementById('splitMissed').textContent = splitAttentionState.missedTargets;
+                        }
+                        
+                        // Highlight if target number
+                        if (splitAttentionState.targetNumbers.includes(newNumber)) {
+                            cornerElement.style.background = '#ffebee';
+                            cornerElement.style.borderColor = '#dc3545';
+                        } else {
+                            cornerElement.style.background = 'white';
+                            cornerElement.style.borderColor = '#007bff';
+                        }
+                    }
+                }
+            }, 2000);
+        }
+        
+        function clickCorner(cornerIndex) {
+            const number = splitAttentionState.corners[cornerIndex];
+            const cornerElement = document.getElementById(`corner${cornerIndex}`);
+            
+            if (splitAttentionState.targetNumbers.includes(number)) {
+                // Correct click
+                splitAttentionState.correctClicks++;
+                document.getElementById('splitCorrectClicks').textContent = splitAttentionState.correctClicks;
+                
+                // Visual feedback
+                cornerElement.style.background = '#d4edda';
+                setTimeout(() => {
+                    cornerElement.style.background = 'white';
+                }, 300);
+                
+                // Replace with new number immediately
+                splitAttentionState.corners[cornerIndex] = splitAttentionState.displayNumbers[Math.floor(Math.random() * splitAttentionState.displayNumbers.length)];
+                cornerElement.textContent = splitAttentionState.corners[cornerIndex];
+            } else {
+                // False click
+                splitAttentionState.falseClicks++;
+                document.getElementById('splitFalse').textContent = splitAttentionState.falseClicks;
+                
+                // Visual feedback
+                cornerElement.style.background = '#f8d7da';
+                setTimeout(() => {
+                    cornerElement.style.background = 'white';
+                }, 300);
+            }
+        }
+        
+        function updateSplitAttentionTimer() {
+            splitAttentionTimer = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - splitAttentionState.startTime) / 1000);
+                const remaining = splitAttentionState.duration - elapsed;
+                
+                if (remaining <= 0) {
+                    finishSplitAttention();
+                    return;
+                }
+                
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                const timeElement = document.getElementById('splitTimeLeft');
+                if (timeElement) {
+                    timeElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+        
+        function finishSplitAttention() {
+            clearInterval(splitAttentionInterval);
+            clearInterval(splitAttentionTimer);
+            
+            // Calculate typing accuracy
+            const typedLength = splitAttentionState.typedText.length;
+            const originalLength = splitAttentionState.typingText.length;
+            let correctChars = 0;
+            
+            for (let i = 0; i < Math.min(typedLength, originalLength); i++) {
+                if (splitAttentionState.typedText[i] === splitAttentionState.typingText[i]) {
+                    correctChars++;
+                }
+            }
+            
+            const typingAccuracy = originalLength > 0 ? Math.round((correctChars / originalLength) * 100) : 0;
+            
+            // Calculate detection rate
+            const totalTargets = splitAttentionState.correctClicks + splitAttentionState.missedTargets;
+            const detectionRate = totalTargets > 0 ? Math.round((splitAttentionState.correctClicks / totalTargets) * 100) : 0;
+            
+            // Overall score (weighted average)
+            const overallScore = Math.round((typingAccuracy * 0.5) + (detectionRate * 0.5));
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Split Attention Results</h3>
+                    <h2>Overall Score: ${overallScore}%</h2>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <h3 style="margin-bottom: 15px;">Performance Breakdown:</h3>
+                    
+                    <div style="margin: 15px 0;">
+                        <strong>Typing Performance:</strong>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 5px;">
+                            <p>Accuracy: ${typingAccuracy}%</p>
+                            <p>Characters typed: ${typedLength} / ${originalLength}</p>
+                            <p>Correct characters: ${correctChars}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin: 15px 0;">
+                        <strong>Target Detection:</strong>
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-top: 5px;">
+                            <p>Detection rate: ${detectionRate}%</p>
+                            <p style="color: #28a745;">✓ Correct clicks: ${splitAttentionState.correctClicks}</p>
+                            <p style="color: #ffc107;">⚠ Missed targets: ${splitAttentionState.missedTargets}</p>
+                            <p style="color: #dc3545;">✗ False clicks: ${splitAttentionState.falseClicks}</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showSplitAttention()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'splitAttention',
+                    overallScore: overallScore,
+                    typingAccuracy: typingAccuracy,
+                    detectionRate: detectionRate,
+                    correctClicks: splitAttentionState.correctClicks,
+                    missedTargets: splitAttentionState.missedTargets,
+                    falseClicks: splitAttentionState.falseClicks,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // LISTENING SKILLS MODULE
+        function showListeningSkills() {
+            document.getElementById('moduleTitle').textContent = '🎧 Listening Skills Practice';
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = 0;
+            
+            // Calculate total questions
+            listeningScenarios.forEach(scenario => {
+                totalQuestions += scenario.questions.length;
+            });
+            
+            showNextListeningScenario(0, 0);
+        }
+        
+        function showNextListeningScenario(scenarioIndex, questionIndex) {
+            if (scenarioIndex >= listeningScenarios.length) {
+                showListeningResults();
+                return;
+            }
+            
+            const scenario = listeningScenarios[scenarioIndex];
+            
+            if (questionIndex === 0) {
+                // Show audio first
+                const content = document.getElementById('moduleContent');
+                content.innerHTML = `
+                    <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; margin-bottom: 20px;">
+                        <h3>⚠ Important Instructions:</h3>
+                        <p><strong>You can only play the audio ONCE.</strong> Listen carefully and take notes if needed.</p>
+                    </div>
+                    
+                    <div class="audio-container">
+                        <h3>🎧 Listen to the Emergency Call</h3>
+                        <p style="color: #666; margin: 10px 0;">Audio Scenario ${scenarioIndex + 1} of ${listeningScenarios.length}</p>
+                        <audio id="listeningAudio" class="audio-player" controls>
+                            <source src="${scenario.audioFile}" type="audio/mpeg">
+                            Your browser does not support the audio element.
+                        </audio>
+                        <p class="play-count">Status: <span id="audioStatus" style="font-weight: bold; color: #007bff;">Ready to play</span></p>
+                        
+                        <div style="background: white; padding: 15px; border-radius: 5px; margin-top: 20px;">
+                            <p><strong>Scenario Preview (for demo - remove in production):</strong></p>
+                            <p style="font-style: italic; color: #666;">${scenario.scenario}</p>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px;">
+                        <button class="btn btn-success" id="beginQuestionsBtn" onclick="startListeningQuestions(${scenarioIndex})">Begin Questions</button>
+                        <p style="color: #666; font-size: 14px; margin-top: 10px;">Make sure you've listened to the audio before clicking this button</p>
+                    </div>
+                `;
+                
+                // Track audio plays
+                const audio = document.getElementById('listeningAudio');
+                let hasPlayed = false;
+                
+                audio.addEventListener('play', function() {
+                    if (!hasPlayed) {
+                        hasPlayed = true;
+                        document.getElementById('audioStatus').textContent = 'Playing...';
+                        document.getElementById('audioStatus').style.color = '#28a745';
+                    }
+                });
+                
+                audio.addEventListener('ended', function() {
+                    audio.controls = false;
+                    audio.style.opacity = '0.5';
+                    document.getElementById('audioStatus').textContent = 'Audio completed (cannot replay)';
+                    document.getElementById('audioStatus').style.color = '#dc3545';
+                    document.getElementById('beginQuestionsBtn').style.background = 'linear-gradient(135deg, #28a745 0%, #20a038 100%)';
+                    document.getElementById('beginQuestionsBtn').style.animation = 'pulse 1s infinite';
+                });
+                
+                // Also disable if they try to replay
+                audio.addEventListener('pause', function() {
+                    if (hasPlayed) {
+                        audio.controls = false;
+                        audio.style.opacity = '0.5';
+                    }
+                });
+            } else {
+                // Show question
+                showListeningQuestion(scenarioIndex, questionIndex);
+            }
+        }
+        
+        function startListeningQuestions(scenarioIndex) {
+            showListeningQuestion(scenarioIndex, 0);
+        }
+        
+        function showListeningQuestion(scenarioIndex, questionIndex) {
+            const scenario = listeningScenarios[scenarioIndex];
+            const question = scenario.questions[questionIndex];
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin: 20px 0; border: 2px solid #2196f3;">
+                    <h3 style="color: #1976d2;">${question.q}</h3>
+                </div>
+                
+                ${question.options.map((opt, i) => `
+                    <div style="margin: 12px 0;">
+                        <label style="display: block; padding: 15px; background: white; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#007bff'; this.style.background='#f5f5f5'" onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='white'">
+                            <input type="radio" name="listeningAnswer" value="${i}" style="margin-right: 12px; width: 20px; height: 20px;">
+                            <span style="font-size: 16px;">${opt}</span>
+                        </label>
+                    </div>
+                `).join('')}
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitListeningAnswer(${scenarioIndex}, ${questionIndex})">Submit Answer</button>
+                </div>
+            `;
+        }
+        
+        function submitListeningAnswer(scenarioIndex, questionIndex) {
+            const selected = document.querySelector('input[name="listeningAnswer"]:checked');
+            
+            if (!selected) {
+                alert('Please select an answer before submitting.');
+                return;
+            }
+            
+            const scenario = listeningScenarios[scenarioIndex];
+            const question = scenario.questions[questionIndex];
+            const userAnswer = parseInt(selected.value);
+            const correct = userAnswer === question.correct;
+            
+            if (correct) {
+                correctAnswers++;
+            }
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 15px; border-radius: 10px; margin-top: 15px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545');
+            feedback.innerHTML = `
+                <p style="font-size: 18px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                ${!correct ? `<p style="margin: 10px 0 0 0;">Correct answer: ${question.options[question.correct]}</p>` : ''}
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            // Move to next question
+            currentQuestion++;
+            setTimeout(() => {
+                questionIndex++;
+                if (questionIndex >= scenario.questions.length) {
+                    scenarioIndex++;
+                    questionIndex = 0;
+                }
+                showNextListeningScenario(scenarioIndex, questionIndex);
+            }, 1500);
+        }
+        
+        function showListeningResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Listening Skills Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Correct</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showListeningSkills()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score to Firebase
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'listeningSkills',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // VIN/LICENSE ENTRY MODULE
+        function showVinLicense() {
+            document.getElementById('moduleTitle').textContent = '🚗 VIN/License Entry Practice';
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <h3>Select Practice Type:</h3>
+                <div class="lesson-grid" style="margin: 30px 0;">
+                    <div class="lesson-card" onclick="startVinPractice()">
+                        <h3>VIN Entry</h3>
+                        <p>Enter 17-character Vehicle Identification Numbers accurately</p>
+                    </div>
+                    <div class="lesson-card" onclick="startLicensePractice()">
+                        <h3>License Number Entry</h3>
+                        <p>Enter Ontario license numbers accurately</p>
+                    </div>
+                    <div class="lesson-card" onclick="startDobExtraction()">
+                        <h3>DOB Extraction</h3>
+                        <p>Extract date of birth and gender from license numbers</p>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function startVinPractice() {
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = 5;
+            
+            showNextVinQuestion();
+        }
+        
+        function showNextVinQuestion() {
+            if (currentQuestion >= totalQuestions) {
+                showVinResults();
+                return;
+            }
+            
+            const vin = vinNumbers[currentQuestion];
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">VIN ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: 10px; border: 2px solid #007bff; text-align: center;">
+                    <h3>Enter this VIN exactly as shown:</h3>
+                    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border: 3px solid #333; display: inline-block; border-radius: 5px;">
+                        <p style="font-family: monospace; font-size: 32px; letter-spacing: 3px; margin: 0; font-weight: bold;">${vin}</p>
+                    </div>
+                    <input type="text" id="vinInput" maxlength="17" placeholder="Type the VIN here" style="width: 100%; max-width: 500px; padding: 15px; font-size: 20px; font-family: monospace; letter-spacing: 2px; border: 2px solid #007bff; border-radius: 5px; text-align: center; text-transform: uppercase;">
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitVinEntry('${vin}')">Submit VIN</button>
+                </div>
+            `;
+            
+            document.getElementById('vinInput').focus();
+            
+            // Auto-uppercase
+            document.getElementById('vinInput').addEventListener('input', function(e) {
+                e.target.value = e.target.value.toUpperCase();
+            });
+        }
+        
+        function submitVinEntry(correctVin) {
+            const userVin = document.getElementById('vinInput').value.trim();
+            
+            if (userVin.length !== 17) {
+                alert('VIN must be exactly 17 characters.');
+                return;
+            }
+            
+            const correct = userVin === correctVin;
+            if (correct) correctAnswers++;
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545') + '; text-align: center;';
+            feedback.innerHTML = `
+                <p style="font-size: 24px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                ${!correct ? `<p style="margin: 10px 0 0 0; font-family: monospace; font-size: 18px;">Correct VIN: ${correctVin}</p><p style="font-family: monospace; font-size: 18px;">Your entry: ${userVin}</p>` : ''}
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            setTimeout(() => {
+                currentQuestion++;
+                showNextVinQuestion();
+            }, correct ? 1000 : 2000);
+        }
+        
+        function showVinResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>VIN Entry Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Accuracy</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showVinLicense()">Back to Menu</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'vinEntry',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        function startLicensePractice() {
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = 5;
+            
+            // Generate 5 random licenses
+            window.currentLicenses = [];
+            const lastNames = ['M', 'S', 'J', 'W', 'B', 'T', 'A', 'K', 'L', 'R'];
+            for (let i = 0; i < 5; i++) {
+                const isFemale = Math.random() > 0.5;
+                const year = (Math.floor(Math.random() * 40) + 60).toString(); // 60-99 (1960-1999)
+                const month = (Math.floor(Math.random() * 12) + 1).toString();
+                const day = (Math.floor(Math.random() * 28) + 1).toString();
+                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                
+                window.currentLicenses.push(generateLicenseNumber(lastName, year, month, day, isFemale));
+            }
+            
+            showNextLicenseQuestion();
+        }
+        
+        function showNextLicenseQuestion() {
+            if (currentQuestion >= totalQuestions) {
+                showLicenseResults();
+                return;
+            }
+            
+            const license = window.currentLicenses[currentQuestion].license;
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">License ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: 10px; border: 2px solid #007bff; text-align: center;">
+                    <h3>Enter this Ontario license number exactly as shown:</h3>
+                    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border: 3px solid #333; display: inline-block; border-radius: 5px;">
+                        <p style="font-family: monospace; font-size: 32px; letter-spacing: 3px; margin: 0; font-weight: bold;">${license}</p>
+                    </div>
+                    <input type="text" id="licenseInput" maxlength="18" placeholder="L####-#####-#####" style="width: 100%; max-width: 400px; padding: 15px; font-size: 20px; font-family: monospace; letter-spacing: 2px; border: 2px solid #007bff; border-radius: 5px; text-align: center; text-transform: uppercase;">
+                    <p style="color: #666; font-size: 14px; margin-top: 10px;">Format: Letter + 4 digits - 5 digits - 5 digits</p>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitLicenseEntry('${license}')">Submit License</button>
+                </div>
+            `;
+            
+            document.getElementById('licenseInput').focus();
+            
+            // Auto-format and uppercase
+            document.getElementById('licenseInput').addEventListener('input', function(e) {
+                let val = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                if (val.length > 0) {
+                    if (val.length <= 5) {
+                        val = val;
+                    } else if (val.length <= 10) {
+                        val = val.slice(0, 5) + '-' + val.slice(5);
+                    } else {
+                        val = val.slice(0, 5) + '-' + val.slice(5, 10) + '-' + val.slice(10, 15);
+                    }
+                }
+                e.target.value = val;
+            });
+        }
+        
+        function submitLicenseEntry(correctLicense) {
+            const userLicense = document.getElementById('licenseInput').value.trim();
+            
+            const correct = userLicense === correctLicense;
+            if (correct) correctAnswers++;
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545') + '; text-align: center;';
+            feedback.innerHTML = `
+                <p style="font-size: 24px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                ${!correct ? `<p style="margin: 10px 0 0 0; font-family: monospace; font-size: 18px;">Correct: ${correctLicense}</p><p style="font-family: monospace; font-size: 18px;">Yours: ${userLicense}</p>` : ''}
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            setTimeout(() => {
+                currentQuestion++;
+                showNextLicenseQuestion();
+            }, correct ? 1000 : 2000);
+        }
+        
+        function showLicenseResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>License Entry Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Accuracy</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showVinLicense()">Back to Menu</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'licenseEntry',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        function startDobExtraction() {
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = 10;
+            
+            // Generate 10 random licenses with DOB
+            window.dobExtractionLicenses = [];
+            const lastNames = ['M', 'S', 'J', 'W', 'B', 'T', 'A', 'K', 'L', 'R'];
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            
+            for (let i = 0; i < 10; i++) {
+                const isFemale = Math.random() > 0.5;
+                const year = (Math.floor(Math.random() * 40) + 60).toString(); // 60-99
+                const month = (Math.floor(Math.random() * 12) + 1).toString();
+                const day = (Math.floor(Math.random() * 28) + 1).toString();
+                const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+                
+                const licenseData = generateLicenseNumber(lastName, year, month, day, isFemale);
+                licenseData.monthName = monthNames[parseInt(month) - 1];
+                window.dobExtractionLicenses.push(licenseData);
+            }
+            
+            showNextDobQuestion();
+        }
+        
+        function showNextDobQuestion() {
+            if (currentQuestion >= totalQuestions) {
+                showDobResults();
+                return;
+            }
+            
+            const licenseData = window.dobExtractionLicenses[currentQuestion];
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; margin-bottom: 20px;">
+                    <h3>📚 Ontario License Number DOB Encoding:</h3>
+                    <p><strong>Last 6 digits = YYMMDD</strong></p>
+                    <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Males:</strong> Month is 01-12</li>
+                        <li><strong>Females:</strong> Month is 51-62 (add 50 to actual month)</li>
+                    </ul>
+                    <p style="margin-top: 10px;"><strong>Example:</strong> 930314 = March 14, 1993 (Male)</p>
+                    <p><strong>Example:</strong> 935508 = May 8, 1993 (Female, 55-50=05)</p>
+                </div>
+                
+                <div style="background: white; padding: 30px; border-radius: 10px; border: 2px solid #007bff; text-align: center;">
+                    <h3>License Number:</h3>
+                    <div style="background: #f8f9fa; padding: 20px; margin: 20px 0; border: 3px solid #333; display: inline-block; border-radius: 5px;">
+                        <p style="font-family: monospace; font-size: 32px; letter-spacing: 3px; margin: 0; font-weight: bold;">${licenseData.license}</p>
+                    </div>
+                    
+                    <div style="margin-top: 30px; text-align: left; max-width: 500px; margin-left: auto; margin-right: auto;">
+                        <h4>Extract the following information:</h4>
+                        
+                        <div style="margin: 15px 0;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Date of Birth (Format: MM/DD/YYYY):</label>
+                            <input type="text" id="dobInput" placeholder="MM/DD/YYYY" maxlength="10" style="width: 100%; padding: 10px; font-size: 18px; border: 2px solid #007bff; border-radius: 5px;">
+                        </div>
+                        
+                        <div style="margin: 15px 0;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Gender:</label>
+                            <select id="genderInput" style="width: 100%; padding: 10px; font-size: 18px; border: 2px solid #007bff; border-radius: 5px;">
+                                <option value="">Select...</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-success" onclick="submitDobExtraction()">Submit Answer</button>
+                </div>
+            `;
+            
+            document.getElementById('dobInput').focus();
+            
+            // Auto-format date
+            document.getElementById('dobInput').addEventListener('input', function(e) {
+                let val = e.target.value.replace(/[^0-9]/g, '');
+                if (val.length >= 2) {
+                    val = val.slice(0, 2) + '/' + val.slice(2);
+                }
+                if (val.length >= 5) {
+                    val = val.slice(0, 5) + '/' + val.slice(5, 9);
+                }
+                e.target.value = val;
+            });
+        }
+        
+        function submitDobExtraction() {
+            const licenseData = window.dobExtractionLicenses[currentQuestion];
+            const userDob = document.getElementById('dobInput').value.trim();
+            const userGender = document.getElementById('genderInput').value;
+            
+            if (!userDob || !userGender) {
+                alert('Please fill in both date of birth and gender.');
+                return;
+            }
+            
+            const correctDob = `${licenseData.month}/${licenseData.day}/${licenseData.year}`;
+            const dobCorrect = userDob === correctDob;
+            const genderCorrect = userGender === licenseData.gender;
+            const bothCorrect = dobCorrect && genderCorrect;
+            
+            if (bothCorrect) correctAnswers++;
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (bothCorrect ? '#d4edda' : '#f8d7da') + '; padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px solid ' + (bothCorrect ? '#28a745' : '#dc3545');
+            feedback.innerHTML = `
+                <p style="font-size: 24px; margin: 0; text-align: center;"><strong>${bothCorrect ? '✓ Perfect!' : '✗ Incorrect'}</strong></p>
+                <div style="margin-top: 15px;">
+                    <p><strong>DOB:</strong> ${dobCorrect ? '✓' : '✗'} ${dobCorrect ? 'Correct' : `Wrong - Correct: ${correctDob}`}</p>
+                    <p><strong>Gender:</strong> ${genderCorrect ? '✓' : '✗'} ${genderCorrect ? 'Correct' : `Wrong - Correct: ${licenseData.gender}`}</p>
+                </div>
+                <div style="background: rgba(0,0,0,0.1); padding: 15px; border-radius: 5px; margin-top: 15px;">
+                    <p style="font-family: monospace;"><strong>License:</strong> ${licenseData.license}</p>
+                    <p style="font-family: monospace;"><strong>Last 6 digits:</strong> ${licenseData.license.slice(-6)}</p>
+                    <p><strong>Breakdown:</strong> Year=${licenseData.year.slice(-2)}, Month=${licenseData.month} ${licenseData.gender === 'Female' ? '(+50=' + (parseInt(licenseData.month) + 50) + ')' : ''}, Day=${licenseData.day}</p>
+                </div>
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            setTimeout(() => {
+                currentQuestion++;
+                showNextDobQuestion();
+            }, bothCorrect ? 1500 : 3000);
+        }
+        
+        function showDobResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>DOB Extraction Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Accuracy</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showVinLicense()">Back to Menu</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'dobExtraction',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // CROSS REFERENCE MODULE
+        function showCrossReference() {
+            document.getElementById('moduleTitle').textContent = '🔍 Cross-Reference Practice';
+            currentQuestion = 0;
+            correctAnswers = 0;
+            totalQuestions = crossReferenceScenarios.length;
+            
+            showNextCrossReferenceQuestion();
+        }
+        
+        function showNextCrossReferenceQuestion() {
+            if (currentQuestion >= crossReferenceScenarios.length) {
+                showCrossReferenceResults();
+                return;
+            }
+            
+            const scenario = crossReferenceScenarios[currentQuestion];
+            const content = document.getElementById('moduleContent');
+            
+            // Build comparison table
+            const fields = Object.keys(scenario.callerInfo);
+            
+            content.innerHTML = `
+                <div style="margin-bottom: 20px;">
+                    <p style="color: #666;">Scenario ${currentQuestion + 1} of ${totalQuestions}</p>
+                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
+                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
+                    </div>
+                </div>
+                
+                <h3 style="text-align: center; color: #007bff;">${scenario.title}</h3>
+                <p style="text-align: center; color: #666; margin-bottom: 20px;">Compare the caller information with the database record</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 20px 0;">
+                    <div>
+                        <h4 style="background: #007bff; color: white; padding: 10px; text-align: center; border-radius: 5px;">Caller Information</h4>
+                        <div style="background: white; border: 2px solid #007bff; border-radius: 5px; padding: 15px;">
+                            ${fields.map(field => `
+                                <div style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                                    <strong>${field.replace('_', ' ').toUpperCase()}:</strong><br>
+                                    <span style="font-family: monospace;">${scenario.callerInfo[field]}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h4 style="background: #28a745; color: white; padding: 10px; text-align: center; border-radius: 5px;">Database Record</h4>
+                        <div style="background: white; border: 2px solid #28a745; border-radius: 5px; padding: 15px;">
+                            ${fields.map(field => `
+                                <div style="padding: 8px 0; border-bottom: 1px solid #e0e0e0;">
+                                    <strong>${field.replace('_', ' ').toUpperCase()}:</strong><br>
+                                    <span style="font-family: monospace;">${scenario.databaseInfo[field]}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; text-align: center; margin-top: 20px;">
+                    <h4>${scenario.question}</h4>
+                    
+                    ${scenario.discrepancy === 'none' ? `
+                        <div style="margin-top: 15px;">
+                            <button class="btn btn-success" onclick="submitCrossReference('match')" style="margin: 5px;">✓ All Information Matches</button>
+                            <button class="btn btn-danger" onclick="submitCrossReference('nomatch')" style="margin: 5px;">✗ Discrepancy Found</button>
+                        </div>
+                    ` : `
+                        <div style="margin-top: 15px; display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                            ${fields.map(field => `
+                                <button class="btn btn-primary" onclick="submitCrossReference('${field}')" style="min-width: 120px;">${field.replace('_', ' ').toUpperCase()}</button>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+        
+        function submitCrossReference(answer) {
+            const scenario = crossReferenceScenarios[currentQuestion];
+            let correct = false;
+            
+            if (scenario.discrepancy === 'none') {
+                correct = answer === 'match';
+            } else {
+                correct = answer === scenario.discrepancy;
+            }
+            
+            if (correct) correctAnswers++;
+            
+            // Show feedback
+            const feedback = document.createElement('div');
+            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 20px; border-radius: 10px; margin-top: 20px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545') + '; text-align: center;';
+            feedback.innerHTML = `
+                <p style="font-size: 24px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
+                ${!correct ? `<p style="margin: 10px 0 0 0;">Correct answer: ${scenario.discrepancy === 'none' ? 'All information matches' : scenario.discrepancy.replace('_', ' ').toUpperCase() + ' field has a discrepancy'}</p>` : ''}
+            `;
+            document.getElementById('moduleContent').appendChild(feedback);
+            
+            setTimeout(() => {
+                currentQuestion++;
+                showNextCrossReferenceQuestion();
+            }, 1500);
+        }
+        
+        function showCrossReferenceResults() {
+            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Cross-Reference Results</h3>
+                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
+                    <p>${percentage}% Accuracy</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showCrossReference()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'crossReference',
+                    score: percentage,
+                    correct: correctAnswers,
+                    total: totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
+            }
+        }
+        
+        // MULTITASKING MODULE
+        function showMultitasking() {
+            document.getElementById('moduleTitle').textContent = '🎮 Multitasking Practice';
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <h3>Instructions:</h3>
+                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; margin-bottom: 20px;">
+                    <p><strong>This test simulates handling multiple emergency calls simultaneously:</strong></p>
+                    <ol style="margin: 10px 0; padding-left: 20px;">
+                        <li>Calls will appear in the queue with different priority levels</li>
+                        <li><span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 3px;">HIGH</span> priority = Life-threatening (handle first)</li>
+                        <li><span style="background: #ffc107; color: black; padding: 2px 8px; border-radius: 3px;">MEDIUM</span> priority = Urgent but not life-threatening</li>
+                        <li><span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 3px;">LOW</span> priority = Routine calls</li>
+                        <li>Click on calls in order of priority (high first)</li>
+                        <li>New calls may appear while you're working</li>
+                        <li>You'll have 2 minutes to handle as many calls as possible</li>
+                    </ol>
+                    <p style="color: #856404; margin-top: 10px;"><strong>Goal: Handle calls in correct priority order</strong></p>
+                </div>
+                
+                <div style="text-align: center;">
+                    <button class="btn btn-success" onclick="startMultitasking()">Start Simulation</button>
+                </div>
+            `;
+        }
+        
+        function startMultitasking() {
+            // Reset state
+            multitaskingState = {
+                activeCall: null,
+                callQueue: [],
+                score: 0,
+                correctPicks: 0,
+                incorrectPicks: 0,
+                startTime: Date.now(),
+                duration: 120,
+                callsHandled: 0
+            };
+            
+            // Add initial calls
+            addRandomCalls(3);
+            
+            renderMultitaskingUI();
+            
+            // Add new calls periodically
+            multitaskingState.addCallsInterval = setInterval(() => {
+                if (multitaskingState.callQueue.length < 6) {
+                    addRandomCalls(1);
+                    renderMultitaskingUI();
+                }
+            }, 8000);
+            
+            // Timer
+            multitaskingState.timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - multitaskingState.startTime) / 1000);
+                const remaining = multitaskingState.duration - elapsed;
+                
+                if (remaining <= 0) {
+                    finishMultitasking();
+                    return;
+                }
+                
+                const minutes = Math.floor(remaining / 60);
+                const seconds = remaining % 60;
+                const timeElement = document.getElementById('multitaskingTimer');
+                if (timeElement) {
+                    timeElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+                }
+            }, 1000);
+        }
+        
+        function addRandomCalls(count) {
+            const available = multitaskingCalls.filter(c => 
+                !multitaskingState.callQueue.find(q => q.id === c.id)
+            );
+            
+            for (let i = 0; i < count && available.length > 0; i++) {
+                const randomIndex = Math.floor(Math.random() * available.length);
+                multitaskingState.callQueue.push(available[randomIndex]);
+                available.splice(randomIndex, 1);
+            }
+        }
+        
+        function renderMultitaskingUI() {
+            const content = document.getElementById('moduleContent');
+            
+            content.innerHTML = `
+                <div style="display: flex; gap: 20px; min-height: 500px;">
+                    <!-- Call Queue -->
+                    <div style="flex: 1; background: white; padding: 20px; border-radius: 10px; border: 2px solid #007bff;">
+                        <h3 style="margin-bottom: 15px;">📞 Incoming Calls</h3>
+                        <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Click on the highest priority call first</p>
+                        
+                        <div id="callQueueContainer">
+                            ${multitaskingState.callQueue.map(call => {
+                                const priorityColor = call.priority === 'high' ? '#dc3545' : call.priority === 'medium' ? '#ffc107' : '#28a745';
+                                const priorityText = call.priority.toUpperCase();
+                                return `
+                                    <div class="call-item" onclick="handleCall(${call.id})" style="background: #f8f9fa; padding: 15px; margin: 10px 0; border-left: 5px solid ${priorityColor}; border-radius: 5px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                                            <strong>Call #${call.id}</strong>
+                                            <span style="background: ${priorityColor}; color: ${call.priority === 'medium' ? 'black' : 'white'}; padding: 3px 10px; border-radius: 3px; font-size: 12px; font-weight: bold;">${priorityText}</span>
+                                        </div>
+                                        <p style="margin: 5px 0; font-size: 14px;">${call.text}</p>
+                                        <p style="margin: 5px 0; font-size: 12px; color: #666;">Service: ${call.service}</p>
+                                    </div>
+                                `;
+                            }).join('') || '<p style="color: #999; text-align: center; padding: 40px 0;">No calls in queue</p>'}
+                        </div>
+                    </div>
+                    
+                    <!-- Stats Panel -->
+                    <div style="width: 250px; background: white; padding: 20px; border-radius: 10px; border: 2px solid #28a745;">
+                        <h3 style="margin-bottom: 15px;">📊 Performance</h3>
+                        
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
+                            <div style="font-size: 14px; color: #666;">Time Remaining</div>
+                            <div id="multitaskingTimer" style="font-size: 32px; font-weight: bold; color: #007bff;">2:00</div>
+                        </div>
+                        
+                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 10px;">
+                            <div style="font-size: 14px; color: #666;">Calls Handled</div>
+                            <div style="font-size: 28px; font-weight: bold; color: #007bff;">${multitaskingState.callsHandled}</div>
+                        </div>
+                        
+                        <div style="background: #d4edda; padding: 15px; border-radius: 5px; margin-bottom: 10px;">
+                            <div style="font-size: 14px; color: #155724;">✓ Correct Priority</div>
+                            <div style="font-size: 28px; font-weight: bold; color: #28a745;">${multitaskingState.correctPicks}</div>
+                        </div>
+                        
+                        <div style="background: #f8d7da; padding: 15px; border-radius: 5px;">
+                            <div style="font-size: 14px; color: #721c24;">✗ Wrong Priority</div>
+                            <div style="font-size: 28px; font-weight: bold; color: #dc3545;">${multitaskingState.incorrectPicks}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function handleCall(callId) {
+            const call = multitaskingState.callQueue.find(c => c.id === callId);
+            if (!call) return;
+            
+            // Check if this was the highest priority call
+            const priorities = { high: 3, medium: 2, low: 1 };
+            const callPriority = priorities[call.priority];
+            const highestPriority = Math.max(...multitaskingState.callQueue.map(c => priorities[c.priority]));
+            
+            const correct = callPriority === highestPriority;
+            
+            if (correct) {
+                multitaskingState.correctPicks++;
+            } else {
+                multitaskingState.incorrectPicks++;
+            }
+            
+            multitaskingState.callsHandled++;
+            
+            // Remove call from queue
+            multitaskingState.callQueue = multitaskingState.callQueue.filter(c => c.id !== callId);
+            
+            // Visual feedback
+            const callElements = document.querySelectorAll('.call-item');
+            callElements.forEach(el => {
+                if (el.textContent.includes(`Call #${callId}`)) {
+                    el.style.background = correct ? '#d4edda' : '#f8d7da';
+                    setTimeout(() => {
+                        renderMultitaskingUI();
+                    }, 300);
+                }
+            });
+        }
+        
+        function finishMultitasking() {
+            clearInterval(multitaskingState.addCallsInterval);
+            clearInterval(multitaskingState.timerInterval);
+            
+            const totalPicks = multitaskingState.correctPicks + multitaskingState.incorrectPicks;
+            const accuracy = totalPicks > 0 ? Math.round((multitaskingState.correctPicks / totalPicks) * 100) : 0;
+            
+            const content = document.getElementById('moduleContent');
+            content.innerHTML = `
+                <div class="score-display">
+                    <h3>Multitasking Results</h3>
+                    <h2>${accuracy}% Accuracy</h2>
+                    <p>Calls handled: ${multitaskingState.callsHandled}</p>
+                </div>
+                
+                <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
+                    <h3 style="margin-bottom: 15px;">Performance Breakdown:</h3>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                        <div style="background: #d4edda; padding: 15px; border-radius: 5px; text-align: center;">
+                            <div style="font-size: 48px; font-weight: bold; color: #28a745;">${multitaskingState.correctPicks}</div>
+                            <div style="color: #155724;">Correct Priority Picks</div>
+                        </div>
+                        
+                        <div style="background: #f8d7da; padding: 15px; border-radius: 5px; text-align: center;">
+                            <div style="font-size: 48px; font-weight: bold; color: #dc3545;">${multitaskingState.incorrectPicks}</div>
+                            <div style="color: #721c24;">Wrong Priority Picks</div>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
+                        <p><strong>Key Skill:</strong> Always handle HIGH priority (life-threatening) calls before MEDIUM or LOW priority calls.</p>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="showMultitasking()">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+            
+            // Save score
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: 'multitasking',
+                    accuracy: accuracy,
+                    callsHandled: multitaskingState.callsHandled,
+                    correctPicks: multitaskingState.correctPicks,
+                    incorrectPicks: multitaskingState.incorrectPicks,
                     timestamp: firebase.firestore.FieldValue.serverTimestamp()
                   });
             }
