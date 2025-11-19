@@ -4022,7 +4022,7 @@
             currentStage: 0,
             stages: [],
             score: 0,
-            totalStages: 4,
+            totalStages: 5,
             stageAnswers: []
         };
         
@@ -4033,51 +4033,51 @@
                 calls: [
                     {
                         id: 1,
-                        title: "Cardiac Arrest",
-                        details: "65-year-old male, unconscious, not breathing, CPR in progress",
-                        priority: "Life-threatening",
+                        title: "Robbery in-progress",
+                        details: "Bank staff being held at gunpoint",
+                        priority: "high",
                         correctRank: 1
                     },
                     {
                         id: 2,
-                        title: "House Fire with Entrapment",
-                        details: "Structure fire, 2 children trapped on second floor, smoke visible",
-                        priority: "Life-threatening",
+                        title: "Bar Fight",
+                        details: "15 people fist fighting in the street, unknown weapons",
+                        priority: "High",
                         correctRank: 2
                     },
                     {
                         id: 3,
-                        title: "Severe Motor Vehicle Accident",
-                        details: "Head-on collision, driver trapped, severe bleeding, conscious but critical",
-                        priority: "Life-threatening",
+                        title: "Disturbance",
+                        details: "Lots of yelling coming from apartment, unknown who is present",
+                        priority: "High",
                         correctRank: 3
                     }
                 ]
             },
             {
                 title: "Stage 2: Mixed Priority Scenarios",
-                description: "Mix of high, medium, and low priority calls - prioritize based on urgency and threat level.",
+                description: "Mix of high and medium priority calls - prioritize based on urgency and threat level.",
                 calls: [
                     {
                         id: 1,
-                        title: "Active Chest Pains",
-                        details: "45-year-old female, crushing chest pain, difficulty breathing, conscious",
-                        priority: "High",
-                        correctRank: 1
+                        title: "Person Welfare Check",
+                        details: "Complainant hasn't seen their elderly neighbour for a few days, concerned something could have happened to them",
+                        priority: "Medium",
+                        correctRank: 2
                     },
                     {
                         id: 2,
-                        title: "Domestic Disturbance",
-                        details: "Loud argument reported, no weapons mentioned, neighbors concerned",
+                        title: "Suspicious Person",
+                        details: "Male walking up and down the street, seems to be looking at peoples cars",
                         priority: "Medium",
                         correctRank: 3
                     },
                     {
                         id: 3,
-                        title: "Armed Robbery in Progress",
-                        details: "Convenience store robbery, suspect has gun, employees and customers inside",
+                        title: "Suicidal Person",
+                        details: "Male just told his family he would drive into a rock cliff, took off in his vehicle",
                         priority: "High",
-                        correctRank: 2
+                        correctRank: 1
                     }
                 ]
             },
@@ -4101,8 +4101,8 @@
                     },
                     {
                         id: 3,
-                        title: "Vehicle Theft in Progress",
-                        details: "Suspect attempting to steal car in parking lot, owner confronting thief",
+                        title: "Theft from Vehicle in Progress",
+                        details: "Suspect just stole items out of car in parking lot, left running northbound",
                         priority: "Medium",
                         correctRank: 2
                     }
@@ -4129,7 +4129,34 @@
                     {
                         id: 3,
                         title: "Welfare Check",
-                        details: "Elderly man hasn't been seen for 3 days, family concerned, no answer at door",
+                        details: "Elderly man hasn't been seen for 3 days, family concerned, bad smell coming from apartment, no answer at the door",
+                        priority: "Medium-High",
+                        correctRank: 2
+                    }
+                ]
+            },
+            {
+                title: "Stage 5: Fire calls",
+                description: "Variety of fire calls.",
+                calls: [
+                    {
+                        id: 1,
+                        title: "Apartment Fire",
+                        details: "Apartment building up in flames, unknown if everyone is out",
+                        priority: "High",
+                        correctRank: 1
+                    },
+                    {
+                        id: 2,
+                        title: "Burning Complaint",
+                        details: "Smoke from neighbours bonfire bothering complainant, also thinks it's too close to their fence",
+                        priority: "Medium",
+                        correctRank: 3
+                    },
+                    {
+                        id: 3,
+                        title: "bush fire",
+                        details: "flames and smoke coming from the bush area behind complainants house",
                         priority: "Medium-High",
                         correctRank: 2
                     }
