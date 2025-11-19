@@ -1172,9 +1172,13 @@
             // Remove first digit from DOB for the final section
             const dobRemaining = dob.substring(1);
             
+            // Fix century calculation: 00-25 = 20XX, 26-99 = 19XX
+            const yearNum = parseInt(year);
+            const fullYear = yearNum <= 25 ? "20" + year : "19" + year;
+            
             return {
                 license: `${letter}${part1}-${part2}-${dobRemaining}`,
-                year: "19" + year,
+                year: fullYear,
                 month: birthMonth.padStart(2, '0'),
                 day: day,
                 gender: isFemale ? "Female" : "Male"
@@ -3438,7 +3442,9 @@
             
             for (let i = 0; i < 10; i++) {
                 const isFemale = Math.random() > 0.5;
-                const year = (Math.floor(Math.random() * 40) + 60).toString(); // 60-99
+                // Generate years that test both century cases: 00-25 (20XX) and 60-99 (19XX)
+                const yearRanges = [...Array(26).keys(), ...Array(40).keys().map(x => x + 60)]; // 0-25, 60-99
+                const year = yearRanges[Math.floor(Math.random() * yearRanges.length)].toString().padStart(2, '0');
                 const month = (Math.floor(Math.random() * 12) + 1).toString();
                 const day = (Math.floor(Math.random() * 28) + 1).toString();
                 const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
@@ -3474,9 +3480,11 @@
                     <ul style="margin: 10px 0; padding-left: 20px;">
                         <li><strong>Males:</strong> Month is 01-12</li>
                         <li><strong>Females:</strong> Month is 51-62 (add 50 to actual month)</li>
+                        <li><strong>Years:</strong> 00-25 = 20XX, 26-99 = 19XX</li>
                     </ul>
-                    <p style="margin-top: 10px;"><strong>Example:</strong> 930314 = March 14, 1993 (Male)</p>
-                    <p><strong>Example:</strong> 935508 = May 8, 1993 (Female, 55-50=05)</p>
+                    <p style="margin-top: 10px;"><strong>Example:</strong> 930314 = 1993/03/14 (Male)</p>
+                    <p><strong>Example:</strong> 935508 = 1993/05/08 (Female, 55-50=05)</p>
+                    <p><strong>Example:</strong> 050212 = 2005/02/12 (Male, 05 = 20XX)</p>
                 </div>
                 
                 <div style="background: white; padding: 30px; border-radius: 10px; border: 2px solid #007bff; text-align: center;">
@@ -3489,8 +3497,8 @@
                         <h4>Extract the following information:</h4>
                         
                         <div style="margin: 15px 0;">
-                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Date of Birth (Format: MM/DD/YYYY):</label>
-                            <input type="text" id="dobInput" placeholder="MM/DD/YYYY" maxlength="10" style="width: 100%; padding: 10px; font-size: 18px; border: 2px solid #007bff; border-radius: 5px;">
+                            <label style="display: block; font-weight: bold; margin-bottom: 5px;">Date of Birth (Format: YYYY/MM/DD):</label>
+                            <input type="text" id="dobInput" placeholder="YYYY/MM/DD" maxlength="10" style="width: 100%; padding: 10px; font-size: 18px; border: 2px solid #007bff; border-radius: 5px;">
                         </div>
                         
                         <div style="margin: 15px 0;">
@@ -3511,14 +3519,14 @@
             
             document.getElementById('dobInput').focus();
             
-            // Auto-format date
+            // Auto-format date for YYYY/MM/DD
             document.getElementById('dobInput').addEventListener('input', function(e) {
                 let val = e.target.value.replace(/[^0-9]/g, '');
-                if (val.length >= 2) {
-                    val = val.slice(0, 2) + '/' + val.slice(2);
+                if (val.length >= 4) {
+                    val = val.slice(0, 4) + '/' + val.slice(4);
                 }
-                if (val.length >= 5) {
-                    val = val.slice(0, 5) + '/' + val.slice(5, 9);
+                if (val.length >= 7) {
+                    val = val.slice(0, 7) + '/' + val.slice(7, 9);
                 }
                 e.target.value = val;
             });
@@ -3534,7 +3542,7 @@
                 return;
             }
             
-            const correctDob = `${licenseData.month}/${licenseData.day}/${licenseData.year}`;
+            const correctDob = `${licenseData.year}/${licenseData.month}/${licenseData.day}`;
             const dobCorrect = userDob === correctDob;
             const genderCorrect = userGender === licenseData.gender;
             const bothCorrect = dobCorrect && genderCorrect;
@@ -3964,7 +3972,7 @@
             totalStages: 4,
             stageAnswers: []
         };
-
+        
         const decisionMakingStages = [
             {
                 title: "Stage 1: High Priority Emergencies",
@@ -3972,51 +3980,51 @@
                 calls: [
                     {
                         id: 1,
-                        title: "Robbery in-progress",
-                        details: "Bank staff being held at gunpoint",
-                        priority: "High",
+                        title: "Cardiac Arrest",
+                        details: "65-year-old male, unconscious, not breathing, CPR in progress",
+                        priority: "Life-threatening",
                         correctRank: 1
                     },
                     {
                         id: 2,
-                        title: "Bar Fight",
-                        details: "15 people fist fighting in the street, unknown weapons",
-                        priority: "High",
+                        title: "House Fire with Entrapment",
+                        details: "Structure fire, 2 children trapped on second floor, smoke visible",
+                        priority: "Life-threatening",
                         correctRank: 2
                     },
                     {
                         id: 3,
-                        title: "Disturbance",
-                        details: "Lots of yelling coming from apartment, unknown who is present or injuries",
-                        priority: "High",
+                        title: "Severe Motor Vehicle Accident",
+                        details: "Head-on collision, driver trapped, severe bleeding, conscious but critical",
+                        priority: "Life-threatening",
                         correctRank: 3
                     }
                 ]
             },
             {
                 title: "Stage 2: Mixed Priority Scenarios",
-                description: "Mix of high and medium priority calls - prioritize based on urgency and threat level.",
+                description: "Mix of high, medium, and low priority calls - prioritize based on urgency and threat level.",
                 calls: [
                     {
                         id: 1,
-                        title: "Person Welfare Check",
-                        details: "Complainant hasn't seen their elderly neighbour for a few days, concerned something could have happened to them",
-                        priority: "Medium",
-                        correctRank: 2
+                        title: "Active Chest Pains",
+                        details: "45-year-old female, crushing chest pain, difficulty breathing, conscious",
+                        priority: "High",
+                        correctRank: 1
                     },
                     {
                         id: 2,
-                        title: "Suspicious Person",
-                        details: "Male walking up and down the street, seems to be looking at peoples cars",
+                        title: "Domestic Disturbance",
+                        details: "Loud argument reported, no weapons mentioned, neighbors concerned",
                         priority: "Medium",
                         correctRank: 3
                     },
                     {
                         id: 3,
-                        title: "Suicidal Person",
-                        details: "Male just told his family he would drive into a rock cliff, took off in his vehicle",
+                        title: "Armed Robbery in Progress",
+                        details: "Convenience store robbery, suspect has gun, employees and customers inside",
                         priority: "High",
-                        correctRank: 1
+                        correctRank: 2
                     }
                 ]
             },
@@ -4040,8 +4048,8 @@
                     },
                     {
                         id: 3,
-                        title: "Theft from Vehicle in Progress",
-                        details: "Suspect just stole items out of car in parking lot, left running northbound",
+                        title: "Vehicle Theft in Progress",
+                        details: "Suspect attempting to steal car in parking lot, owner confronting thief",
                         priority: "Medium",
                         correctRank: 2
                     }
@@ -4068,42 +4076,13 @@
                     {
                         id: 3,
                         title: "Welfare Check",
-                        details: "Elderly man hasn't been seen for 3 days, family concerned, bad smell coming from apartment, no answer at door",
-                        priority: "Medium-High",
-                        correctRank: 2
-                    }
-                ]
-            },
-            {
-                title: "Stage 5: Fire Calls",
-                description: "Variety of fire calls.",
-                calls: [
-                    {
-                        id: 1,
-                        title: "Apartment fire",
-                        details: "Apartment building up in flames, unknown if everyone is out",
-                        priority: "High",
-                        correctRank: 1
-                    },
-                    {
-                        id: 2,
-                        title: "Burning complaint",
-                        details: "Smoke from neighbours bonfire bothering complainant, also thinks it's too close to their fence",
-                        priority: "Medium",
-                        correctRank: 3
-                    },
-                    {
-                        id: 3,
-                        title: "bush fire",
-                        details: "flames and smoke coming from the bush area behind complainants house.",
+                        details: "Elderly man hasn't been seen for 3 days, family concerned, no answer at door",
                         priority: "Medium-High",
                         correctRank: 2
                     }
                 ]
             }
         ];
-
-        
         
         function showDecisionMaking() {
             document.getElementById('moduleTitle').textContent = '🎯 Decision Making Practice';
