@@ -1181,6 +1181,43 @@
                 year: fullYear,
                 month: birthMonth.padStart(2, '0'),
                 day: day,
+                gender: isFemale ? "Female" : "Male",
+                fullDob: dob // Store the complete 6-digit DOB for reference
+            };
+        }
+        
+        // Function to extract DOB from license number in our format
+        function extractDobFromLicense(license) {
+            const parts = license.split('-');
+            if (parts.length !== 3) return null;
+            
+            const part2 = parts[1]; // Contains first DOB digit + 4 random digits
+            const part3 = parts[2]; // Contains remaining 5 DOB digits
+            
+            // Extract first digit of DOB from part2 and combine with part3
+            const firstDobDigit = part2.charAt(0);
+            const fullDob = firstDobDigit + part3;
+            
+            if (fullDob.length !== 6) return null;
+            
+            const year = fullDob.substring(0, 2);
+            const month = fullDob.substring(2, 4);
+            const day = fullDob.substring(4, 6);
+            
+            // Determine gender and actual month
+            const monthNum = parseInt(month);
+            const isFemale = monthNum > 50;
+            const actualMonth = isFemale ? monthNum - 50 : monthNum;
+            
+            // Determine century
+            const yearNum = parseInt(year);
+            const fullYear = yearNum <= 25 ? "20" + year : "19" + year;
+            
+            return {
+                fullDob: fullDob,
+                year: fullYear,
+                month: actualMonth.toString().padStart(2, '0'),
+                day: day,
                 gender: isFemale ? "Female" : "Male"
             };
         }
@@ -3476,15 +3513,23 @@
                 
                 <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; margin-bottom: 20px;">
                     <h3>📚 Ontario License Number DOB Encoding:</h3>
-                    <p><strong>Last 6 digits = YYMMDD</strong></p>
+                    <p><strong>DOB is encoded as YYMMDD across the license number:</strong></p>
                     <ul style="margin: 10px 0; padding-left: 20px;">
+                        <li><strong>Format:</strong> Letter + 4digits - First_DOB_digit + 4digits - Remaining_5_DOB_digits</li>
+                        <li><strong>Example:</strong> M5777-<span style="background: #ffeb3b;">6</span>1578-<span style="background: #ffeb3b;">50106</span> → DOB = <span style="background: #ffeb3b;">650106</span></li>
                         <li><strong>Males:</strong> Month is 01-12</li>
                         <li><strong>Females:</strong> Month is 51-62 (add 50 to actual month)</li>
                         <li><strong>Years:</strong> 00-25 = 20XX, 26-99 = 19XX</li>
                     </ul>
-                    <p style="margin-top: 10px;"><strong>Example:</strong> 930314 = 1993/03/14 (Male)</p>
-                    <p><strong>Example:</strong> 935508 = 1993/05/08 (Female, 55-50=05)</p>
-                    <p><strong>Example:</strong> 050212 = 2005/02/12 (Male, 05 = 20XX)</p>
+                    <p style="margin-top: 10px;"><strong>Decode Steps:</strong></p>
+                    <ol style="margin: 5px 0; padding-left: 20px;">
+                        <li>Take <strong>first digit</strong> of middle section</li>
+                        <li>Add the <strong>entire final section</strong></li>
+                        <li>This gives you YYMMDD</li>
+                    </ol>
+                    <p style="margin-top: 10px;"><strong>Examples:</strong></p>
+                    <p>• M5777-<strong>8</strong>1578-<strong>50106</strong> = 850106 → 1985/01/06 (Male)</p>
+                    <p>• S2783-<strong>6</strong>7854-<strong>75408</strong> = 675408 → 1967/04/08 (Female, 54-50=04)</p>
                 </div>
                 
                 <div style="background: white; padding: 30px; border-radius: 10px; border: 2px solid #007bff; text-align: center;">
@@ -3542,9 +3587,16 @@
                 return;
             }
             
-            const correctDob = `${licenseData.year}/${licenseData.month}/${licenseData.day}`;
+            // Parse the license number to get the actual DOB (what student should find)
+            const parsedData = extractDobFromLicense(licenseData.license);
+            if (!parsedData) {
+                console.error('Failed to parse license:', licenseData.license);
+                return;
+            }
+            
+            const correctDob = `${parsedData.year}/${parsedData.month}/${parsedData.day}`;
             const dobCorrect = userDob === correctDob;
-            const genderCorrect = userGender === licenseData.gender;
+            const genderCorrect = userGender === parsedData.gender;
             const bothCorrect = dobCorrect && genderCorrect;
             
             if (bothCorrect) correctAnswers++;
@@ -3556,12 +3608,13 @@
                 <p style="font-size: 24px; margin: 0; text-align: center;"><strong>${bothCorrect ? '✓ Perfect!' : '✗ Incorrect'}</strong></p>
                 <div style="margin-top: 15px;">
                     <p><strong>DOB:</strong> ${dobCorrect ? '✓' : '✗'} ${dobCorrect ? 'Correct' : `Wrong - Correct: ${correctDob}`}</p>
-                    <p><strong>Gender:</strong> ${genderCorrect ? '✓' : '✗'} ${genderCorrect ? 'Correct' : `Wrong - Correct: ${licenseData.gender}`}</p>
+                    <p><strong>Gender:</strong> ${genderCorrect ? '✓' : '✗'} ${genderCorrect ? 'Correct' : `Wrong - Correct: ${parsedData.gender}`}</p>
                 </div>
                 <div style="background: rgba(0,0,0,0.1); padding: 15px; border-radius: 5px; margin-top: 15px;">
                     <p style="font-family: monospace;"><strong>License:</strong> ${licenseData.license}</p>
-                    <p style="font-family: monospace;"><strong>Last 6 digits:</strong> ${licenseData.license.slice(-6)}</p>
-                    <p><strong>Breakdown:</strong> Year=${licenseData.year.slice(-2)}, Month=${licenseData.month} ${licenseData.gender === 'Female' ? '(+50=' + (parseInt(licenseData.month) + 50) + ')' : ''}, Day=${licenseData.day}</p>
+                    <p style="font-family: monospace;"><strong>Full DOB digits:</strong> ${parsedData.fullDob}</p>
+                    <p><strong>Breakdown:</strong> Year=${parsedData.fullDob.substring(0,2)} (${parsedData.year}), Month=${parsedData.fullDob.substring(2,4)} ${parsedData.gender === 'Female' ? '(-50=' + parsedData.month + ')' : ''}, Day=${parsedData.fullDob.substring(4,6)}</p>
+                    <p style="color: #666; font-size: 12px;"><strong>How to decode:</strong> First digit of middle section (${licenseData.license.split('-')[1].charAt(0)}) + last section (${licenseData.license.split('-')[2]}) = ${parsedData.fullDob}</p>
                 </div>
             `;
             document.getElementById('moduleContent').appendChild(feedback);
