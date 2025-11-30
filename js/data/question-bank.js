@@ -410,43 +410,43 @@ const QuestionBank = {
     // DECISION MAKING - 60 scenarios (test randomly selects 35)
     decisionMaking: [
         {
-            scenario: "A woman calls reporting her neighbor's loud music at 2 AM",
+            scenario: "A woman calls reporting her neighbour's loud music at 2 AM",
             services: ["Police"],
             priority: "Low",
             explanation: "Non-emergency noise complaint"
         },
         {
             scenario: "A man reports seeing smoke coming from a residential house",
-            services: ["Fire"],
+            services: ["Fire", "EMS"],
             priority: "High",
-            explanation: "Active fire threat to life and property"
+            explanation: "Active fire threat to life and property. EMS are on standby for all structure fires"
         },
         {
             scenario: "Caller states someone is having a heart attack and is unconscious",
             services: ["EMS"],
-            priority: "Critical",
+            priority: "High",
             explanation: "Life-threatening medical emergency"
         },
         {
-            scenario: "Report of a car accident with no injuries, blocking one lane",
+            scenario: "Report of a car accident with no injuries, blocking one lane. Traffic control needed for tow",
             services: ["Police"],
             priority: "Medium",
             explanation: "Traffic hazard, no immediate danger"
         },
         {
             scenario: "Caller reports hearing gunshots and seeing someone running with a gun",
-            services: ["Police"],
-            priority: "Critical",
-            explanation: "Active shooter situation, immediate threat"
+            services: ["Police", "EMS"],
+            priority: "High",
+            explanation: "Active shooter situation, immediate threat. EMS would be on standby for injuries"
         },
         {
-            scenario: "Woman reports her teenage son hasn't come home and it's past curfew",
+            scenario: "Woman reports her teenage son hasn't come home and it's past curfew, no other safety concerns",
             services: ["Police"],
             priority: "Low",
             explanation: "Missing person, non-emergency follow-up"
         },
         {
-            scenario: "Gas leak reported at commercial building with strong odor",
+            scenario: "Gas leak reported at commercial building with strong odor, no injuries and everyone is waiting outside",
             services: ["Fire", "Utility"],
             priority: "High",
             explanation: "Explosion hazard, requires immediate response"
@@ -454,47 +454,47 @@ const QuestionBank = {
         {
             scenario: "Elderly person fell and cannot get up, alert and talking",
             services: ["EMS"],
-            priority: "Medium",
+            priority: "Low",
             explanation: "Medical assistance needed, not life-threatening"
         },
         {
             scenario: "Apartment building fire alarm activated, no visible smoke",
             services: ["Fire"],
             priority: "High",
-            explanation: "Potential fire, must investigate immediately"
+            explanation: "Potential fire, must investigate immediately. No confirmed smoke or flames so EMS not on standby - could change when fire department gets on scene."
         },
         {
             scenario: "Man reports his car was stolen from parking lot overnight",
             services: ["Police"],
             priority: "Low",
-            explanation: "Property crime, after-the-fact report"
+            explanation: "Property crime, after-the-fact report. If it had just occured then it would be high priority."
         },
         {
             scenario: "Woman screaming for help, sounds of breaking glass and violent struggle",
             services: ["Police", "EMS"],
-            priority: "Critical",
-            explanation: "Assault in progress, immediate danger"
+            priority: "High",
+            explanation: "Assault in progress, immediate danger. Responding officers would ask for EMS on standby"
         },
         {
             scenario: "Child not breathing, parent performing CPR",
             services: ["EMS", "Fire"],
-            priority: "Critical",
+            priority: "High",
             explanation: "Pediatric cardiac arrest, all resources needed"
         },
         {
-            scenario: "Power lines down across road after storm, sparking",
+            scenario: "Power lines down across road after storm, sparking. Busy street, traffic control likely needed.",
             services: ["Fire", "Utility", "Police"],
             priority: "High",
             explanation: "Public safety hazard, road closure needed"
         },
         {
-            scenario: "Diabetic person feeling dizzy and confused",
+            scenario: "Diabetic person feeling dizzy and confused, not unconscious",
             services: ["EMS"],
             priority: "Medium",
             explanation: "Medical emergency, not immediately life-threatening"
         },
         {
-            scenario: "Shoplifter detained by security, cooperative",
+            scenario: "Shoplifter detained by security, cooperative and waiting in the office",
             services: ["Police"],
             priority: "Low",
             explanation: "Non-violent crime, suspect contained"
@@ -502,14 +502,14 @@ const QuestionBank = {
         {
             scenario: "Chemical spill on highway from overturned truck",
             services: ["Fire", "Police", "EMS"],
-            priority: "Critical",
+            priority: "High",
             explanation: "Hazmat situation, multiple casualties possible"
         },
         {
             scenario: "Smoke detector beeping in vacant apartment",
             services: ["Fire"],
-            priority: "Medium",
-            explanation: "Possible fire, needs investigation"
+            priority: "High",
+            explanation: "Possible fire, whether it's vacant or not the fire department will respond immediately to assess and try to save the structure (if valid fire)"
         },
         {
             scenario: "Man with chest pain, sweating, and shortness of breath",
@@ -521,11 +521,11 @@ const QuestionBank = {
             scenario: "Dog bite victim, bleeding controlled, seeking medical advice",
             services: ["EMS"],
             priority: "Medium",
-            explanation: "Medical treatment needed, stable condition"
+            explanation: "Medical treatment needed, stable condition. Police not required here as dog bite would be a public health matter."
         },
         {
             scenario: "Suspicious package left at bus station",
-            services: ["Police", "Fire"],
+            services: ["Police"],
             priority: "High",
             explanation: "Potential bomb threat, evacuation needed"
         },
@@ -537,12 +537,12 @@ const QuestionBank = {
         },
         {
             scenario: "Structure fire fully engulfed, people possibly trapped inside",
-            services: ["Fire", "EMS", "Police"],
-            priority: "Critical",
-            explanation: "Life safety emergency, all resources"
+            services: ["Fire", "EMS"],
+            priority: "High",
+            explanation: "Structure fire and EMS on standby"
         },
         {
-            scenario: "Pregnant woman in labor, contractions 5 minutes apart",
+            scenario: "Pregnant woman in labour, contractions 5 minutes apart",
             services: ["EMS"],
             priority: "High",
             explanation: "Imminent childbirth, urgent transport needed"
@@ -556,13 +556,13 @@ const QuestionBank = {
         {
             scenario: "Multi-vehicle collision on highway, multiple injuries reported",
             services: ["EMS", "Fire", "Police"],
-            priority: "Critical",
+            priority: "High",
             explanation: "Mass casualty incident, all resources"
         },
         {
             scenario: "Carbon monoxide detector alarming, family feeling sick",
             services: ["Fire", "EMS"],
-            priority: "Critical",
+            priority: "High",
             explanation: "CO poisoning, immediate evacuation needed"
         },
         {
@@ -574,26 +574,26 @@ const QuestionBank = {
         {
             scenario: "Person threatening suicide with weapon",
             services: ["Police", "EMS"],
-            priority: "Critical",
+            priority: "High",
             explanation: "Mental health crisis with weapon, immediate danger"
         },
         {
             scenario: "Broken fire hydrant flooding street",
             services: ["Utility"],
-            priority: "Medium",
+            priority: "High",
             explanation: "Property damage, water main issue"
         },
         {
             scenario: "Elderly person hasn't been seen for several days, welfare check",
-            services: ["Police", "EMS"],
+            services: ["Police"],
             priority: "Medium",
             explanation: "Welfare check, possible medical issue"
         },
         {
             scenario: "Kitchen grease fire, spreading to cabinets",
-            services: ["Fire"],
+            services: ["Fire", "EMS"],
             priority: "High",
-            explanation: "Active fire, spreading risk"
+            explanation: "Active fire, spreading risk, EMS on standby"
         },
         {
             scenario: "Hit and run accident, driver fled scene, victim walking and talking",
@@ -610,23 +610,23 @@ const QuestionBank = {
         {
             scenario: "Person having severe allergic reaction, throat swelling",
             services: ["EMS"],
-            priority: "Critical",
+            priority: "High",
             explanation: "Anaphylaxis, airway compromise"
         },
         {
-            scenario: "Graffiti on business building, damage estimate $500",
+            scenario: "Graffiti found on business building, damage estimate $500",
             services: ["Police"],
             priority: "Low",
             explanation: "Property crime, after-the-fact"
         },
         {
-            scenario: "Toddler locked in car on hot day, crying and sweating",
-            services: ["Fire", "Police", "EMS"],
-            priority: "Critical",
-            explanation: "Child in immediate danger, heat emergency"
+            scenario: "Dog left in car on hot day, dog clearly in distress",
+            services: ["Police"],
+            priority: "High",
+            explanation: "Dog in immediate danger, heat emergency"
         },
         {
-            scenario: "Tree branch fell on power line, no fire or sparks",
+            scenario: "Tree leaning on power line, no fire or sparks",
             services: ["Utility"],
             priority: "Medium",
             explanation: "Infrastructure damage, no immediate danger"
@@ -634,26 +634,26 @@ const QuestionBank = {
         {
             scenario: "Person appears to be having a stroke, one-sided weakness",
             services: ["EMS"],
-            priority: "Critical",
+            priority: "High",
             explanation: "Stroke symptoms, time-critical emergency"
         },
         {
-            scenario: "Attempted break-in, suspect fled, homeowner safe",
+            scenario: "Complainant returned home to their house broken into, suspect not present, homeowner safe",
             services: ["Police"],
-            priority: "Medium",
-            explanation: "Recent crime, suspect at large"
+            priority: "Low",
+            explanation: "after the fact crime, will be dispatched when officers available."
         },
         {
             scenario: "Industrial accident, worker trapped in machinery",
             services: ["Fire", "EMS", "Police"],
-            priority: "Critical",
-            explanation: "Rescue needed, serious injury likely"
+            priority: "High",
+            explanation: "Rescue needed, serious injury likely, Police will need to investigate and then liaise with the ministry of labour"
         },
         {
-            scenario: "Psychiatric patient off medication, acting erratically but not violent",
-            services: ["Police", "EMS"],
+            scenario: "Callers brother off medication, acting erratically but not violent",
+            services: ["Police"],
             priority: "Medium",
-            explanation: "Mental health crisis, monitoring needed"
+            explanation: "Mental health crisis, police wellfare check likely"
         },
         {
             scenario: "Small brush fire near residential area, wind picking up",
@@ -662,8 +662,8 @@ const QuestionBank = {
             explanation: "Wildfire risk to structures"
         },
         {
-            scenario: "Person fell from ladder, possible back injury, conscious",
-            services: ["EMS", "Fire"],
+            scenario: "Person fell from ladder, back injury, conscious",
+            services: ["EMS"],
             priority: "High",
             explanation: "Spinal injury risk, special handling needed"
         },
@@ -674,10 +674,10 @@ const QuestionBank = {
             explanation: "Financial crime, non-emergency report"
         },
         {
-            scenario: "Active shooter reported at shopping mall",
-            services: ["Police", "Fire", "EMS"],
-            priority: "Critical",
-            explanation: "Mass casualty event, all resources"
+            scenario: "Active shooter reported at shopping mall, injuries confirmed",
+            services: ["Police", "EMS"],
+            priority: "High",
+            explanation: "Mass casualty event"
         },
         {
             scenario: "Transformer explosion, power outage in neighborhood",
@@ -705,49 +705,49 @@ const QuestionBank = {
         },
         {
             scenario: "Person with dementia wandered from care facility",
-            services: ["Police", "EMS"],
+            services: ["Police"],
             priority: "High",
             explanation: "Vulnerable missing person, health risk"
         },
         {
             scenario: "Lightning strike started roof fire",
             services: ["Fire"],
-            priority: "Critical",
+            priority: "High",
             explanation: "Active structure fire"
         },
         {
             scenario: "Minor fender bender in parking lot, no injuries, insurance exchange",
             services: ["Police"],
             priority: "Low",
-            explanation: "Property damage only, civil matter"
+            explanation: "police would do a collision report, depending on the service would tell drivers to report at Collision Reporting Centre or officers would respond"
         },
         {
             scenario: "Heroin overdose, person not breathing, bystander has Narcan",
             services: ["EMS", "Fire"],
-            priority: "Critical",
+            priority: "High",
             explanation: "Drug overdose, respiratory arrest"
         },
         {
-            scenario: "Street light out at busy intersection",
+            scenario: "Street light out at intersection",
             services: ["Utility"],
             priority: "Low",
             explanation: "Infrastructure maintenance, minor hazard"
         },
         {
             scenario: "Domestic violence in progress, victim locked in bathroom",
-            services: ["Police", "EMS"],
-            priority: "Critical",
+            services: ["Police"],
+            priority: "High",
             explanation: "Violence in progress, victim safety"
         },
         {
             scenario: "Oil spill on roadway from vehicle leak",
-            services: ["Fire", "Police"],
+            services: ["Fire"],
             priority: "Medium",
             explanation: "Roadway hazard, cleanup needed"
         },
         {
             scenario: "Elderly person fell 3 hours ago, cannot reach phone until now",
-            services: ["EMS", "Fire"],
+            services: ["EMS"],
             priority: "High",
             explanation: "Delayed response injury, potential deterioration"
         },
@@ -759,15 +759,15 @@ const QuestionBank = {
         },
         {
             scenario: "Armed robbery in progress at convenience store",
-            services: ["Police", "EMS"],
-            priority: "Critical",
+            services: ["Police"],
+            priority: "High",
             explanation: "Violent crime in progress"
         },
         {
             scenario: "Dead deer in middle of highway lane",
             services: ["Police"],
             priority: "Medium",
-            explanation: "Traffic hazard, removal needed"
+            explanation: "Traffic hazard, police would control traffic until city employees arrive to clear the roadkill."
         }
     ],
 
