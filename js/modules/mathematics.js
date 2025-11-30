@@ -35,6 +35,9 @@ const mathematicsModule = {
         const problemNum = this.currentProblem + 1;
         const total = this.selectedProblems.length;
 
+        // Generate wrong answers for multiple choice
+        const options = this.generateOptions(problem.answer);
+
         this.container.innerHTML = `
             <div class="math-module">
                 <div class="progress-indicator">
@@ -50,16 +53,12 @@ const mathematicsModule = {
                         <p class="problem-text">${problem.question}</p>
                     </div>
 
-                    <div class="answer-input">
-                        <label>Your Answer:</label>
-                        <input type="text" id="mathAnswer" placeholder="Enter your answer" autocomplete="off">
-                        <p class="hint">No calculator allowed - show your work on paper if needed</p>
-                    </div>
-
-                    <div class="module-actions">
-                        <button onclick="mathematicsModule.submitAnswer()" class="primary-btn">
-                            Submit Answer
-                        </button>
+                    <div class="answer-options">
+                        ${options.map((option, index) => `
+                            <button onclick="mathematicsModule.selectAnswer('${option}')" class="math-option">
+                                ${option}
+                            </button>
+                        `).join('')}
                     </div>
                 </div>
             </div>
@@ -78,67 +77,101 @@ const mathematicsModule = {
                     color: #2c3e50;
                     margin-top: 15px;
                 }
-                .answer-input {
-                    text-align: center;
-                    margin: 30px 0;
+                .answer-options {
+                    display: grid;
+                    grid-template-columns: repeat(2, 1fr);
+                    gap: 15px;
+                    max-width: 600px;
+                    margin: 30px auto;
                 }
-                .answer-input label {
-                    display: block;
-                    font-size: 18px;
-                    font-weight: bold;
-                    margin-bottom: 15px;
-                    color: #2c3e50;
-                }
-                .answer-input input {
-                    width: 300px;
-                    padding: 15px;
+                .math-option {
+                    padding: 20px;
                     font-size: 20px;
+                    font-weight: 500;
+                    background: white;
                     border: 3px solid #e0e0e0;
-                    border-radius: 8px;
-                    text-align: center;
+                    border-radius: 10px;
+                    cursor: pointer;
+                    transition: all 0.2s;
                 }
-                .answer-input input:focus {
-                    outline: none;
+                .math-option:hover {
                     border-color: #667eea;
-                }
-                .hint {
-                    margin-top: 10px;
-                    color: #7f8c8d;
-                    font-size: 14px;
-                    font-style: italic;
+                    transform: translateY(-2px);
+                    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
                 }
             </style>
         `;
-
-        // Focus input
-        setTimeout(() => {
-            document.getElementById('mathAnswer').focus();
-        }, 100);
-
-        // Allow Enter key to submit
-        document.getElementById('mathAnswer').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.submitAnswer();
-            }
-        });
     },
 
-    submitAnswer() {
-        const userAnswer = document.getElementById('mathAnswer').value.trim();
+    generateOptions(correctAnswer) {
+        // Generate 3 plausible wrong answers based on the correct answer
+        const correct = Number(correctAnswer);
+        const wrongAnswers = [];
         
-        if (!userAnswer) {
-            alert('Please enter an answer.');
-            return;
+        if (isNaN(correct)) {
+            // If answer is a string (like time), create variations
+            wrongAnswers.push(
+                this.modifyTimeAnswer(correctAnswer, 1),
+                this.modifyTimeAnswer(correctAnswer, 2),
+                this.modifyTimeAnswer(correctAnswer, 3)
+            );
+        } else {
+            // For numbers, create plausible alternatives
+            const magnitude = Math.abs(correct);
+            
+            if (magnitude > 100) {
+                wrongAnswers.push(
+                    Math.round(correct * 0.8),
+                    Math.round(correct * 1.2),
+                    Math.round(correct * 0.5)
+                );
+            } else if (magnitude > 10) {
+                wrongAnswers.push(
+                    correct + 5,
+                    correct - 5,
+                    Math.round(correct * 1.5)
+                );
+            } else {
+                wrongAnswers.push(
+                    correct + 2,
+                    correct - 2,
+                    correct + 4
+                );
+            }
         }
+        
+        // Combine correct answer with wrong answers and shuffle
+        const allOptions = [String(correctAnswer), ...wrongAnswers.map(String)];
+        return this.shuffleArray(allOptions);
+    },
 
+    modifyTimeAnswer(timeStr, variant) {
+        // For time-based answers, create plausible wrong times
+        if (timeStr.includes(':')) {
+            const parts = timeStr.split(':');
+            const hours = parseInt(parts[0]);
+            const mins = parseInt(parts[1].replace(/[^0-9]/g, ''));
+            
+            if (variant === 1) {
+                return `${hours}:${String(mins + 15).padStart(2, '0')}${timeStr.includes('AM') ? ' AM' : timeStr.includes('PM') ? ' PM' : ''}`;
+            } else if (variant === 2) {
+                return `${hours + 1}:${String(mins).padStart(2, '0')}${timeStr.includes('AM') ? ' AM' : timeStr.includes('PM') ? ' PM' : ''}`;
+            } else {
+                return `${hours}:${String(Math.max(0, mins - 10)).padStart(2, '0')}${timeStr.includes('AM') ? ' AM' : timeStr.includes('PM') ? ' PM' : ''}`;
+            }
+        }
+        return timeStr + ' (wrong)';
+    },
+
+    selectAnswer(selectedAnswer) {
         const problem = this.selectedProblems[this.currentProblem];
-        const correct = this.checkAnswer(userAnswer, problem.answer);
+        const correct = this.checkAnswer(selectedAnswer, problem.answer);
 
         if (correct) {
             this.results.correct++;
         }
 
-        this.showFeedback(correct, problem.answer, userAnswer);
+        this.showFeedback(correct, problem.answer, selectedAnswer);
     },
 
     checkAnswer(userAnswer, correctAnswer) {
@@ -217,6 +250,15 @@ const mathematicsModule = {
     nextProblem() {
         this.currentProblem++;
         this.showProblem();
+    },
+
+    shuffleArray(array) {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
     },
 
     finish() {
