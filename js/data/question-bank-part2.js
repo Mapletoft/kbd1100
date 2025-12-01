@@ -473,6 +473,150 @@ const QuestionBankPart2 = {
                     correct: 2
                 }
             ]
+        },
+        {
+            title: "Radio Communication Standards",
+            passage: "Effective radio communication is critical in emergency services. Use clear, concise language and avoid 10-codes when possible as they vary by region. Always identify yourself and the unit you're calling. Speak at a moderate pace and maintain a professional tone even during high-stress incidents. Confirm important information by having it repeated back. Minimize radio traffic during active emergencies to keep channels clear for critical updates. When providing locations, use complete street addresses including direction (North, South, etc.) and cross streets when applicable. If transmitting sensitive information, use MDT (Mobile Data Terminal) instead of voice radio.",
+            questions: [
+                {
+                    question: "Why should 10-codes be avoided when possible?",
+                    options: [
+                        "They're outdated",
+                        "They vary by region",
+                        "They're too slow",
+                        "Federal regulations prohibit them"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "When should MDT be used instead of voice radio?",
+                    options: [
+                        "For all communications",
+                        "Only during emergencies",
+                        "For sensitive information",
+                        "When radio is busy"
+                    ],
+                    correct: 2
+                },
+                {
+                    question: "How should important information be confirmed?",
+                    options: [
+                        "Send it twice",
+                        "Use official codes",
+                        "Have it repeated back",
+                        "Document it immediately"
+                    ],
+                    correct: 2
+                }
+            ]
+        },
+        {
+            title: "Medical Priority Dispatch",
+            passage: "Medical emergencies are classified by severity using established protocols. Life-threatening conditions include cardiac arrest, severe difficulty breathing, uncontrolled bleeding, and unconsciousness. These receive the highest priority response with lights and sirens. Medium priority calls include injuries without life threat, stable chest pain, and diabetic issues in conscious patients. Low priority includes minor injuries, chronic conditions, and non-emergency transports. Dispatchers provide pre-arrival instructions for CPR, choking, childbirth, and severe bleeding. Always keep medical callers on the line until responders arrive for critical calls.",
+            questions: [
+                {
+                    question: "Which condition is considered life-threatening?",
+                    options: [
+                        "Minor injury",
+                        "Stable chest pain",
+                        "Uncontrolled bleeding",
+                        "Chronic condition"
+                    ],
+                    correct: 2
+                },
+                {
+                    question: "What type of instructions can dispatchers provide?",
+                    options: [
+                        "Only location directions",
+                        "CPR, choking, childbirth, and bleeding",
+                        "Medical diagnoses",
+                        "Prescription advice"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "When should medical callers be kept on the line?",
+                    options: [
+                        "For all medical calls",
+                        "Only for unconscious patients",
+                        "Until responders arrive for critical calls",
+                        "Never, to free up the line"
+                    ],
+                    correct: 2
+                }
+            ]
+        },
+        {
+            title: "Traffic Incident Management",
+            passage: "Traffic accidents require coordination between multiple agencies. Minor accidents with no injuries may only need police for documentation. Accidents with injuries require EMS and police, with fire department standing by for extrication if needed. Highway accidents need traffic control and possibly tow trucks. When vehicles block traffic lanes, request additional units for traffic management. For accidents involving hazardous materials, establish a safety perimeter and call specialized hazmat teams. Always inquire about airbag deployment, as this indicates potential serious injuries even when occupants initially appear uninjured.",
+            questions: [
+                {
+                    question: "What does airbag deployment indicate?",
+                    options: [
+                        "No injuries occurred",
+                        "Vehicle is totaled",
+                        "Potential serious injuries even if occupants appear fine",
+                        "Hazmat response needed"
+                    ],
+                    correct: 2
+                },
+                {
+                    question: "When is a hazmat team needed at an accident?",
+                    options: [
+                        "For all highway accidents",
+                        "When accidents involve hazardous materials",
+                        "Only for commercial vehicles",
+                        "When requested by police"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "What agencies respond to accidents with injuries?",
+                    options: [
+                        "Police only",
+                        "EMS only",
+                        "EMS and police, with fire standing by if needed",
+                        "All emergency services automatically"
+                    ],
+                    correct: 2
+                }
+            ]
+        },
+        {
+            title: "Dispatcher Wellness and Stress Management",
+            passage: "Emergency dispatching is a high-stress career with unique challenges. Dispatchers experience vicarious trauma from handling traumatic calls without seeing the outcomes. Critical Incident Stress Debriefing (CISD) should be available after particularly difficult calls. Regular breaks and shift rotation help prevent burnout. Dispatchers should practice self-care including adequate sleep, exercise, and healthy eating. Peer support programs allow dispatchers to discuss difficult calls with colleagues who understand the job. Agencies should provide access to mental health professionals familiar with emergency services. Remember that seeking help is a sign of strength, not weakness.",
+            questions: [
+                {
+                    question: "What is vicarious trauma?",
+                    options: [
+                        "Physical injury at work",
+                        "Trauma from handling traumatic calls without seeing outcomes",
+                        "Equipment failure stress",
+                        "Conflict with coworkers"
+                    ],
+                    correct: 1
+                },
+                {
+                    question: "When should CISD be available?",
+                    options: [
+                        "Only after physical injuries",
+                        "Once per year",
+                        "After particularly difficult calls",
+                        "Only for new dispatchers"
+                    ],
+                    correct: 2
+                },
+                {
+                    question: "What does the passage say about seeking help?",
+                    options: [
+                        "It shows weakness",
+                        "It's unnecessary for experienced dispatchers",
+                        "It's a sign of strength, not weakness",
+                        "It should be avoided"
+                    ],
+                    correct: 2
+                }
+            ]
         }
         // Additional passages would continue...
     ],
