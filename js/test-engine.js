@@ -6,12 +6,11 @@ const CritiCallTestEngine = {
         modules: [
             { id: 'dataEntry', name: 'Data Entry', timeLimit: 300, questionCount: 12 },
             { id: 'decisionMaking', name: 'Decision Making', timeLimit: 1800, questionCount: 35 },
-            { id: 'callSummarization', name: 'Call Summarization', timeLimit: 1200, questionCount: 9 },
-            { id: 'mapReading', name: 'Map Reading', timeLimit: 900, questionCount: 12 },
-            { id: 'readingComprehension', name: 'Reading Comprehension', timeLimit: 1200, questionCount: 6 },
             { id: 'spelling', name: 'Spelling', timeLimit: 600, questionCount: 50 },
             { id: 'mathematics', name: 'Mathematics', timeLimit: 900, questionCount: 25 },
-            { id: 'memoryRecall', name: 'Memory Recall', timeLimit: 900, questionCount: 10 },
+            { id: 'readingComprehension', name: 'Reading Comprehension', timeLimit: 1200, questionCount: 6 },
+            { id: 'memoryRecall', name: 'Memory Recall', timeLimit: 900, questionCount: 5 },
+            { id: 'mapReading', name: 'Map Reading', timeLimit: 900, questionCount: 12 },
             { id: 'crossReference', name: 'Cross Reference', timeLimit: 600, questionCount: 15 },
             { id: 'multitasking', name: 'Multitasking', timeLimit: 1500, questionCount: 12 }
         ],
