@@ -1,69 +1,6 @@
-// PLACEHOLDER MODULES - These use simplified logic
-// You'll need to add your actual content (audio files, maps, etc.)
-
-// ===== CALL SUMMARIZATION MODULE =====
-const callSummarizationModule = {
-    name: "Call Summarization",
-    
-    render(container, questionCount, onComplete) {
-        this.onComplete = onComplete;
-        
-        // Simplified version - in production, use your audio files
-        const finalResults = {
-            moduleId: 'callSummarization',
-            accuracy: 75, // Placeholder
-            correctAnswers: Math.floor(questionCount * 0.75),
-            totalQuestions: questionCount,
-            score: 75,
-            wpm: 35
-        };
-        
-        container.innerHTML = `
-            <div style="text-align: center; padding: 50px;">
-                <h2>Call Summarization Module</h2>
-                <p>This module needs your audio files integrated.</p>
-                <p>Simulating completion...</p>
-            </div>
-        `;
-        
-        setTimeout(() => {
-            if (this.onComplete) {
-                this.onComplete(finalResults);
-            }
-        }, 2000);
-    }
-};
-
-// ===== MAP READING MODULE =====
-const mapReadingModule = {
-    name: "Map Reading",
-    
-    render(container, questionCount, onComplete) {
-        this.onComplete = onComplete;
-        
-        const finalResults = {
-            moduleId: 'mapReading',
-            accuracy: 70,
-            correctAnswers: Math.floor(questionCount * 0.70),
-            totalQuestions: questionCount,
-            score: 70
-        };
-        
-        container.innerHTML = `
-            <div style="text-align: center; padding: 50px;">
-                <h2>Map Reading Module</h2>
-                <p>This module needs your map scenarios integrated.</p>
-                <p>Simulating completion...</p>
-            </div>
-        `;
-        
-        setTimeout(() => {
-            if (this.onComplete) {
-                this.onComplete(finalResults);
-            }
-        }, 2000);
-    }
-};
+// ADDITIONAL MODULES
+// Reading Comprehension and Memory Recall
+// (Map Reading, Cross Reference, Multitasking are in map-cross-multi.js)
 
 // ===== READING COMPREHENSION MODULE =====
 const readingComprehensionModule = {
@@ -80,7 +17,7 @@ const readingComprehensionModule = {
         this.currentPassage = 0;
         this.results = {
             correct: 0,
-            total: 0 // Will count total questions across all passages
+            total: 0
         };
     },
 
@@ -98,9 +35,54 @@ const readingComprehensionModule = {
         }
 
         const passage = this.selectedPassages[this.currentPassage];
-        this.currentQuestion = 0;
-        this.passageResults = [];
+        const passageNum = this.currentPassage + 1;
+        const total = this.selectedPassages.length;
 
+        this.container.innerHTML = `
+            <div class="reading-comprehension-module">
+                <div class="progress-indicator">
+                    <p>Passage ${passageNum} of ${total}</p>
+                    <div class="progress-bar-slim">
+                        <div class="progress-fill" style="width: ${(passageNum / total) * 100}%"></div>
+                    </div>
+                </div>
+
+                <div class="passage-content">
+                    <h3>${passage.title}</h3>
+                    <div class="passage-text">
+                        ${passage.text}
+                    </div>
+                </div>
+
+                <div class="module-actions">
+                    <button onclick="readingComprehensionModule.startQuestions()" class="primary-btn">
+                        Answer Questions →
+                    </button>
+                </div>
+            </div>
+
+            <style>
+                .passage-content {
+                    background: #f8f9fa;
+                    padding: 30px;
+                    border-radius: 10px;
+                    margin: 20px 0;
+                }
+                .passage-text {
+                    line-height: 1.8;
+                    font-size: 16px;
+                    color: #2c3e50;
+                }
+            </style>
+        `;
+    },
+
+    startQuestions() {
+        this.currentQuestion = 0;
+        this.passageResults = {
+            correct: 0,
+            total: this.selectedPassages[this.currentPassage].questions.length
+        };
         this.showQuestion();
     },
 
@@ -108,9 +90,7 @@ const readingComprehensionModule = {
         const passage = this.selectedPassages[this.currentPassage];
         
         if (this.currentQuestion >= passage.questions.length) {
-            // Move to next passage
-            this.currentPassage++;
-            this.showPassage();
+            this.nextPassage();
             return;
         }
 
@@ -119,21 +99,17 @@ const readingComprehensionModule = {
         const total = passage.questions.length;
 
         this.container.innerHTML = `
-            <div class="reading-module">
-                <div class="passage-display">
-                    <h3>${passage.title}</h3>
-                    <div class="passage-text">
-                        ${passage.passage}
-                    </div>
+            <div class="reading-question-module">
+                <div class="progress-indicator">
+                    <p>Question ${questionNum} of ${total}</p>
                 </div>
 
-                <div class="question-section">
-                    <h4>Question ${questionNum} of ${total}</h4>
-                    <p class="question-text">${question.question}</p>
-                    
-                    <div class="options-list">
+                <div class="question-content">
+                    <h4>${question.question}</h4>
+                    <div class="answer-options">
                         ${question.options.map((option, index) => `
-                            <button onclick="readingComprehensionModule.selectAnswer(${index})" class="option-btn">
+                            <button onclick="readingComprehensionModule.selectAnswer('${option.replace(/'/g, "\\'")}')" 
+                                    class="answer-option">
                                 ${option}
                             </button>
                         `).join('')}
@@ -142,80 +118,80 @@ const readingComprehensionModule = {
             </div>
 
             <style>
-                .passage-display {
+                .question-content {
                     background: #f8f9fa;
-                    padding: 25px;
+                    padding: 30px;
                     border-radius: 10px;
-                    margin-bottom: 25px;
+                    margin: 20px 0;
                 }
-                .passage-display h3 {
-                    color: #2c3e50;
-                    margin-bottom: 15px;
-                }
-                .passage-text {
-                    line-height: 1.8;
-                    color: #34495e;
-                    font-size: 16px;
-                    max-height: 300px;
-                    overflow-y: auto;
-                    background: white;
-                    padding: 20px;
-                    border-radius: 8px;
-                }
-                .question-section {
-                    background: white;
-                    padding: 25px;
-                    border-radius: 10px;
-                    border: 2px solid #667eea;
-                }
-                .question-text {
-                    font-size: 18px;
-                    font-weight: 500;
-                    margin: 15px 0 20px 0;
-                    color: #2c3e50;
-                }
-                .options-list {
+                .answer-options {
                     display: flex;
                     flex-direction: column;
                     gap: 12px;
+                    margin-top: 20px;
                 }
-                .option-btn {
+                .answer-option {
                     padding: 15px 20px;
                     text-align: left;
-                    background: #f8f9fa;
+                    background: white;
                     border: 2px solid #e0e0e0;
                     border-radius: 8px;
                     cursor: pointer;
                     transition: all 0.2s;
                 }
-                .option-btn:hover {
+                .answer-option:hover {
                     border-color: #667eea;
-                    background: white;
+                    background: #f8f9fa;
                 }
             </style>
         `;
     },
 
-    selectAnswer(selectedIndex) {
+    selectAnswer(selectedAnswer) {
         const passage = this.selectedPassages[this.currentPassage];
         const question = passage.questions[this.currentQuestion];
-        const correct = selectedIndex === question.correct;
+        const correct = selectedAnswer === question.correctAnswer;
 
-        this.results.total++;
         if (correct) {
+            this.passageResults.correct++;
             this.results.correct++;
         }
+        this.results.total++;
 
-        this.passageResults.push({
-            question: question.question,
-            correct: correct
-        });
+        this.showQuestionFeedback(correct, question);
+    },
 
+    showQuestionFeedback(correct, question) {
+        this.container.innerHTML = `
+            <div class="scenario-feedback ${correct ? 'success' : 'warning'}">
+                <div class="feedback-header">
+                    <h2>${correct ? '✓ Correct!' : '! Incorrect'}</h2>
+                </div>
+
+                <div class="feedback-details">
+                    <div class="feedback-section">
+                        <h4>Correct Answer:</h4>
+                        <p>${question.correctAnswer}</p>
+                    </div>
+                </div>
+
+                <div class="module-actions">
+                    <button onclick="readingComprehensionModule.nextQuestion()" class="primary-btn">
+                        ${this.currentQuestion < this.selectedPassages[this.currentPassage].questions.length - 1 ? 'Next Question →' : 'Continue →'}
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+
+    nextQuestion() {
         this.currentQuestion++;
-        
-        setTimeout(() => {
-            this.showQuestion();
-        }, 500);
+        this.showQuestion();
+    },
+
+    nextPassage() {
+        this.currentPassage++;
+        this.showPassage();
     },
 
     finish() {
@@ -238,104 +214,265 @@ const readingComprehensionModule = {
 // ===== MEMORY RECALL MODULE =====
 const memoryRecallModule = {
     name: "Memory Recall",
-    
+    questionBank: [
+        {
+            items: ["Badge 423", "Unit 7", "Oak Street", "10-4", "Engine 2"],
+            questions: [
+                { q: "What badge number was shown?", a: "423" },
+                { q: "What unit number was mentioned?", a: "7" },
+                { q: "What street name appeared?", a: "Oak Street" }
+            ]
+        },
+        {
+            items: ["Code 3", "Maple Ave", "Badge 156", "Squad 9", "10-23"],
+            questions: [
+                { q: "What code was displayed?", a: "Code 3" },
+                { q: "What avenue was shown?", a: "Maple Ave" },
+                { q: "What was the badge number?", a: "156" }
+            ]
+        },
+        {
+            items: ["Officer Johnson", "Unit 12", "Pine Street", "Badge 789", "Code 2"],
+            questions: [
+                { q: "What was the officer's name?", a: "Johnson" },
+                { q: "What was the unit number?", a: "12" },
+                { q: "What badge number appeared?", a: "789" }
+            ]
+        },
+        {
+            items: ["10-20 at Main St", "Badge 342", "Squad 5", "Engine 8", "Ladder 3"],
+            questions: [
+                { q: "What street was mentioned in 10-20?", a: "Main St" },
+                { q: "What badge number was shown?", a: "342" },
+                { q: "What squad number appeared?", a: "5" }
+            ]
+        },
+        {
+            items: ["Suspect: Male, 6'2\"", "Weapon: Handgun", "Vehicle: Blue Sedan", "Plate: ABC 1234", "Direction: Northbound"],
+            questions: [
+                { q: "What was the suspect's height?", a: "6'2\"" },
+                { q: "What color was the vehicle?", a: "Blue" },
+                { q: "What direction was the suspect heading?", a: "Northbound" }
+            ]
+        }
+    ],
+    selectedScenario: null,
+    currentQuestion: 0,
+    userAnswers: [],
+    memoryTimer: null,
+    results: {
+        correct: 0,
+        total: 0
+    },
+
+    init(questionCount) {
+        this.selectedScenario = this.questionBank[Math.floor(Math.random() * this.questionBank.length)];
+        this.currentQuestion = 0;
+        this.userAnswers = [];
+        this.results = { correct: 0, total: this.selectedScenario.questions.length };
+    },
+
     render(container, questionCount, onComplete) {
+        this.init(questionCount);
         this.onComplete = onComplete;
-        
+        this.container = container;
+        this.showMemoryItems();
+    },
+
+    showMemoryItems() {
+        this.container.innerHTML = `
+            <div class="memory-recall-module">
+                <h3>🧠 Memorize the following information</h3>
+                <div class="memory-timer-display">
+                    <p style="font-size: 32px; font-weight: bold; color: #667eea;">
+                        Time remaining: <span id="memoryTimer">30</span>s
+                    </p>
+                </div>
+                <div class="memory-items-display">
+                    ${this.selectedScenario.items.map(item => `
+                        <div class="memory-item">${item}</div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <style>
+                .memory-items-display {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 15px;
+                    margin: 30px auto;
+                    max-width: 600px;
+                }
+                .memory-item {
+                    background: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    font-size: 20px;
+                    font-weight: bold;
+                    border: 3px solid #667eea;
+                    text-align: center;
+                }
+                .memory-timer-display {
+                    text-align: center;
+                    margin: 20px 0;
+                }
+            </style>
+        `;
+
+        let timeLeft = 30;
+        this.memoryTimer = setInterval(() => {
+            timeLeft--;
+            const timerEl = document.getElementById('memoryTimer');
+            if (timerEl) timerEl.textContent = timeLeft;
+
+            if (timeLeft <= 0) {
+                clearInterval(this.memoryTimer);
+                this.hideAndAskQuestions();
+            }
+        }, 1000);
+    },
+
+    hideAndAskQuestions() {
+        this.currentQuestion = 0;
+        this.showQuestion();
+    },
+
+    showQuestion() {
+        if (this.currentQuestion >= this.selectedScenario.questions.length) {
+            this.finish();
+            return;
+        }
+
+        const question = this.selectedScenario.questions[this.currentQuestion];
+        const questionNum = this.currentQuestion + 1;
+        const total = this.selectedScenario.questions.length;
+
+        this.container.innerHTML = `
+            <div class="memory-question-module">
+                <div class="progress-indicator">
+                    <p>Question ${questionNum} of ${total}</p>
+                    <div class="progress-bar-slim">
+                        <div class="progress-fill" style="width: ${(questionNum / total) * 100}%"></div>
+                    </div>
+                </div>
+
+                <div class="question-display">
+                    <h3>${question.q}</h3>
+                    <input type="text" id="memoryAnswer" class="memory-answer-input" placeholder="Type your answer..." autofocus>
+                </div>
+
+                <div class="module-actions">
+                    <button onclick="memoryRecallModule.submitAnswer()" class="primary-btn">
+                        Submit Answer
+                    </button>
+                </div>
+            </div>
+
+            <style>
+                .question-display {
+                    background: #f8f9fa;
+                    padding: 30px;
+                    border-radius: 10px;
+                    margin: 20px 0;
+                    text-align: center;
+                }
+                .memory-answer-input {
+                    width: 100%;
+                    max-width: 400px;
+                    padding: 15px;
+                    font-size: 18px;
+                    border: 2px solid #ddd;
+                    border-radius: 8px;
+                    margin-top: 20px;
+                }
+                .memory-answer-input:focus {
+                    outline: none;
+                    border-color: #667eea;
+                }
+            </style>
+        `;
+
+        document.getElementById('memoryAnswer').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.submitAnswer();
+            }
+        });
+    },
+
+    submitAnswer() {
+        const userAnswer = document.getElementById('memoryAnswer').value.trim();
+        if (!userAnswer) {
+            alert('Please enter an answer.');
+            return;
+        }
+
+        const question = this.selectedScenario.questions[this.currentQuestion];
+        const correct = this.isAnswerCorrect(userAnswer, question.a);
+
+        if (correct) {
+            this.results.correct++;
+        }
+
+        this.userAnswers.push({
+            question: question.q,
+            userAnswer: userAnswer,
+            correctAnswer: question.a,
+            correct: correct
+        });
+
+        this.showQuestionFeedback(correct, question);
+    },
+
+    isAnswerCorrect(userAnswer, correctAnswer) {
+        const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+        return normalize(userAnswer) === normalize(correctAnswer);
+    },
+
+    showQuestionFeedback(correct, question) {
+        this.container.innerHTML = `
+            <div class="scenario-feedback ${correct ? 'success' : 'warning'}">
+                <div class="feedback-header">
+                    <h2>${correct ? '✓ Correct!' : '! Incorrect'}</h2>
+                </div>
+
+                <div class="feedback-details">
+                    <div class="feedback-section">
+                        <h4>Correct Answer:</h4>
+                        <p><strong>${question.a}</strong></p>
+                    </div>
+                </div>
+
+                <div class="module-actions">
+                    <button onclick="memoryRecallModule.nextQuestion()" class="primary-btn">
+                        ${this.currentQuestion < this.selectedScenario.questions.length - 1 ? 'Next Question →' : 'Finish'}
+                    </button>
+                </div>
+            </div>
+        `;
+    },
+
+    nextQuestion() {
+        this.currentQuestion++;
+        this.showQuestion();
+    },
+
+    finish() {
+        const accuracy = (this.results.correct / this.results.total) * 100;
+
         const finalResults = {
             moduleId: 'memoryRecall',
-            accuracy: 72,
-            correctAnswers: Math.floor(questionCount * 0.72),
-            totalQuestions: questionCount,
-            score: 72
+            accuracy: accuracy,
+            correctAnswers: this.results.correct,
+            totalQuestions: this.results.total,
+            score: accuracy
         };
-        
-        container.innerHTML = `
-            <div style="text-align: center; padding: 50px;">
-                <h2>Memory Recall Module</h2>
-                <p>This module needs enhanced with timed display logic.</p>
-                <p>Simulating completion...</p>
-            </div>
-        `;
-        
-        setTimeout(() => {
-            if (this.onComplete) {
-                this.onComplete(finalResults);
-            }
-        }, 2000);
+
+        if (this.onComplete) {
+            this.onComplete(finalResults);
+        }
     }
 };
 
-// ===== CROSS REFERENCE MODULE =====
-const crossReferenceModule = {
-    name: "Cross Reference",
-    
-    render(container, questionCount, onComplete) {
-        this.onComplete = onComplete;
-        
-        const finalResults = {
-            moduleId: 'crossReference',
-            accuracy: 78,
-            correctAnswers: Math.floor(questionCount * 0.78),
-            totalQuestions: questionCount,
-            score: 78,
-            kph: 4500,
-            kpm: 75
-        };
-        
-        container.innerHTML = `
-            <div style="text-align: center; padding: 50px;">
-                <h2>Cross Reference Module</h2>
-                <p>This module needs your cross-reference scenarios integrated.</p>
-                <p>Simulating completion...</p>
-            </div>
-        `;
-        
-        setTimeout(() => {
-            if (this.onComplete) {
-                this.onComplete(finalResults);
-            }
-        }, 2000);
-    }
-};
-
-// ===== MULTITASKING MODULE =====
-const multitaskingModule = {
-    name: "Multitasking",
-    
-    render(container, questionCount, onComplete) {
-        this.onComplete = onComplete;
-        
-        const finalResults = {
-            moduleId: 'multitasking',
-            accuracy: 68,
-            correctAnswers: Math.floor(questionCount * 0.68),
-            totalQuestions: questionCount,
-            score: 68,
-            kph: 3800,
-            kpm: 63
-        };
-        
-        container.innerHTML = `
-            <div style="text-align: center; padding: 50px;">
-                <h2>Multitasking Module</h2>
-                <p>This module needs your multitasking logic integrated.</p>
-                <p>Simulating completion...</p>
-            </div>
-        `;
-        
-        setTimeout(() => {
-            if (this.onComplete) {
-                this.onComplete(finalResults);
-            }
-        }, 2000);
-    }
-};
-
-// Make all modules available globally
-window.callSummarizationModule = callSummarizationModule;
-window.mapReadingModule = mapReadingModule;
+// Export modules
 window.readingComprehensionModule = readingComprehensionModule;
 window.memoryRecallModule = memoryRecallModule;
-window.crossReferenceModule = crossReferenceModule;
-window.multitaskingModule = multitaskingModule;
