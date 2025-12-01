@@ -254,6 +254,46 @@ const memoryRecallModule = {
                 { q: "What color was the vehicle?", a: "Blue" },
                 { q: "What direction was the suspect heading?", a: "Northbound" }
             ]
+        },
+        {
+            items: ["Time: 14:35", "Location: 789 Elm St", "Caller: James Park", "Badge 567", "Unit 15"],
+            questions: [
+                { q: "What was the time?", a: "14:35" },
+                { q: "What was the location?", a: "789 Elm St" },
+                { q: "Who was the caller?", a: "James Park" }
+            ]
+        },
+        {
+            items: ["Vehicle: Red Truck", "Plate: XYZ 789", "Speed: 85 MPH", "Direction: Eastbound", "Highway 401"],
+            questions: [
+                { q: "What color was the vehicle?", a: "Red" },
+                { q: "What was the license plate?", a: "XYZ 789" },
+                { q: "Which highway was mentioned?", a: "Highway 401" }
+            ]
+        },
+        {
+            items: ["Apartment 5C", "Building: Maple Towers", "Victim: Lisa Wong", "Age: 34", "Injury: Arm"],
+            questions: [
+                { q: "What apartment number?", a: "5C" },
+                { q: "What was the building name?", a: "Maple Towers" },
+                { q: "What was the victim's age?", a: "34" }
+            ]
+        },
+        {
+            items: ["Code 1", "Officer Davis", "Backup Requested", "Badge 891", "Intersection: King & Queen"],
+            questions: [
+                { q: "What code was used?", a: "Code 1" },
+                { q: "Which officer requested backup?", a: "Davis" },
+                { q: "What was the intersection?", a: "King & Queen" }
+            ]
+        },
+        {
+            items: ["Suspect: Female, 5'6\"", "Clothing: Black Hoodie", "Last seen: 7-Eleven", "Time: 23:45", "On Foot"],
+            questions: [
+                { q: "What was the suspect wearing?", a: "Black Hoodie" },
+                { q: "Where was suspect last seen?", a: "7-Eleven" },
+                { q: "What time?", a: "23:45" }
+            ]
         }
     ],
     selectedScenario: null,
