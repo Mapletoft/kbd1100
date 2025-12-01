@@ -498,9 +498,9 @@ const multitaskingModule = {
                     <div style="background: #f8f9fa; padding: 30px; border-radius: 10px; margin-bottom: 25px;">
                         <h1 style="font-size: 48px; margin: 0; color: #2c3e50;">${this.state.mathQuestion.question}</h1>
                     </div>
-                    <input type="number" id="mathAnswer" 
+                    <input type="text" id="mathAnswer" 
                            style="width: 200px; padding: 15px; font-size: 24px; text-align: center; border: 2px solid #667eea; border-radius: 8px;"
-                           placeholder="Answer" autofocus>
+                           placeholder="Answer" autofocus inputmode="numeric" pattern="[0-9]*">
                     <br><br>
                     <button onclick="multitaskingModule.answerMathQuestion()" 
                             style="background: #667eea; color: white; border: none; padding: 15px 40px; font-size: 18px; border-radius: 8px; cursor: pointer;">
@@ -510,8 +510,16 @@ const multitaskingModule = {
             </div>
         `;
         
+        // Get the input element
+        const mathInput = document.getElementById('mathAnswer');
+        
+        // Only allow numbers to be typed
+        mathInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+        });
+        
         // Allow Enter key to submit
-        document.getElementById('mathAnswer').addEventListener('keypress', (e) => {
+        mathInput.addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 this.answerMathQuestion();
             }
