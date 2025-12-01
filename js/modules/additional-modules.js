@@ -298,6 +298,9 @@ const memoryRecallModule = {
     ],
     selectedScenario: null,
     currentQuestion: 0,
+    currentRound: 0,
+    totalRounds: 5,
+    usedScenarios: [],
     userAnswers: [],
     memoryTimer: null,
     results: {
@@ -306,10 +309,37 @@ const memoryRecallModule = {
     },
 
     init(questionCount) {
-        this.selectedScenario = this.questionBank[Math.floor(Math.random() * this.questionBank.length)];
+        this.currentRound = 0;
+        this.usedScenarios = [];
         this.currentQuestion = 0;
         this.userAnswers = [];
-        this.results = { correct: 0, total: this.selectedScenario.questions.length };
+        this.results = { correct: 0, total: 0 };
+        this.selectNewScenario();
+    },
+
+    selectNewScenario() {
+        // Get scenarios that haven't been used yet
+        const availableScenarios = this.questionBank.filter((scenario, index) => 
+            !this.usedScenarios.includes(index)
+        );
+        
+        // If we've used all scenarios, reset
+        if (availableScenarios.length === 0) {
+            this.usedScenarios = [];
+            this.selectNewScenario();
+            return;
+        }
+        
+        // Pick a random available scenario
+        const randomIndex = Math.floor(Math.random() * availableScenarios.length);
+        this.selectedScenario = availableScenarios[randomIndex];
+        
+        // Mark this scenario as used
+        const originalIndex = this.questionBank.indexOf(this.selectedScenario);
+        this.usedScenarios.push(originalIndex);
+        
+        // Update total questions count
+        this.results.total += this.selectedScenario.questions.length;
     },
 
     render(container, questionCount, onComplete) {
@@ -322,10 +352,13 @@ const memoryRecallModule = {
     showMemoryItems() {
         this.container.innerHTML = `
             <div class="memory-recall-module">
+                <div class="progress-indicator">
+                    <p><strong>Round ${this.currentRound + 1} of ${this.totalRounds}</strong></p>
+                </div>
                 <h3>🧠 Memorize the following information</h3>
                 <div class="memory-timer-display">
                     <p style="font-size: 32px; font-weight: bold; color: #667eea;">
-                        Time remaining: <span id="memoryTimer">30</span>s
+                        Time remaining: <span id="memoryTimer">15</span>s
                     </p>
                 </div>
                 <div class="memory-items-display">
@@ -359,7 +392,7 @@ const memoryRecallModule = {
             </style>
         `;
 
-        let timeLeft = 30;
+        let timeLeft = 15;
         this.memoryTimer = setInterval(() => {
             timeLeft--;
             const timerEl = document.getElementById('memoryTimer');
@@ -379,7 +412,7 @@ const memoryRecallModule = {
 
     showQuestion() {
         if (this.currentQuestion >= this.selectedScenario.questions.length) {
-            this.finish();
+            this.completeRound();
             return;
         }
 
@@ -390,7 +423,7 @@ const memoryRecallModule = {
         this.container.innerHTML = `
             <div class="memory-question-module">
                 <div class="progress-indicator">
-                    <p>Question ${questionNum} of ${total}</p>
+                    <p><strong>Round ${this.currentRound + 1} of ${this.totalRounds}</strong> | Question ${questionNum} of ${total}</p>
                     <div class="progress-bar-slim">
                         <div class="progress-fill" style="width: ${(questionNum / total) * 100}%"></div>
                     </div>
@@ -496,6 +529,21 @@ const memoryRecallModule = {
         this.showQuestion();
     },
 
+    completeRound() {
+        this.currentRound++;
+        
+        // Check if we've completed all rounds
+        if (this.currentRound >= this.totalRounds) {
+            this.finish();
+            return;
+        }
+        
+        // Start next round with new scenario
+        this.currentQuestion = 0;
+        this.selectNewScenario();
+        this.showMemoryItems();
+    },
+
     finish() {
         const accuracy = (this.results.correct / this.results.total) * 100;
 
@@ -512,6 +560,10 @@ const memoryRecallModule = {
         }
     }
 };
+
+// Export modules
+window.readingComprehensionModule = readingComprehensionModule;
+window.memoryRecallModule = memoryRecallModule;
 
 // Export modules
 window.readingComprehensionModule = readingComprehensionModule;
