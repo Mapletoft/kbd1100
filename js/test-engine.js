@@ -16,44 +16,47 @@ const CritiCallTestEngine = {
         ],
         
         // Module weights for overall scoring
+        // SIMPLIFIED SYSTEM: Accuracy (70%) + Speed Bonus (30%)
+        // This rewards both correct answers AND completing modules faster
         weights: {
-            // KPH Component (40% of total score)
-            kph: {
-                dataEntry: 0.33,
-                crossReference: 0.33,
-                multitasking: 0.34
-            },
-            // WPM Component (20% of total score)
-            wpm: {
-                dataEntry: 0.50,
-                callSummarization: 0.50
-            },
-            // Accuracy Component (40% of total score)
+            // Accuracy Component (70% of total score) - All modules weighted by importance
             accuracy: {
-                decisionMaking: 0.20,
-                callSummarization: 0.15,
-                memoryRecall: 0.15,
-                multitasking: 0.18,
-                crossReference: 0.10,
-                mapReading: 0.08,
-                readingComprehension: 0.08,
-                spelling: 0.03,
-                mathematics: 0.03
+                decisionMaking: 0.25,      // Most critical - emergency response decisions
+                multitasking: 0.18,        // High importance - juggling priorities
+                memoryRecall: 0.15,        // Important - recall under pressure
+                crossReference: 0.12,      // Important - accuracy in data verification
+                mapReading: 0.10,          // Moderate - navigation skills
+                readingComprehension: 0.10, // Moderate - understanding procedures
+                dataEntry: 0.05,           // Lower - but gets speed bonus separately
+                mathematics: 0.03,         // Lower - basic calculations
+                spelling: 0.02             // Lowest - spell check exists
+            },
+            // Speed Bonus (30% of total score) - All modules contribute
+            // Faster completion = higher score (rewards efficiency)
+            speed: {
+                decisionMaking: 0.20,      // Critical to respond quickly
+                multitasking: 0.18,        // Speed matters in emergencies
+                dataEntry: 0.15,           // Fast typing is important
+                crossReference: 0.12,      // Quick verification needed
+                memoryRecall: 0.12,        // Faster recall = better dispatcher
+                mapReading: 0.10,          // Route planning speed
+                readingComprehension: 0.08, // Must process info quickly
+                mathematics: 0.03,         // Basic calculations
+                spelling: 0.02             // Quick recognition
             }
         },
         
-        // Minimum passing scores per module
+        // Minimum passing scores per module (based on real CritiCall standards)
         passingScores: {
-            dataEntry: 60, // KPM
-            decisionMaking: 70, // %
-            callSummarization: 65, // %
-            mapReading: 60, // %
-            readingComprehension: 65, // %
-            spelling: 70, // %
-            mathematics: 60, // %
-            memoryRecall: 65, // %
-            crossReference: 70, // %
-            multitasking: 65 // %
+            dataEntry: 60,           // KPH-based
+            decisionMaking: 70,      // % accuracy
+            spelling: 70,            // % accuracy
+            mathematics: 60,         // % accuracy
+            readingComprehension: 65, // % accuracy
+            memoryRecall: 65,        // % accuracy
+            mapReading: 60,          // % accuracy
+            crossReference: 70,      // % accuracy + KPH
+            multitasking: 65         // % accuracy + KPH
         },
         
         overallPassingScore: 70
@@ -355,35 +358,7 @@ const CritiCallTestEngine = {
     calculateOverallScore() {
         const results = this.state.moduleResults;
         
-        // KPH Component (40%)
-        let kphTotal = 0;
-        let kphCount = 0;
-        for (let module in this.config.weights.kph) {
-            if (results[module] && results[module].kph) {
-                const weight = this.config.weights.kph[module];
-                const score = Math.min(100, (results[module].kph / 3600) * 100);
-                kphTotal += score * weight;
-                kphCount++;
-            }
-        }
-        const kphScore = kphCount > 0 ? kphTotal : 0;
-        const kphComponent = kphScore * 0.40;
-        
-        // WPM Component (20%)
-        let wpmTotal = 0;
-        let wpmCount = 0;
-        for (let module in this.config.weights.wpm) {
-            if (results[module] && results[module].wpm) {
-                const weight = this.config.weights.wpm[module];
-                const score = Math.min(100, (results[module].wpm / 35) * 100);
-                wpmTotal += score * weight;
-                wpmCount++;
-            }
-        }
-        const wpmScore = wpmCount > 0 ? wpmTotal : 0;
-        const wpmComponent = wpmScore * 0.20;
-        
-        // Accuracy Component (40%)
+        // ACCURACY COMPONENT (70% of total score)
         let accuracyTotal = 0;
         for (let module in this.config.weights.accuracy) {
             if (results[module] && typeof results[module].accuracy !== 'undefined') {
@@ -391,11 +366,49 @@ const CritiCallTestEngine = {
                 accuracyTotal += results[module].accuracy * weight;
             }
         }
-        const accuracyScore = accuracyTotal;
-        const accuracyComponent = accuracyScore * 0.40;
+        const accuracyScore = accuracyTotal; // This is 0-100
+        const accuracyComponent = accuracyScore * 0.70; // 70% of total
         
-        // Total score
-        const totalScore = kphComponent + wpmComponent + accuracyComponent;
+        // SPEED BONUS COMPONENT (30% of total score)
+        // Calculate speed score based on time used vs time allowed
+        let speedTotal = 0;
+        let speedModuleCount = 0;
+        
+        for (let module in this.config.weights.speed) {
+            if (results[module] && results[module].timeUsed) {
+                const moduleConfig = this.config.modules.find(m => m.id === module);
+                if (moduleConfig) {
+                    const weight = this.config.weights.speed[module];
+                    const timeAllowed = moduleConfig.timeLimit;
+                    const timeUsed = results[module].timeUsed;
+                    
+                    // Speed score: faster = better (100 = instant, decreases as time used increases)
+                    // If finished in 50% of time = 90 points, 100% of time = 70 points, over time = lower
+                    const timeRatio = timeUsed / timeAllowed;
+                    let speedScore;
+                    
+                    if (timeRatio <= 0.5) {
+                        // Finished in half the time or less = 90-100 points
+                        speedScore = 100 - (timeRatio * 20);
+                    } else if (timeRatio <= 1.0) {
+                        // Finished in time = 70-90 points (linear scale)
+                        speedScore = 90 - ((timeRatio - 0.5) * 40);
+                    } else {
+                        // Went over time = 40-70 points
+                        speedScore = Math.max(40, 70 - ((timeRatio - 1.0) * 30));
+                    }
+                    
+                    speedTotal += speedScore * weight;
+                    speedModuleCount++;
+                }
+            }
+        }
+        
+        const speedScore = speedModuleCount > 0 ? speedTotal : 70; // Default to 70 if no speed data
+        const speedComponent = speedScore * 0.30; // 30% of total
+        
+        // TOTAL SCORE
+        const totalScore = accuracyComponent + speedComponent;
         const passed = totalScore >= this.config.overallPassingScore;
         
         // Check if passed all individual modules
@@ -409,9 +422,10 @@ const CritiCallTestEngine = {
         
         return {
             overallScore: Math.round(totalScore),
-            kphScore: Math.round(kphScore),
-            wpmScore: Math.round(wpmScore),
             accuracyScore: Math.round(accuracyScore),
+            speedScore: Math.round(speedScore),
+            accuracyComponent: Math.round(accuracyComponent),
+            speedComponent: Math.round(speedComponent),
             passed: passed && allModulesPassed,
             allModulesPassed: allModulesPassed
         };
@@ -525,16 +539,16 @@ const CritiCallTestEngine = {
                 <h3>Score Components</h3>
                 <div class="components">
                     <div class="component">
-                        <span class="component-label">KPH (40%):</span>
-                        <span class="component-value">${testData.kphScore}/100</span>
-                    </div>
-                    <div class="component">
-                        <span class="component-label">WPM (20%):</span>
-                        <span class="component-value">${testData.wpmScore}/100</span>
-                    </div>
-                    <div class="component">
-                        <span class="component-label">Accuracy (40%):</span>
+                        <span class="component-label">Accuracy (70%):</span>
                         <span class="component-value">${testData.accuracyScore}/100</span>
+                    </div>
+                    <div class="component">
+                        <span class="component-label">Speed Bonus (30%):</span>
+                        <span class="component-value">${testData.speedScore}/100</span>
+                    </div>
+                    <div class="component" style="background: #f8f9fa; border: 2px solid #667eea;">
+                        <span class="component-label" style="font-weight: bold;">Final Score:</span>
+                        <span class="component-value" style="font-size: 28px; color: #667eea;">${testData.overallScore}%</span>
                     </div>
                 </div>
             </div>
