@@ -22,6 +22,13 @@ const decisionMakingModule = {
     },
 
     render(container, questionCount, onComplete) {
+        // Safety check: ensure getRandomQuestions is available
+        if (typeof getRandomQuestions === 'undefined') {
+            console.warn('⚠️ Decision Making waiting for question bank to load...');
+            setTimeout(() => this.render(container, questionCount, onComplete), 50);
+            return;
+        }
+        
         this.init(questionCount);
         this.onComplete = onComplete;
         this.container = container;
