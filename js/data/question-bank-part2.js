@@ -710,3 +710,9 @@ function getRandomQuestions(bank, count) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = { QuestionBankPart2, shuffleArray, getRandomQuestions };
 }
+
+
+// Make available to browser
+window.QuestionBankPart2 = QuestionBankPart2;
+window.shuffleArray = shuffleArray;
+window.getRandomQuestions = getRandomQuestions;
