@@ -75,9 +75,6 @@ const decisionMakingModule = {
 
                     <h4 style="margin-top: 25px;">Priority Level</h4>
                     <div class="priority-buttons">
-                        <button onclick="decisionMakingModule.selectPriority('Critical')" class="priority-btn" data-priority="Critical">
-                            🚨 Critical
-                        </button>
                         <button onclick="decisionMakingModule.selectPriority('High')" class="priority-btn" data-priority="High">
                             ⚠️ High
                         </button>
