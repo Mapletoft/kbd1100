@@ -19,6 +19,13 @@ const spellingModule = {
     },
 
     render(container, questionCount, onComplete) {
+        // Safety check: ensure getRandomQuestions is available
+        if (typeof getRandomQuestions === 'undefined') {
+            console.warn('⚠️ Spelling waiting for question bank to load...');
+            setTimeout(() => this.render(container, questionCount, onComplete), 50);
+            return;
+        }
+        
         this.init(questionCount);
         this.onComplete = onComplete;
         this.container = container;
