@@ -57,7 +57,7 @@ const readingComprehensionModule = {
                 <div class="passage-content">
                     <h3>${passage.title}</h3>
                     <div class="passage-text">
-                        ${passage.text}
+                        ${passage.passage || passage.text}
                     </div>
                 </div>
 
@@ -157,7 +157,8 @@ const readingComprehensionModule = {
     selectAnswer(selectedAnswer) {
         const passage = this.selectedPassages[this.currentPassage];
         const question = passage.questions[this.currentQuestion];
-        const correct = selectedAnswer === question.correctAnswer;
+        const correctAnswer = question.options[question.correct];
+        const correct = selectedAnswer === correctAnswer;
 
         if (correct) {
             this.passageResults.correct++;
@@ -165,10 +166,10 @@ const readingComprehensionModule = {
         }
         this.results.total++;
 
-        this.showQuestionFeedback(correct, question);
+        this.showQuestionFeedback(correct, question, correctAnswer);
     },
 
-    showQuestionFeedback(correct, question) {
+    showQuestionFeedback(correct, question, correctAnswer) {
         this.container.innerHTML = `
             <div class="scenario-feedback ${correct ? 'success' : 'warning'}">
                 <div class="feedback-header">
@@ -178,7 +179,7 @@ const readingComprehensionModule = {
                 <div class="feedback-details">
                     <div class="feedback-section">
                         <h4>Correct Answer:</h4>
-                        <p>${question.correctAnswer}</p>
+                        <p>${correctAnswer}</p>
                     </div>
                 </div>
 
