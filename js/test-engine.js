@@ -12,7 +12,7 @@ const CritiCallTestEngine = {
             { id: 'memoryRecall', name: 'Memory Recall', timeLimit: 900, questionCount: 5 },
             { id: 'mapReading', name: 'Map Reading', timeLimit: 900, questionCount: 12 },
             { id: 'crossReference', name: 'Cross Reference', timeLimit: 600, questionCount: 15 },
-            { id: 'multitasking', name: 'Multitasking', timeLimit: 1500, questionCount: 12 }
+            { id: 'multitasking', name: 'Multitasking', timeLimit: 610, questionCount: 12 }
         ],
         
         // Module weights for overall scoring
