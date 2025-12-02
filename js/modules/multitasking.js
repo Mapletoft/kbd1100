@@ -228,7 +228,11 @@ const multitaskingModule = {
     
     renderUI() {
         if (this.state.mathQuestionActive) {
-            this.renderMathQuestion();
+            // Don't re-render if math question is already showing
+            // This prevents destroying the input field while user is typing
+            if (!document.getElementById('mathAnswer')) {
+                this.renderMathQuestion();
+            }
             return;
         }
         
