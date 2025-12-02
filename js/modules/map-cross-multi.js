@@ -67,7 +67,7 @@ const mapReadingModule = {
         {
             id: 2,
             imagePath: "images/image2.png",
-            title: Street Grid",
+            title: "Street Grid",
             questions: [
                 {
                     question: "how many 2-directional roads are there?",
