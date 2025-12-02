@@ -59,7 +59,7 @@ const multitaskingModule = {
                     <h3>Instructions:</h3>
                     <ol style="padding-left: 20px; line-height: 1.8;">
                         <li><strong>You manage 4 units</strong> responding to emergency calls</li>
-                        <li><strong>6 calls will be in the queue</strong> at all times</li>
+                        <li><strong>6 calls can be in the queue</strong> at all times</li>
                         <li><strong>Click an unit, then click a call</strong> to assign them</li>
                         <li><strong>Units take 20 seconds</strong> to handle each call</li>
                         <li><strong>Priority matters!</strong>
