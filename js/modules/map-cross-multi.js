@@ -1,471 +1,441 @@
-// MAP READING MODULE - Questions always match the displayed map!
+// MAP READING MODULE - Image-based with hardcoded questions
+// Uses 4 real map images with 10 questions each
+// Test randomly selects 3 maps and 5 questions per map (15 total)
+
 const mapReadingModule = {
     name: "Map Reading",
-    allMaps: [],
-    currentMapIndex: 0,
-    currentQuestionOnMap: 0,
-    totalQuestionsAsked: 0,
-    totalQuestionsNeeded: 0,
-    questionsPerMap: 5,
-    results: {
-        correct: 0,
-        total: 0,
-        startTime: null
-    },
-
-    // Building types with colors
-    buildingTypes: [
-        { name: 'Hospital', color: '#ff6b6b', icon: 'H' },
-        { name: 'Police', color: '#4dabf7', icon: 'P' },
-        { name: 'Fire Station', color: '#ff8787', icon: 'F' },
-        { name: 'School', color: '#ffd43b', icon: 'S' },
-        { name: 'Mall', color: '#69db7c', icon: 'M' },
-        { name: 'Library', color: '#da77f2', icon: 'L' },
-        { name: 'Park', color: '#8ce99a', icon: 'PK' }
-    ],
-
-    init(questionCount) {
-        this.totalQuestionsNeeded = questionCount;
-        this.totalQuestionsAsked = 0;
-        this.currentMapIndex = 0;
-        this.currentQuestionOnMap = 0;
-        
-        // Calculate how many maps we need
-        const mapsNeeded = Math.ceil(questionCount / this.questionsPerMap);
-        
-        // Generate all maps upfront with matching questions
-        this.allMaps = [];
-        for (let i = 0; i < mapsNeeded; i++) {
-            this.allMaps.push(this.generateMapWithQuestions());
+    
+    // Bank of 4 maps with their specific questions
+    mapBank: [
+        {
+            id: 1,
+            imagePath: "images/image1.png",
+            title: "Downtown Street Grid",
+            questions: [
+                {
+                    question: "How many 2-directional named North and South roadways are there?",
+                    options: ["3", "0", "1", "2"],
+                    correct: 0
+                },
+                {
+                    question: "If I leave the trade center by Kindergarten/West and turn East, then South on 00 St, what road would be on my left?",
+                    options: ["00E st", "Would not be able to follow these directions as West st only goes West", "01 St", "02W St"],
+                    correct: 1
+                },
+                {
+                    question: "You are on BB St looking West, What would be the fastest way to get to the intersection 02 St/West St?",
+                    options: ["Turn around to go East on BB then South on 02 St", "Follow BB West, then South on Angel, then East on West", "Follow BB West, South on Angel, West on West, South on 00, East on 00E, North on 02", "Follow BB West, South on Angel, West on West, South on 00, East on 01, North on 02"],
+                    correct: 2
+                },
+                {
+                    question: "Which streets run East to West and West to East (2-directional)?",
+                    options: ["03 St, Joy St, West St", "03 St, Joy St, West St, BB St, 00E St", "03 St, Joy St, West St, BB St, 00E St, 01 St", "Joy St, BB St, 00E St"],
+                    correct: 3
+                },
+                {
+                    question: "you are at the South East corner of the Trade Center and need to get to the North West corner, which way is the fastest?",
+                    options: ["go North on 00 St, West on West St", "East on 01 St, North on 02 St, West on West St", "East on 01 St, North on 02 St, West on 00E St, North on 00 St, West on West", "East on 01 St, North on 02 St, West on 03 St, South on 00 St, West on West"],
+                    correct: 0
+                },
+                {
+                    question: "WHat general direction is the Hospital from Art gallery?",
+                    options: ["North", "North/East", "East", "North/West"],
+                    correct: 1
+                },
+                {
+                    question: "How many one-way streets are shown on this map?",
+                    options: ["4", "8", "7", "5"],
+                    correct: 2
+                },
+                {
+                    question: "if you are travelling on 03 St and pass 00 St, what building would you be at?",
+                    options: ["Trade Center", "Hospital", "Church", "Kindergarten"],
+                    correct: 3
+                },
+                {
+                    question: "Which street intersects with the most streets?",
+                    options: ["01 St", "North St", "02 St", "03 St"],
+                    correct: 2
+                },
+                {
+                    question: "I am at the intersection 00E St/02 St, if I want to get to Angel St how many correct paths are there if I start Northbound on 02 St?",
+                    options: ["3", "1", "2", "5"],
+                    correct: 0
+                }
+            ]
+        },
+        {
+            id: 2,
+            imagePath: "images/image2.png",
+            title: Street Grid",
+            questions: [
+                {
+                    question: "how many 2-directional roads are there?",
+                    options: ["2", "3", "1", "4"],
+                    correct: 1
+                },
+                {
+                    question: "How would you quickly get from South East corner of Apartment Building to the restaurant?",
+                    options: ["North on cole, West on Third, South on Low", "West on Second", "North on Cole, West on First", "There is no possible route"],
+                    correct: 1
+                },
+                {
+                    question: "You are driving on First and just passed Downhill, what is the next road you come to?",
+                    options: ["High", "Cole", "Polk", "Third"],
+                    correct: 2
+                },
+                {
+                    question: "From the Mall, which direction is the Restaurant?",
+                    options: ["Northeast", "Southeast", "Southwest", "Northwest"],
+                    correct: 2
+                },
+                {
+                    question: "You are travelling on Third and just passed Cole St, what is the next street you can take North?",
+                    options: ["Polk", "Downhill", "High", "Cole"],
+                    correct: 1
+                },
+                {
+                    question: "A police car is at the South East corner of the Mall and needs to get to the North East corner. What directions would you give them?",
+                    options: ["Go North on Polk", "West on Third, North on Downhill, East on Fourth", "East on Third, North on Cole, West on Fourth", "East on Third, North on Cole, West on Fifth, North on Polk"],
+                    correct: 1
+                },
+                {
+                    question: "How many one way streets are there?",
+                    options: ["5", "10", "7", "8"],
+                    correct: 2
+                },
+                {
+                    question: "You are driving on First, what is the named building on your left?",
+                    options: ["Apartment Building", "Restaurant", "Mall", "Cafe"],
+                    correct: 3
+                },
+                {
+                    question: "You are driving North on Downhill, what is the first named building on your left?",
+                    options: ["Apartment Building", "Police Station", "Mall", "there isnt one"],
+                    correct: 1
+                },
+                {
+                    question: "You leave the Mall on Polk. What building are you heading towards?",
+                    options: ["Cafe", "Police Station", "Apartment building", "Restaurant"],
+                    correct: 2
+                }
+            ]
+        },
+        {
+            id: 3,
+            imagePath: "images/image3.png",
+            title: "City",
+            questions: [
+                {
+                    question: "What building is on the South West of the map?",
+                    options: ["Hilltop Apartment", "Police Dept.", "Land View Apartment", "Public Park"],
+                    correct: 2
+                },
+                {
+                    question: "How many one way streets are shown?",
+                    options: ["3", "10", "7", "6"],
+                    correct: 1
+                },
+                {
+                    question: "How would you get from Office C to Office A?",
+                    options: ["South on Gully, East on Lake, North on Dale, West on Creek, West on River", "There is no route", "South on Gully, West on Lake, North on Cliff", "West on River"],
+                    correct: 3
+                },
+                {
+                    question: "you are travelling on Lake Street and just pass the Parking, what building do you pass next?",
+                    options: ["Restaurant", "Not enough information to know", "Cafe", "World Elementary School"],
+                    correct: 1
+                },
+                {
+                    question: "How many 2-directional streets are marked on the map?",
+                    options: ["1", "2", "5", "4"],
+                    correct: 2
+                },
+                {
+                    question: "What building is North of the Library?",
+                    options: ["Grocery", "Hilltop Apartment", "Central Hospital", "World Elementary School"],
+                    correct: 2
+                },
+                {
+                    question: "From the Fire Dept, what is the route to Warehouse?",
+                    options: ["Left on Glen, Right on cliff", "Right on Glen, Left on Dale, Left on Lake, right on Cliff", "Right on Glen, Left on Dale, right on Lake, right on Cliff", "Right on Glen, Left on Dale, Left on Lake, left on Cliff"],
+                    correct: 1
+                },
+                {
+                    question: "How many parking on the map?",
+                    options: ["4", "1", "2", "3"],
+                    correct: 2
+                },
+                {
+                    question: "You turn off Glen onto Knoll, what building would be on your left?",
+                    options: ["Grocery", "Fire Dept", "Library", "Restaurant"],
+                    correct: 0
+                },
+                {
+                    question: "Which road provides access to Gully and Cliff?",
+                    options: ["River", "Creek", "Glen", "Lake"],
+                    correct: 3
+                }
+            ]
+        },
+        {
+            id: 4,
+            imagePath: "images/image4.png",
+            title: "Rural Township",
+            questions: [
+                {
+                    question: "You turn left from Parkdale onto Casimir, what intersection do you approach first?",
+                    options: ["Casimir/Park Crescent", "Casimir/Colonization", "Casimir/Sprouce/Parkdale", "Casimir/Schmidt"],
+                    correct: 2
+                },
+                {
+                    question: "How many named roads are shown?",
+                    options: ["6", "8", "7", "5"],
+                    correct: 1
+                },
+                {
+                    question: "Which direction does Colonization Ave flow?",
+                    options: ["North to South", "South to North", "East to West", "West to East"],
+                    correct: 1
+                },
+                {
+                    question: "What Street can Firefighters leave the Fire Station from?",
+                    options: ["Colonization", "Wilde", "Park Crescent", "Casimir"],
+                    correct: 1
+                },
+                {
+                    question: "How many streets does Schmidt Crescent touch on this map?",
+                    options: ["1", "3", "2", "4"],
+                    correct: 1
+                },
+                {
+                    question: "What road runs parallel to Wilde?",
+                    options: ["Sprouce", "Parkdale", "Casimir", "schmidt"],
+                    correct: 2
+                },
+                {
+                    question: "From the fire station, which direction is the driving school?",
+                    options: ["Northeast", "Southeast", "Southwest", "Northwest"],
+                    correct: 2
+                },
+                {
+                    question: "how many streets touch the Dental Clinic?",
+                    options: ["1", "2", "3", "4"],
+                    correct: 2
+                },
+                {
+                    question: "What road(s) can the firefighters take to return to the Fire Station?",
+                    options: ["Wilde", "Colonization", "Wilde or Colonization", "Park Crescent"],
+                    correct: 2
+                },
+                {
+                    question: "How many 2-directional streets are on this map?",
+                    options: ["2", "1", "5", "4"],
+                    correct: 3
+                }
+            ]
         }
+    ],
+    
+    state: null,
+    container: null,
+    onComplete: null,
+    
+    init(questionCount) {
+        // Select 3 random maps from the 4 available
+        const shuffledMaps = this.shuffleArray([...this.mapBank]);
+        this.selectedMaps = shuffledMaps.slice(0, 3);
+        
+        // For each selected map, choose 5 random questions
+        this.selectedMaps.forEach(map => {
+            const shuffledQuestions = this.shuffleArray([...map.questions]);
+            map.selectedQuestions = shuffledQuestions.slice(0, 5);
+        });
+        
+        this.currentMapIndex = 0;
+        this.currentQuestionIndex = 0;
         
         this.results = {
             correct: 0,
-            total: questionCount,
-            startTime: Date.now()
+            total: 15, // 3 maps × 5 questions
+            mapResults: []
         };
     },
-
+    
     render(container, questionCount, onComplete) {
-        this.init(questionCount);
-        this.onComplete = onComplete;
         this.container = container;
-        this.showScenario();
+        this.onComplete = onComplete;
+        this.init(questionCount);
+        this.showMapAndQuestion();
     },
-
-    generateMapWithQuestions() {
-        // Generate map first
-        const streetNames = ['Main St', 'Oak St', 'Elm St', 'Pine St'];
-        const avenueNames = ['1st Ave', '2nd Ave', '3rd Ave', '4th Ave', '5th Ave', '6th Ave'];
-        
-        // Create random building positions
-        const possiblePositions = [];
-        for (let row = 1; row <= 7; row += 2) {  // Rows 1, 3, 5, 7
-            for (let col = 1; col <= 6; col++) {  // Cols 1-6
-                possiblePositions.push({ row, col });
-            }
-        }
-        
-        // Shuffle positions
-        for (let i = possiblePositions.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [possiblePositions[i], possiblePositions[j]] = [possiblePositions[j], possiblePositions[i]];
-        }
-        
-        // Place buildings at random positions
-        const buildingPositions = {};
-        this.buildingTypes.forEach((building, index) => {
-            if (index < possiblePositions.length) {
-                buildingPositions[building.name] = possiblePositions[index];
-            }
-        });
-        
-        // Add random one-way streets
-        const oneWayStreets = [];
-        if (Math.random() > 0.5) {
-            oneWayStreets.push({ street: 'Oak St', direction: 'north', row: 3, col: 1 });
-        }
-        if (Math.random() > 0.6) {
-            oneWayStreets.push({ street: 'Elm St', direction: 'east', row: 5, cols: [2, 3, 4] });
-        }
-        
-        const mapData = {
-            streets: streetNames,
-            avenues: avenueNames,
-            buildingPositions: buildingPositions,
-            oneWayStreets: oneWayStreets
-        };
-        
-        // NOW generate questions based on THIS specific map
-        mapData.questions = this.generateQuestionsForThisMap(mapData);
-        
-        return mapData;
-    },
-
-    generateQuestionsForThisMap(mapData) {
-        const questions = [];
-        const buildingsOnMap = Object.keys(mapData.buildingPositions);
-        
-        // Generate 5 questions using only buildings on THIS map
-        for (let i = 0; i < this.questionsPerMap; i++) {
-            // Pick two different buildings that are ON THIS MAP
-            const start = buildingsOnMap[Math.floor(Math.random() * buildingsOnMap.length)];
-            let end = buildingsOnMap[Math.floor(Math.random() * buildingsOnMap.length)];
-            while (end === start) {
-                end = buildingsOnMap[Math.floor(Math.random() * buildingsOnMap.length)];
-            }
-            
-            const emergencyTypes = ['fire', 'medical emergency', 'accident', 'emergency call', 'incident'];
-            const emergency = emergencyTypes[Math.floor(Math.random() * emergencyTypes.length)];
-            
-            const startPos = mapData.buildingPositions[start];
-            const endPos = mapData.buildingPositions[end];
-            
-            // Calculate correct route
-            const correctRoute = this.calculateRoute(startPos, endPos, mapData);
-            
-            // Generate wrong options
-            const options = this.generateRouteOptions(correctRoute, startPos, endPos, mapData);
-            
-            questions.push({
-                question: `Navigate from ${start} to ${emergency} at ${end}`,
-                start: start,
-                end: end,
-                correctRoute: correctRoute,
-                options: options
-            });
-        }
-        
-        return questions;
-    },
-
-    calculateRoute(startPos, endPos, mapData) {
-        const streets = mapData.streets;
-        const avenues = mapData.avenues;
-        let parts = [];
-        
-        // Vertical movement
-        if (startPos.row < endPos.row) {
-            const targetStreet = streets[Math.floor(endPos.row / 2)];
-            parts.push(`South on ${avenues[startPos.col - 1]} to ${targetStreet}`);
-        } else if (startPos.row > endPos.row) {
-            const targetStreet = streets[Math.floor(endPos.row / 2)];
-            parts.push(`North on ${avenues[startPos.col - 1]} to ${targetStreet}`);
-        }
-        
-        // Horizontal movement  
-        if (startPos.col < endPos.col) {
-            parts.push(`East to ${avenues[endPos.col - 1]}`);
-        } else if (startPos.col > endPos.col) {
-            parts.push(`West to ${avenues[endPos.col - 1]}`);
-        }
-        
-        return parts.join(", then ");
-    },
-
-    generateRouteOptions(correctRoute, startPos, endPos, mapData) {
-        const options = [correctRoute];
-        const streets = mapData.streets;
-        const avenues = mapData.avenues;
-        
-        // Generate 3 plausible wrong routes
-        if (startPos.col !== endPos.col) {
-            if (startPos.col < endPos.col) {
-                options.push(`West on ${streets[Math.floor(startPos.row / 2)]}, then South`);
-            } else {
-                options.push(`East on ${streets[Math.floor(startPos.row / 2)]}, then North`);
-            }
-        }
-        
-        const wrongStreet = streets[(Math.floor(startPos.row / 2) + 1) % streets.length];
-        options.push(`North on ${avenues[Math.min(startPos.col, avenues.length - 1)]} to ${wrongStreet}, then East`);
-        
-        options.push(`South to ${streets[Math.min(2, streets.length - 1)]}, West on ${avenues[0]}`);
-        
-        return options.slice(0, 4);
-    },
-
-    generateMapHTML(mapData) {
-        // Build 9x8 grid
-        const grid = [];
-        for (let i = 0; i < 9; i++) {
-            grid[i] = new Array(8).fill(null);
-        }
-        
-        // Avenue labels (top and bottom)
-        for (let col = 1; col <= 6; col++) {
-            grid[0][col] = { type: 'label', text: mapData.avenues[col - 1] };
-            grid[8][col] = { type: 'label', text: mapData.avenues[col - 1] };
-        }
-        
-        // Street labels (left and right)
-        const streetRows = [1, 3, 5, 7];
-        streetRows.forEach((row, index) => {
-            if (index < mapData.streets.length) {
-                grid[row][0] = { type: 'label', text: mapData.streets[index] };
-                grid[row][7] = { type: 'label', text: mapData.streets[index] };
-            }
-        });
-        
-        // Horizontal streets
-        for (let col = 1; col <= 6; col++) {
-            [1, 3, 5, 7].forEach(row => {
-                if (!grid[row][col]) grid[row][col] = { type: 'street-h' };
-            });
-        }
-        
-        // Vertical avenues
-        for (let row = 1; row <= 7; row++) {
-            if (!grid[row][1] || grid[row][1].type === 'street-h') {
-                grid[row][1] = { type: 'street-v' };
-            }
-        }
-        
-        // One-way markers
-        mapData.oneWayStreets.forEach(oneWay => {
-            if (oneWay.direction === 'north') {
-                grid[oneWay.row][oneWay.col] = { type: 'street-v', arrow: '↑' };
-            } else if (oneWay.direction === 'east' && oneWay.cols) {
-                oneWay.cols.forEach(col => {
-                    grid[oneWay.row][col] = { type: 'street-h', arrow: '→' };
-                });
-            }
-        });
-        
-        // Place buildings
-        this.buildingTypes.forEach(building => {
-            const pos = mapData.buildingPositions[building.name];
-            if (pos) {
-                grid[pos.row][pos.col] = {
-                    type: 'building',
-                    name: building.name,
-                    color: building.color,
-                    icon: building.icon
-                };
-            }
-        });
-        
-        // Generate HTML
-        let html = '<div class="map-grid-new">';
-        for (let row of grid) {
-            for (let cell of row) {
-                if (!cell) {
-                    html += `<div class="map-cell empty"></div>`;
-                } else if (cell.type === 'building') {
-                    html += `<div class="map-cell building" style="background: ${cell.color};">
-                        <div style="color: white; font-weight: bold; font-size: 16px;">${cell.icon}</div>
-                        <div style="color: white; font-size: 9px; font-weight: bold;">${cell.name}</div>
-                    </div>`;
-                } else if (cell.type === 'street-h' || cell.type === 'street-v') {
-                    const arrow = cell.arrow || '';
-                    html += `<div class="map-cell ${cell.type}"><span style="color: red; font-size: 24px; font-weight: bold;">${arrow}</span></div>`;
-                } else if (cell.type === 'label') {
-                    html += `<div class="map-cell label">${cell.text}</div>`;
-                }
-            }
-        }
-        html += '</div>';
-        
-        return html + `
-            <style>
-                .map-grid-new {
-                    display: grid;
-                    grid-template-columns: repeat(8, 70px);
-                    gap: 3px;
-                    background: #ccc;
-                    padding: 15px;
-                    border-radius: 10px;
-                    margin: 20px auto;
-                    justify-content: center;
-                    max-width: 650px;
-                }
-                .map-cell {
-                    width: 70px;
-                    height: 70px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    background: #f0f0f0;
-                    border: 1px solid #999;
-                    font-size: 11px;
-                    text-align: center;
-                }
-                .map-cell.empty {
-                    background: #e8e8e8;
-                }
-                .map-cell.street-h {
-                    background: #606060 !important;
-                }
-                .map-cell.street-v {
-                    background: #606060 !important;
-                }
-                .map-cell.building {
-                    border: 3px solid #000 !important;
-                    padding: 3px;
-                }
-                .map-cell.label {
-                    background: white !important;
-                    font-weight: bold;
-                    color: #333;
-                    font-size: 10px;
-                    border: none;
-                }
-            </style>
-        `;
-    },
-
-    showScenario() {
-        if (this.totalQuestionsAsked >= this.totalQuestionsNeeded) {
+    
+    showMapAndQuestion() {
+        // Check if all maps completed
+        if (this.currentMapIndex >= this.selectedMaps.length) {
             this.finish();
             return;
         }
         
-        // Get current map and question
-        const currentMap = this.allMaps[this.currentMapIndex];
-        const question = currentMap.questions[this.currentQuestionOnMap];
+        const currentMap = this.selectedMaps[this.currentMapIndex];
         
-        const scenarioNum = this.totalQuestionsAsked + 1;
-        const total = this.totalQuestionsNeeded;
-        const mapNum = this.currentMapIndex + 1;
-        const questionOnMap = this.currentQuestionOnMap + 1;
-
-        // Shuffle options and track correct answer
-        const shuffledOptions = this.shuffleOptions(question.options);
-
+        // Check if all questions for this map completed
+        if (this.currentQuestionIndex >= currentMap.selectedQuestions.length) {
+            this.currentMapIndex++;
+            this.currentQuestionIndex = 0;
+            this.showMapAndQuestion();
+            return;
+        }
+        
+        const question = currentMap.selectedQuestions[this.currentQuestionIndex];
+        const overallProgress = (this.currentMapIndex * 5) + this.currentQuestionIndex + 1;
+        
         this.container.innerHTML = `
             <div class="map-reading-module">
                 <div class="progress-indicator">
-                    <p>Question ${scenarioNum} of ${total} | Map ${mapNum} (Q${questionOnMap}/5)</p>
+                    <p>Question ${overallProgress} of 15 | Map ${this.currentMapIndex + 1} of 3: ${currentMap.title}</p>
                     <div class="progress-bar-slim">
-                        <div class="progress-fill" style="width: ${(scenarioNum / total) * 100}%"></div>
+                        <div class="progress-fill" style="width: ${(overallProgress / 15) * 100}%"></div>
                     </div>
                 </div>
-
-                <div class="map-scenario">
-                    <h3>🗺️ ${question.question}</h3>
-                    
-                    ${this.generateMapHTML(currentMap)}
-                    
-                    <div class="map-legend" style="display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px;">
-                        ${this.buildingTypes.map(building => `
-                            <div style="display: flex; align-items: center; gap: 8px;">
-                                <div style="width: 24px; height: 24px; background: ${building.color}; border: 2px solid #000; border-radius: 3px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 11px;">${building.icon}</div>
-                                <span style="font-size: 13px; font-weight: 500;">${building.name}</span>
-                            </div>
-                        `).join('')}
-                        <div style="display: flex; align-items: center; gap: 8px;">
-                            <span style="color: #ff0000; font-size: 24px; font-weight: bold;">↑→</span>
-                            <span style="font-size: 13px; font-weight: 500;">One-way</span>
-                        </div>
-                    </div>
-
-                    <h4 style="margin-top: 25px;">Select the best route:</h4>
-                    <div class="route-options">
-                        ${shuffledOptions.options.map((option, index) => `
-                            <button onclick="mapReadingModule.selectRoute(${index})" class="route-option">
+                
+                <div class="map-display">
+                    <img src="${currentMap.imagePath}" alt="${currentMap.title}" class="map-image">
+                </div>
+                
+                <div class="question-section">
+                    <h3>${question.question}</h3>
+                    <div class="answer-options">
+                        ${question.options.map((option, index) => `
+                            <button onclick="mapReadingModule.selectAnswer(${index})" class="answer-option">
                                 ${option}
                             </button>
                         `).join('')}
                     </div>
                 </div>
             </div>
-
+            
             <style>
-                .map-scenario {
+                .map-reading-module {
+                    padding: 20px;
+                }
+                .map-display {
                     background: #f8f9fa;
-                    padding: 30px;
+                    padding: 20px;
                     border-radius: 10px;
                     margin: 20px 0;
-                }
-                .map-scenario h3 {
-                    color: #2c3e50;
-                    margin-bottom: 20px;
                     text-align: center;
                 }
-                .route-options {
+                .map-image {
+                    max-width: 100%;
+                    max-height: 500px;
+                    border: 2px solid #dee2e6;
+                    border-radius: 5px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+                .question-section {
+                    background: white;
+                    padding: 25px;
+                    border-radius: 10px;
+                    border: 2px solid #e0e0e0;
+                }
+                .question-section h3 {
+                    color: #2c3e50;
+                    margin-bottom: 20px;
+                }
+                .answer-options {
                     display: flex;
                     flex-direction: column;
                     gap: 12px;
-                    margin-top: 15px;
                 }
-                .route-option {
+                .answer-option {
                     padding: 15px 20px;
                     text-align: left;
-                    background: white;
+                    background: #f8f9fa;
                     border: 2px solid #e0e0e0;
                     border-radius: 8px;
                     cursor: pointer;
                     transition: all 0.2s;
-                    font-size: 15px;
+                    font-size: 16px;
                 }
-                .route-option:hover {
+                .answer-option:hover {
                     border-color: #667eea;
-                    background: #f8f9fa;
-                    transform: translateY(-2px);
+                    background: #e7f0ff;
+                    transform: translateX(5px);
                 }
             </style>
         `;
-        
-        this.correctRouteIndex = shuffledOptions.correctIndex;
     },
-
-    shuffleOptions(options) {
-        const newOptions = [...options];
-        let correctIndex = 0;
+    
+    selectAnswer(selectedIndex) {
+        const currentMap = this.selectedMaps[this.currentMapIndex];
+        const question = currentMap.selectedQuestions[this.currentQuestionIndex];
+        const correct = selectedIndex === question.correct;
         
-        for (let i = newOptions.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [newOptions[i], newOptions[j]] = [newOptions[j], newOptions[i]];
-            
-            if (i === 0 && j !== 0) {
-                correctIndex = j;
-            } else if (correctIndex === i) {
-                correctIndex = j;
-            } else if (correctIndex === j) {
-                correctIndex = i;
-            }
+        if (correct) {
+            this.results.correct++;
         }
         
-        return { options: newOptions, correctIndex: correctIndex };
+        this.showFeedback(correct, question);
     },
-
-    selectRoute(selectedIndex) {
-        const correct = selectedIndex === this.correctRouteIndex;
-        if (correct) this.results.correct++;
-        this.showFeedback(correct);
-    },
-
-    showFeedback(correct) {
+    
+    showFeedback(correct, question) {
+        const currentMap = this.selectedMaps[this.currentMapIndex];
+        
         this.container.innerHTML = `
             <div class="scenario-feedback ${correct ? 'success' : 'warning'}">
                 <div class="feedback-header">
-                    <h2>${correct ? '✓ Correct Route!' : '! Review the Route'}</h2>
+                    <h2>${correct ? '✓ Correct!' : '✗ Incorrect'}</h2>
                 </div>
+                
+                <div class="map-display">
+                    <img src="${currentMap.imagePath}" alt="${currentMap.title}" class="map-image">
+                </div>
+                
+                <div class="feedback-details">
+                    <div class="feedback-section">
+                        <h4>Question:</h4>
+                        <p>${question.question}</p>
+                    </div>
+                    <div class="feedback-section">
+                        <h4>Correct Answer:</h4>
+                        <p>${question.options[question.correct]}</p>
+                    </div>
+                </div>
+                
                 <div class="module-actions">
-                    <button onclick="mapReadingModule.nextScenario()" class="primary-btn">
-                        Next Scenario →
+                    <button onclick="mapReadingModule.nextQuestion()" class="primary-btn">
+                        Next Question →
                     </button>
                 </div>
             </div>
+            
+            <style>
+                .map-display {
+                    background: #f8f9fa;
+                    padding: 20px;
+                    border-radius: 10px;
+                    margin: 20px 0;
+                    text-align: center;
+                }
+                .map-image {
+                    max-width: 100%;
+                    max-height: 400px;
+                    border: 2px solid #dee2e6;
+                    border-radius: 5px;
+                    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+                }
+            </style>
         `;
     },
-
-    nextScenario() {
-        this.totalQuestionsAsked++;
-        this.currentQuestionOnMap++;
-        
-        // Move to next map after 5 questions
-        if (this.currentQuestionOnMap >= this.questionsPerMap) {
-            this.currentMapIndex++;
-            this.currentQuestionOnMap = 0;
-        }
-        
-        this.showScenario();
+    
+    nextQuestion() {
+        this.currentQuestionIndex++;
+        this.showMapAndQuestion();
     },
-
+    
     finish() {
         const accuracy = (this.results.correct / this.results.total) * 100;
+        
         const finalResults = {
             moduleId: 'mapReading',
             accuracy: accuracy,
@@ -473,7 +443,19 @@ const mapReadingModule = {
             totalQuestions: this.results.total,
             score: accuracy
         };
-        if (this.onComplete) this.onComplete(finalResults);
+        
+        if (this.onComplete) {
+            this.onComplete(finalResults);
+        }
+    },
+    
+    shuffleArray(array) {
+        const newArray = [...array];
+        for (let i = newArray.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+        }
+        return newArray;
     }
 };
 
