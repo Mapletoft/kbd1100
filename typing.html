@@ -11,6 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="js/course-settings.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -32,8 +33,8 @@
       <button class="tab active" onclick="switchTab('lessons', this)">📚 Skill Building</button>
       <button class="tab" onclick="switchTab('progress', this)">📊 My Progress</button>
       <button class="tab" onclick="switchTab('tests', this)" id="testsTab" disabled>🔒 Timed Tests</button>
-      <button class="tab" onclick="switchTab('office', this)">💼 Office Practice</button>
-      <button class="tab" onclick="window.location.href='criticall.html'" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">🚨 CritiCall Practice</button>
+      <button class="tab" onclick="switchTab('office', this)" id="officeTab" disabled>🔒 Office Practice</button>
+      <button class="tab" onclick="window.location.href='criticall.html'" id="criticallTab" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);" disabled>🔒 CritiCall Practice</button>
     </div>
 
     <!-- Main Content -->
@@ -42,12 +43,25 @@
       <div id="lessons" class="tab-content active">
         <h2>Skill Building Lessons</h2>
         <p>Complete all stages in each skill to unlock the next level. Focus on accuracy first, speed will follow!</p>
-        <div class="lesson-grid" id="lessonGrid"></div>
+
+        <h3 class="tier-heading">📘 Keyboarding Fundamentals</h3>
+        <div class="lesson-grid" id="fundamentalsGrid"></div>
+        <div id="fundamentalsLockedMsg" class="tier-locked-msg" style="display: none;">
+          🔒 Unlocks when your instructor opens this section.
+        </div>
+
+        <h3 class="tier-heading">🚔 Program-Specific Skills (CAD / Dispatch)</h3>
+        <div class="lesson-grid" id="programGrid"></div>
+        <div id="programLockedMsg" class="tier-locked-msg" style="display: none;">
+          🔒 Unlocks after Keyboarding Fundamentals, once your instructor opens this section.
+        </div>
       </div>
 
       <!-- Progress Tab -->
       <div id="progress" class="tab-content">
         <h2>Your Progress Report</h2>
+
+        <div class="streak-banner" id="streakBanner">🔥 Practiced 0 of the last 7 days</div>
 
         <div class="stats-row">
           <div class="stat-box">
@@ -58,9 +72,9 @@
             <div class="stat-label">Average Accuracy</div>
             <div class="stat-value" id="avgAccuracy">0%</div>
           </div>
-          <div class="stat-box">
-            <div class="stat-label">Total Backspaces</div>
-            <div class="stat-value" id="totalBackspaces">0</div>
+          <div class="stat-box highlight-box">
+            <div class="stat-label">🏆 Personal Best WPM</div>
+            <div class="stat-value" id="bestWpm">0</div>
           </div>
           <div class="stat-box">
             <div class="stat-label">Stages Complete</div>
@@ -68,20 +82,19 @@
           </div>
         </div>
 
-        <h3 style="margin-top: 30px;">Recent Activity</h3>
-        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
-          <thead>
-            <tr style="background: #f5f5f5;">
-              <th style="padding: 12px; text-align: left;">Date</th>
-              <th style="padding: 12px; text-align: left;">Lesson</th>
-              <th style="padding: 12px; text-align: left;">Stage</th
-              <th style="padding: 12px; text-align: left;">WPM</th>
-              <th style="padding: 12px; text-align: left;">Accuracy</th>
-              <th style="padding: 12px; text-align: left;">Backspaces</th>
-            </tr>
-          </thead>
-          <tbody id="historyTable"></tbody>
-        </table>
+        <h3 style="margin-top: 30px;">Your WPM Trend</h3>
+        <div class="chart-container">
+          <svg id="wpmChart" viewBox="0 0 600 180" preserveAspectRatio="none"></svg>
+          <div class="chart-legend" id="chartLegend" style="display: none;">
+            <span><span class="dot dot-passed"></span> Passed</span>
+            <span><span class="dot dot-notpassed"></span> Not passed</span>
+          </div>
+          <p class="chart-empty-msg" id="chartEmptyMsg" style="display: none;">Complete a few stages to see your trend here.</p>
+        </div>
+
+        <h3 style="margin-top: 30px;">Activity by Lesson</h3>
+        <p style="color: #666; font-size: 14px; margin-top: -5px;">Click a lesson to see every attempt you've made at it.</p>
+        <div id="lessonActivityList" class="lesson-activity-list"></div>
 
         <div class="control-buttons">
           <button class="btn btn-primary" onclick="exportProgress()">📥 Export Report</button>
@@ -363,6 +376,7 @@
     // Lessons & stages (unchanged)
     const lessons = [
       { id: 1, title: "Home Row", icon: "🏠", description: "Master the foundation: ASDF JKL;",
+        tier: "fundamentals",
         stages: [
           { text: "fff jjj fff jjj ff jj ff jj fjfj fjfj", minWpm: 20, minAccuracy: 90 },
           { text: "ddd kkk ddd kkk dd kk dd kk dkdk dkdk", minWpm: 25, minAccuracy: 90 },
@@ -372,6 +386,7 @@
         ]
       },
       { id: 2, title: "Top Row", icon: "⬆️", description: "Reach for QWERT YUIOP",
+        tier: "fundamentals",
         stages: [
           { text: "qqq ppp qqq ppp qq pp qq pp qpqp qpqp", minWpm: 20, minAccuracy: 90 },
           { text: "www ooo www ooo ww oo ww oo wowo wowo", minWpm: 25, minAccuracy: 90 },
@@ -381,6 +396,7 @@
         ]
       },
       { id: 3, title: "Bottom Row", icon: "⬇️", description: "Complete the alphabet: ZXCVB NM",
+        tier: "fundamentals",
         stages: [
           { text: "zzz mmm zzz mmm zz mm zz mm zmzm zmzm", minWpm: 20, minAccuracy: 90 },
           { text: "xxx nnn xxx nnn xx nn xx nn xnxn xnxn", minWpm: 25, minAccuracy: 90 },
@@ -390,6 +406,7 @@
         ]
       },
       { id: 4, title: "Numbers", icon: "🔢", description: "Master the number row: 1234567890",
+        tier: "fundamentals",
         stages: [
           { text: "111 222 333 111 222 333 123 123 123", minWpm: 20, minAccuracy: 90 },
           { text: "444 555 666 444 555 666 456 456 456", minWpm: 25, minAccuracy: 90 },
@@ -399,6 +416,7 @@
         ]
       },
       { id: 5, title: "Shift Keys", icon: "⬆️", description: "Capital letters with Shift",
+        tier: "fundamentals",
         stages: [
           { text: "Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk", minWpm: 20, minAccuracy: 85 },
           { text: "The Quick Fox The Quick Fox The", minWpm: 25, minAccuracy: 88 },
@@ -408,6 +426,7 @@
         ]
       },
       { id: 6, title: "Caps Lock", icon: "🔠", description: "Toggle CAPS LOCK efficiently",
+        tier: "fundamentals",
         stages: [
           { text: "ABC DEF GHI JKL MNO PQR STU VWX YZ", minWpm: 20, minAccuracy: 85 },
           { text: "HELLO WORLD HELLO WORLD HELLO", minWpm: 25, minAccuracy: 88 },
@@ -417,6 +436,7 @@
         ]
       },
       { id: 7, title: "Symbols Level 1", icon: "⚡", description: "Basic punctuation and symbols",
+        tier: "fundamentals",
         stages: [
           { text: "... ,,, ... ,,, ... ,,, .,., .,.,", minWpm: 20, minAccuracy: 85 },
           { text: "!!! ??? !!! ??? !?!? !?!? !? !? !?", minWpm: 20, minAccuracy: 85 },
@@ -426,6 +446,7 @@
         ]
       },
       { id: 8, title: "Symbols Level 2", icon: "💎", description: "Advanced symbols and special characters",
+        tier: "fundamentals",
         stages: [
           { text: "@@@ ### $$$ %%% @@@ ### $$$ %%%", minWpm: 20, minAccuracy: 85 },
           { text: "((( ))) [[[ ]]] {{{ }}} ((( )))", minWpm: 20, minAccuracy: 85 },
@@ -435,6 +456,7 @@
         ]
       },
       { id: 9, title: "Mixed Practice", icon: "🎯", description: "Combine all skills",
+        tier: "fundamentals",
         stages: [
           { text: "abc 123 ABC !@# abc 123 ABC !@#", minWpm: 25, minAccuracy: 85 },
           { text: "The price is $50.00 (plus tax).", minWpm: 30, minAccuracy: 88 },
@@ -444,6 +466,7 @@
         ]
       },
       { id: 10, title: "Speed Builder", icon: "🚀", description: "Common words for speed",
+        tier: "fundamentals",
         stages: [
           { text: "the the the and and and for for", minWpm: 40, minAccuracy: 95 },
           { text: "that with have this will your from", minWpm: 45, minAccuracy: 95 },
@@ -453,6 +476,7 @@
         ]
       },
       { id: 11, title: "Accuracy Focus", icon: "🎪", description: "Precision over speed",
+        tier: "fundamentals",
         stages: [
           { text: "Slow and steady wins the race.", minWpm: 20, minAccuracy: 100 },
           { text: "Precision is the key to success.", minWpm: 25, minAccuracy: 98 },
@@ -462,6 +486,7 @@
         ]
       },
       { id: 12, title: "Numeric Keypad", icon: "🔟", description: "Master the number pad",
+        tier: "fundamentals",
         stages: [
           { text: "789 789 789 456 456 456 123 123", minWpm: 25, minAccuracy: 90 },
           { text: "741 852 963 741 852 963 741 852", minWpm: 30, minAccuracy: 90 },
@@ -471,6 +496,7 @@
         ]
       },
       { id: 13, title: "Common Word Patterns", icon: "🔤", description: "Master frequent combinations",
+        tier: "program",
         stages: [
           { text: "the then them there these that than this their through", minWpm: 30, minAccuracy: 95 },
           { text: "ing going typing working thinking doing making taking having", minWpm: 35, minAccuracy: 95 },
@@ -481,6 +507,7 @@
       },
       
       { id: 14, title: "Business Communication", icon: "💼", description: "Professional typing practice",
+        tier: "program",
         stages: [
           { text: "Thank you for your email regarding this matter.", minWpm: 35, minAccuracy: 95 },
           { text: "Please find attached the requested documents for your review.", minWpm: 40, minAccuracy: 95 },
@@ -491,6 +518,7 @@
       },
       
       { id: 15, title: "Weak Finger Training", icon: "✋", description: "Strengthen ring and pinky fingers",
+        tier: "program",
         stages: [
           { text: "paw wax zap lap sap pal lax pox paz waz", minWpm: 25, minAccuracy: 90 },
           { text: "aqua plaza pizza puzzle quizzes zealous plaza", minWpm: 30, minAccuracy: 90 },
@@ -501,6 +529,7 @@
       },
       
       { id: 16, title: "Problem Words", icon: "⚠️", description: "Commonly misspelled words",
+        tier: "program",
         stages: [
           { text: "because people through just know should could would", minWpm: 35, minAccuracy: 98 },
           { text: "thought between government different business necessary", minWpm: 40, minAccuracy: 98 },
@@ -511,6 +540,7 @@
       },
       
       { id: 17, title: "CAD Abbreviations Basic", icon: "🚔", description: "Common dispatch codes A-D",
+        tier: "program",
         stages: [
           { text: "DOB DOB DOB DATE OF BIRTH DOB DATE OF BIRTH DOB", minWpm: 30, minAccuracy: 95 },
           { text: "ADV ADVISED AMB AMBULANCE ARR ARRIVE ASAP ASAP", minWpm: 35, minAccuracy: 95 },
@@ -521,6 +551,7 @@
       },
       
       { id: 18, title: "CAD Abbreviations Advanced", icon: "🚨", description: "Emergency codes E-M",
+        tier: "program",
         stages: [
           { text: "EMS EMERGENCY MEDICAL ER ENROUTE ETA ESTIMATED TIME", minWpm: 35, minAccuracy: 95 },
           { text: "FD FIRE DEPARTMENT FF FIREFIGHTER FEM FEMALE", minWpm: 35, minAccuracy: 95 },
@@ -531,6 +562,7 @@
       },
       
       { id: 19, title: "CAD Directions & Locations", icon: "🧭", description: "Directional codes",
+        tier: "program",
         stages: [
           { text: "N NORTH S SOUTH E EAST W WEST NB NORTHBOUND", minWpm: 35, minAccuracy: 95 },
           { text: "SB SOUTHBOUND EB EASTBOUND WB WESTBOUND NE NORTHEAST", minWpm: 40, minAccuracy: 95 },
@@ -541,6 +573,7 @@
       },
       
       { id: 20, title: "CAD Status Codes", icon: "📡", description: "Status and response codes",
+        tier: "program",
         stages: [
           { text: "ARR ARRIVED DEP DEPARTED ER ENROUTE BIS BACK IN STATION", minWpm: 35, minAccuracy: 95 },
           { text: "NEG NEGATIVE UNK UNKNOWN REQ REQUESTED REC'D RECEIVED", minWpm: 40, minAccuracy: 95 },
@@ -551,6 +584,7 @@
       },
       
       { id: 21, title: "CAD Vehicle Colors", icon: "🎨", description: "Color codes for vehicles",
+        tier: "program",
         stages: [
           { text: "BLK BLACK WHI WHITE GRY GREY SIL SILVER RED RED", minWpm: 35, minAccuracy: 95 },
           { text: "BLU BLUE GRN GREEN YEL YELLOW ORG ORANGE BRN BROWN", minWpm: 35, minAccuracy: 95 },
@@ -561,6 +595,7 @@
       },
       
       { id: 22, title: "CAD Full Scenarios", icon: "🎯", description: "Complete dispatch entries",
+        tier: "program",
         stages: [
           { text: "MVC AT HWY 401 E/B VSA REQ EMS ASAP", minWpm: 40, minAccuracy: 95 },
           { text: "BOLO WHI MALE 30 YO LSH N/B ON FOOT LKA 123 MAIN ST", minWpm: 45, minAccuracy: 95 },
@@ -570,6 +605,7 @@
         ]
       },
       { id: 25, title: "Number Combinations", icon: "🔢", description: "Numbers with text",
+        tier: "program",
         stages: [
           { text: "Room 101 Building A Floor 3 Suite 250", minWpm: 30, minAccuracy: 95 },
           { text: "The year 2024 marks our 125th anniversary celebration", minWpm: 35, minAccuracy: 95 },
@@ -580,6 +616,7 @@
       },
       
       { id: 26, title: "Punctuation Mastery", icon: "⚡", description: "Complex punctuation",
+        tier: "program",
         stages: [
           { text: "Yes, no, maybe; these are your options: choose wisely.", minWpm: 30, minAccuracy: 95 },
           { text: "The suspect (male, 30s) was last seen at 10:45 p.m.", minWpm: 35, minAccuracy: 95 },
@@ -601,8 +638,13 @@
     // Aggregated client-side view of progress & activity (loaded from Firestore)
     const userProgress = {
       completedStages: {}, // { [lessonId]: Set<number> (0-based stages) }
-      history: []          // recent attempts (from Firestore 'attempts')
+      history: [],         // recent attempts (from Firestore 'attempts'), newest first
+      allTimeBestWPM: 0,    // highest bestWPM across every lesson stage
+      lessonSummary: {}     // { [lessonId]: { attempts, bestWPM, bestAccuracy, lastAttemptAt } }
     };
+
+    // Semester-pacing flags set by the instructor on teacher.html (courseSettings/KBD1100)
+    let courseSettings = { ...DEFAULT_COURSE_SETTINGS };
 
     /***************
      * AUTH GUARD + INITIAL LOAD
@@ -624,11 +666,15 @@
       // Set header name
       document.getElementById('userName').textContent = user.email;
 
+      // Load semester-pacing flags and lock/unlock the Office + CritiCall tabs
+      courseSettings = await getCourseSettings();
+      applyCourseLocks();
+
       // Build UI
       renderLessons();
 
       // Load Firestore progress + recent attempts
-      await Promise.all([loadProgressFromFirestore(user.uid), loadRecentAttempts(user.uid)]);
+      await Promise.all([loadProgressFromFirestore(user.uid), loadRecentAttempts(user.uid), loadWeeklyActivity(user.uid)]);
 
       // Update dashboard numbers & unlock tests if finished
       updateProgressDisplay();
@@ -661,6 +707,8 @@
 
       // Reset
       userProgress.completedStages = {};
+      userProgress.allTimeBestWPM = 0;
+      userProgress.lessonSummary = {}; // { [lessonId]: { attempts, bestWPM, bestAccuracy, lastAttemptAt } }
 
       snap.forEach(doc => {
         // doc.id format: lesson-{lessonId}-stage-{stageNumber}
@@ -673,6 +721,23 @@
         if (data.status === 'completed') {
           if (!userProgress.completedStages[lessonId]) userProgress.completedStages[lessonId] = new Set();
           userProgress.completedStages[lessonId].add(stageNumber - 1); // store 0-based
+        }
+        if (data.bestWPM) {
+          userProgress.allTimeBestWPM = Math.max(userProgress.allTimeBestWPM, data.bestWPM);
+        }
+
+        // Roll this stage's numbers into its lesson's summary (covers every
+        // attempted stage, passed or not, so "Activity by Lesson" is complete).
+        if (!userProgress.lessonSummary[lessonId]) {
+          userProgress.lessonSummary[lessonId] = { attempts: 0, bestWPM: 0, bestAccuracy: 0, lastAttemptAt: null };
+        }
+        const summary = userProgress.lessonSummary[lessonId];
+        summary.attempts += data.attempts || 0;
+        summary.bestWPM = Math.max(summary.bestWPM, data.bestWPM || 0);
+        summary.bestAccuracy = Math.max(summary.bestAccuracy, data.bestAccuracy || 0);
+        const lastAt = data.lastAttemptAt?.toDate ? data.lastAttemptAt.toDate() : null;
+        if (lastAt && (!summary.lastAttemptAt || lastAt > summary.lastAttemptAt)) {
+          summary.lastAttemptAt = lastAt;
         }
       });
 
@@ -691,35 +756,93 @@
       // (We also refresh on switchTab('progress'))
     }
 
+    async function loadWeeklyActivity(uid) {
+      // How many distinct calendar days in the last 7 have at least one attempt.
+      const sevenDaysAgo = new Date();
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 6); // include today = 7 days total
+      sevenDaysAgo.setHours(0, 0, 0, 0);
+
+      const attemptsRef = db.collection('users').doc(uid).collection('attempts')
+        .where('timestamp', '>=', firebase.firestore.Timestamp.fromDate(sevenDaysAgo));
+      const snap = await attemptsRef.get();
+
+      const daysPracticed = new Set();
+      snap.forEach(doc => {
+        const ts = doc.data().timestamp;
+        if (ts?.toDate) daysPracticed.add(ts.toDate().toDateString());
+      });
+
+      renderStreakBanner(daysPracticed.size);
+    }
+
+    function renderStreakBanner(daysCount) {
+      const banner = document.getElementById('streakBanner');
+      if (daysCount === 0) {
+        banner.textContent = '👋 Practice at least once this week to start building momentum!';
+      } else if (daysCount >= 6) {
+        banner.textContent = `🔥 Practiced ${daysCount} of the last 7 days — awesome consistency!`;
+      } else {
+        banner.textContent = `🔥 Practiced ${daysCount} of the last 7 days`;
+      }
+    }
+
     /***************
      * UI RENDERING
      ***************/
+    // Skill Building is split into two instructor-controlled tiers.
+    // Each lesson object carries a tier: "fundamentals" | "program".
+    const LESSON_TIERS = [
+      { tier: 'fundamentals', gridId: 'fundamentalsGrid', msgId: 'fundamentalsLockedMsg', settingsField: 'fundamentalsUnlocked' },
+      { tier: 'program', gridId: 'programGrid', msgId: 'programLockedMsg', settingsField: 'programSpecificUnlocked' }
+    ];
+
     function renderLessons() {
-      const grid = document.getElementById('lessonGrid');
-      grid.innerHTML = '';
+      LESSON_TIERS.forEach(({ tier, gridId, msgId, settingsField }) => {
+        const grid = document.getElementById(gridId);
+        const lockedMsg = document.getElementById(msgId);
+        const unlocked = !!courseSettings[settingsField];
 
-      lessons.forEach(lesson => {
-        const totalStages = lesson.stages.length;
-        const completedSet = userProgress.completedStages[lesson.id] || new Set();
-        const completedCount = completedSet.size;
-        const isComplete = completedCount === totalStages;
+        grid.style.display = unlocked ? '' : 'none';
+        lockedMsg.style.display = unlocked ? 'none' : 'block';
+        if (!unlocked) return;
 
-        const card = document.createElement('div');
-        card.className = 'lesson-card' + (isComplete ? ' completed' : '');
-        card.innerHTML = `
-          <div class="status-icon">${isComplete ? '✅' : lesson.icon}</div>
-          <h3>${lesson.title}</h3>
-          <p>${lesson.description}</p>
-          <p style="margin-top: 10px; font-weight: bold;">
-            Progress: ${completedCount}/${totalStages} stages
-          </p>
-          <div style="background: #e0e0e0; height: 8px; border-radius: 4px; margin-top: 8px;">
-            <div style="background: #4CAF50; height: 100%; border-radius: 4px; width: ${(completedCount/totalStages)*100}%"></div>
-          </div>
-        `;
-        card.onclick = () => openLesson(lesson);
-        grid.appendChild(card);
+        grid.innerHTML = '';
+        lessons.filter(lesson => lesson.tier === tier).forEach(lesson => {
+          const totalStages = lesson.stages.length;
+          const completedSet = userProgress.completedStages[lesson.id] || new Set();
+          const completedCount = completedSet.size;
+          const isComplete = completedCount === totalStages;
+
+          const card = document.createElement('div');
+          card.className = 'lesson-card' + (isComplete ? ' completed' : '');
+          card.innerHTML = `
+            <div class="status-icon">${isComplete ? '✅' : lesson.icon}</div>
+            <h3>${lesson.title}</h3>
+            <p>${lesson.description}</p>
+            <p style="margin-top: 10px; font-weight: bold;">
+              Progress: ${completedCount}/${totalStages} stages
+            </p>
+            <div style="background: #e0e0e0; height: 8px; border-radius: 4px; margin-top: 8px;">
+              <div style="background: #4CAF50; height: 100%; border-radius: 4px; width: ${(completedCount/totalStages)*100}%"></div>
+            </div>
+          `;
+          card.onclick = () => openLesson(lesson);
+          grid.appendChild(card);
+        });
       });
+    }
+
+    // Locks/unlocks the Office Practice and CritiCall Practice tabs based on
+    // the instructor's course-wide pacing flags. (Timed Tests has its own
+    // per-student mastery gate too — see updateProgressDisplay().)
+    function applyCourseLocks() {
+      const officeTab = document.getElementById('officeTab');
+      officeTab.disabled = !courseSettings.officeUnlocked;
+      officeTab.textContent = courseSettings.officeUnlocked ? '💼 Office Practice' : '🔒 Office Practice';
+
+      const criticallTab = document.getElementById('criticallTab');
+      criticallTab.disabled = !courseSettings.criticallPracticeUnlocked;
+      criticallTab.textContent = courseSettings.criticallPracticeUnlocked ? '🚨 CritiCall Practice' : '🔒 CritiCall Practice';
     }
 
     function switchTab(tabName, tabElement) {
@@ -734,10 +857,15 @@
     }
 
     function updateProgressDisplay() {
+      // Only count stages from tiers the instructor has actually opened, so the
+      // header doesn't show "0/120" while most of that is still locked away.
+      const visibleLessons = lessons.filter(lesson => courseSettings[
+        LESSON_TIERS.find(t => t.tier === lesson.tier).settingsField
+      ]);
+
       let totalStages = 0;
       let completedStagesTotal = 0;
-
-      lessons.forEach(lesson => {
+      visibleLessons.forEach(lesson => {
         totalStages += lesson.stages.length;
         const set = userProgress.completedStages[lesson.id] || new Set();
         completedStagesTotal += set.size;
@@ -745,15 +873,25 @@
 
       document.getElementById('userProgress').textContent = `${completedStagesTotal}/${totalStages} Stages`;
 
-      // Unlock tests if all complete
-      const allLessonsComplete = lessons.every(lesson => {
+      // Timed Tests unlocks once BOTH gates are open: the instructor has
+      // turned the section on for the class (courseSettings.timedTestsUnlocked),
+      // and this student has finished every Keyboarding Fundamentals lesson
+      // (Program-Specific lessons are not required for this).
+      const fundamentalsLessons = lessons.filter(lesson => lesson.tier === 'fundamentals');
+      const allFundamentalsComplete = fundamentalsLessons.every(lesson => {
         const set = userProgress.completedStages[lesson.id] || new Set();
         return set.size === lesson.stages.length;
       });
-      if (allLessonsComplete) {
-        const tab = document.getElementById('testsTab');
+      const tab = document.getElementById('testsTab');
+      if (courseSettings.timedTestsUnlocked && allFundamentalsComplete) {
         tab.disabled = false;
         tab.textContent = '⏱️ Timed Tests';
+      } else if (courseSettings.timedTestsUnlocked) {
+        tab.disabled = true;
+        tab.textContent = '🔒 Timed Tests (finish Fundamentals)';
+      } else {
+        tab.disabled = true;
+        tab.textContent = '🔒 Timed Tests';
       }
     }
 
@@ -761,36 +899,173 @@
       if (userProgress.history.length > 0) {
         const avgWpm = Math.round(userProgress.history.reduce((s, h) => s + (h.wpm || 0), 0) / userProgress.history.length);
         const avgAcc = Math.round(userProgress.history.reduce((s, h) => s + (h.accuracy || 0), 0) / userProgress.history.length);
-        const totalBackspaces = userProgress.history.reduce((s, h) => s + (h.backspaces || 0), 0);
 
         document.getElementById('avgWpm').textContent = avgWpm;
         document.getElementById('avgAccuracy').textContent = `${avgAcc}%`;
-        document.getElementById('totalBackspaces').textContent = totalBackspaces;
       } else {
         document.getElementById('avgWpm').textContent = 0;
         document.getElementById('avgAccuracy').textContent = '0%';
-        document.getElementById('totalBackspaces').textContent = 0;
       }
+
+      document.getElementById('bestWpm').textContent = userProgress.allTimeBestWPM || 0;
 
       let stagesComplete = 0;
       Object.values(userProgress.completedStages).forEach(set => { stagesComplete += set.size; });
       document.getElementById('stagesComplete').textContent = stagesComplete;
 
-      // Table of recent activity
-      const tbody = document.getElementById('historyTable');
-      tbody.innerHTML = '';
-      userProgress.history.forEach(entry => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td style="padding: 12px;">${new Date(entry.timestamp?.toDate ? entry.timestamp.toDate() : entry.timeMs || Date.now()).toLocaleString()}</td>
-          <td style="padding: 12px;">${entry.lesson}</td>
-          <td style="padding: 12px;">${entry.stage}</td>
-          <td style="padding: 12px;">${entry.wpm}</td>
-          <td style="padding: 12px;">${entry.accuracy}%</td>
-          <td style="padding: 12px;">${entry.backspaces}</td>
-        `;
-        tbody.appendChild(tr);
+      renderWpmChart(userProgress.history);
+      renderLessonActivityList();
+    }
+
+    // Collapsible "Activity by Lesson" list. Each header is built from the
+    // progress-doc summary (covers every stage ever attempted, not just the
+    // last 20 attempts); expanding a lesson lazily fetches its full attempt
+    // history from Firestore so nothing gets cut off by the recent-20 cap.
+    function renderLessonActivityList() {
+      const container = document.getElementById('lessonActivityList');
+      container.innerHTML = '';
+
+      const lessonIds = Object.keys(userProgress.lessonSummary).map(Number);
+      if (lessonIds.length === 0) {
+        container.innerHTML = '<p style="padding: 15px; color: #888;">No attempts yet — start a lesson to see your activity here.</p>';
+        return;
+      }
+
+      lessonIds
+        .sort((a, b) => {
+          const aTime = userProgress.lessonSummary[a].lastAttemptAt?.getTime() || 0;
+          const bTime = userProgress.lessonSummary[b].lastAttemptAt?.getTime() || 0;
+          return bTime - aTime; // most recently practiced first
+        })
+        .forEach(lessonId => {
+          const lesson = lessons.find(l => l.id === lessonId);
+          const summary = userProgress.lessonSummary[lessonId];
+          const title = lesson ? `${lesson.icon} ${lesson.title}` : `Lesson ${lessonId}`;
+
+          const item = document.createElement('div');
+          item.className = 'lesson-activity-item';
+          item.innerHTML = `
+            <div class="lesson-activity-header" onclick="toggleLessonActivity(${lessonId}, this)">
+              <span>${title}</span>
+              <span class="lesson-activity-summary">
+                ${summary.attempts} attempt${summary.attempts === 1 ? '' : 's'} · best ${summary.bestWPM} WPM
+                <span class="chevron">▾</span>
+              </span>
+            </div>
+            <div class="lesson-activity-details" id="lessonDetails-${lessonId}" style="display: none;"></div>
+          `;
+          container.appendChild(item);
+        });
+    }
+
+    async function toggleLessonActivity(lessonId, headerEl) {
+      const details = document.getElementById(`lessonDetails-${lessonId}`);
+      const isOpen = details.style.display === 'block';
+
+      details.style.display = isOpen ? 'none' : 'block';
+      headerEl.classList.toggle('open', !isOpen);
+      if (isOpen) return;
+
+      if (!details.dataset.loaded) {
+        details.innerHTML = '<p style="padding: 10px 0; color: #888;">Loading...</p>';
+        try {
+          const attempts = await fetchLessonAttempts(lessonId);
+          details.innerHTML = buildLessonAttemptsTable(attempts);
+          details.dataset.loaded = '1';
+        } catch (err) {
+          console.error('Failed to load lesson attempts:', err);
+          details.innerHTML = '<p style="padding: 10px 0; color: #c0392b;">Could not load attempts — please try again.</p>';
+        }
+      }
+    }
+
+    async function fetchLessonAttempts(lessonId) {
+      const uid = auth.currentUser.uid;
+      // No orderBy() here on purpose: combining it with the where() below would
+      // need a special Firestore composite index. Sorting the (small) result
+      // client-side avoids that entirely.
+      const snap = await db.collection('users').doc(uid).collection('attempts')
+        .where('lessonId', '==', lessonId)
+        .get();
+      const attempts = snap.docs.map(d => d.data());
+      attempts.sort((a, b) => {
+        const aTime = a.timestamp?.toDate ? a.timestamp.toDate().getTime() : 0;
+        const bTime = b.timestamp?.toDate ? b.timestamp.toDate().getTime() : 0;
+        return bTime - aTime; // newest first
       });
+      return attempts;
+    }
+
+    function buildLessonAttemptsTable(attempts) {
+      if (attempts.length === 0) {
+        return '<p style="padding: 10px 0; color: #888;">No attempts recorded yet.</p>';
+      }
+      const rows = attempts.map(a => `
+        <tr>
+          <td>${new Date(a.timestamp?.toDate ? a.timestamp.toDate() : Date.now()).toLocaleString()}</td>
+          <td>Stage ${a.stage}</td>
+          <td>${a.wpm} WPM</td>
+          <td>${a.accuracy}%</td>
+          <td>${a.backspaces}</td>
+          <td>${a.passed ? '✅ Passed' : '—'}</td>
+        </tr>
+      `).join('');
+      return `
+        <table class="lesson-attempts-table">
+          <thead>
+            <tr><th>Date</th><th>Stage</th><th>WPM</th><th>Accuracy</th><th>Backspaces</th><th>Result</th></tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+      `;
+    }
+
+    // Lightweight WPM trend chart, no charting library needed.
+    // Plots the recent-attempts history (oldest -> newest, left to right).
+    function renderWpmChart(history) {
+      const svg = document.getElementById('wpmChart');
+      const emptyMsg = document.getElementById('chartEmptyMsg');
+      const legend = document.getElementById('chartLegend');
+
+      if (!history || history.length < 2) {
+        svg.style.display = 'none';
+        legend.style.display = 'none';
+        emptyMsg.style.display = 'block';
+        return;
+      }
+      svg.style.display = 'block';
+      legend.style.display = 'flex';
+      emptyMsg.style.display = 'none';
+
+      const points = [...history].reverse(); // oldest first, left to right
+      const wpmValues = points.map(p => p.wpm || 0);
+      const maxWpm = Math.max(...wpmValues, 10);
+      const minWpm = Math.min(...wpmValues, 0);
+      const range = (maxWpm - minWpm) || 1;
+
+      const width = 600, height = 180, padX = 30, padY = 15;
+      const plotWidth = width - padX * 2;
+      const plotHeight = height - padY * 2;
+
+      const coords = points.map((p, i) => {
+        const x = padX + (points.length === 1 ? plotWidth / 2 : (i / (points.length - 1)) * plotWidth);
+        const y = padY + plotHeight - ((((p.wpm || 0) - minWpm) / range) * plotHeight);
+        return { x, y, passed: !!p.passed, wpm: p.wpm || 0 };
+      });
+
+      const linePoints = coords.map(c => `${c.x},${c.y}`).join(' ');
+      const dots = coords.map(c =>
+        `<circle cx="${c.x}" cy="${c.y}" r="4" fill="${c.passed ? '#4CAF50' : '#ff9800'}"><title>${c.wpm} WPM</title></circle>`
+      ).join('');
+
+      svg.innerHTML = `
+        <line x1="${padX}" y1="${padY}" x2="${padX}" y2="${padY + plotHeight}" stroke="#e0e0e0" />
+        <line x1="${padX}" y1="${padY + plotHeight}" x2="${width - padX}" y2="${padY + plotHeight}" stroke="#e0e0e0" />
+        <text x="2" y="${padY + 4}" font-size="11" fill="#888">${maxWpm}</text>
+        <text x="2" y="${padY + plotHeight + 4}" font-size="11" fill="#888">${minWpm}</text>
+        <polyline points="${linePoints}" fill="none" stroke="#0056b3" stroke-width="2" />
+        ${dots}
+      `;
     }
 
     /***************
@@ -960,6 +1235,11 @@ function showPracticeModal() {
       const stage = currentLesson.stages[currentStage];
       const passed = wpm >= stage.minWpm && accuracy >= stage.minAccuracy;
 
+      // Was this a genuine improvement on their all-time best (not just their
+      // first-ever attempt, which would trivially "beat" a starting value of 0)?
+      const prevBest = userProgress.allTimeBestWPM;
+      const isNewBest = prevBest > 0 && wpm > prevBest;
+
       // Save attempt & progress to Firestore
       await saveAttemptAndProgress({
         lessonId: currentLesson.id,
@@ -973,6 +1253,7 @@ function showPracticeModal() {
         if (!userProgress.completedStages[currentLesson.id]) userProgress.completedStages[currentLesson.id] = new Set();
         userProgress.completedStages[currentLesson.id].add(currentStage);
       }
+      userProgress.allTimeBestWPM = Math.max(prevBest, wpm);
 
       // Reload recent attempts for the progress tab
       const uid = auth.currentUser.uid;
@@ -981,10 +1262,10 @@ function showPracticeModal() {
       // Update UI bits
       updateProgressDisplay();
       renderLessons();
-      showResults(passed, wpm, accuracy);
+      showResults(passed, wpm, accuracy, isNewBest);
     }
 
-    function showResults(passed, wpm, accuracy) {
+    function showResults(passed, wpm, accuracy, isNewBest) {
       const stage = currentLesson.stages[currentStage];
       document.getElementById('practiceModal').classList.remove('active');
       document.getElementById('resultsModal').classList.add('active');
@@ -992,6 +1273,7 @@ function showPracticeModal() {
       document.getElementById('resultTitle').textContent = passed ? '🎉 Stage Complete!' : '💪 Keep Practicing!';
       document.getElementById('resultContent').innerHTML = `
         <div style="text-align: center;">
+          ${isNewBest ? `<div class="new-best-banner">🏆 New Personal Best: ${wpm} WPM!</div>` : ''}
           <p style="font-size: 24px; margin: 10px 0;">
             <strong>${wpm}</strong> WPM | <strong>${accuracy}%</strong> Accuracy
           </p>
@@ -1102,7 +1384,8 @@ function nextStage() {
       // Compute summary from current in-memory state
       const avgWpm = document.getElementById('avgWpm').textContent;
       const avgAcc = document.getElementById('avgAccuracy').textContent;
-      const totalBackspaces = document.getElementById('totalBackspaces').textContent;
+      const bestWpm = document.getElementById('bestWpm').textContent;
+      const totalBackspaces = userProgress.history.reduce((s, h) => s + (h.backspaces || 0), 0);
       const stagesComplete = document.getElementById('stagesComplete').textContent;
 
       const lines = userProgress.history.map(h =>
@@ -1119,6 +1402,7 @@ SUMMARY
 -------
 Average WPM: ${avgWpm}
 Average Accuracy: ${avgAcc}
+Personal Best WPM: ${bestWpm}
 Total Backspaces: ${totalBackspaces}
 Stages Completed: ${stagesComplete}
 

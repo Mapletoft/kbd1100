@@ -11,7 +11,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
-    
+    <script src="js/course-settings.js"></script>
+
     <style>
         /* Test-specific styles */
         .test-welcome {
@@ -589,17 +590,27 @@
     <script src="js/modules/additional-modules.js"></script>
     
     <script>
-        // Initialize Firebase auth
-        let auth, db;
-        
-        firebase.initializeApp(firebaseConfig);
-        auth = firebase.auth();
-        db = firebase.firestore();
+        // auth/db already come from firebase-config.js (window.auth / window.db) —
+        // do NOT call firebase.initializeApp() again here, it throws
+        // "Firebase App named '[DEFAULT]' already exists" and silently halts this
+        // whole script block, which was preventing the auth check below from ever running.
 
-        // Check if user is logged in
-        auth.onAuthStateChanged(user => {
+        // Auth gate + semester-pacing gate (courseSettings/KBD1100, set from teacher.html)
+        auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 window.location.href = 'index.html';
+                return;
+            }
+
+            const settings = await getCourseSettings();
+            if (!settings.criticallTestUnlocked) {
+                document.getElementById('welcomeScreen').innerHTML = `
+                    <h1>🔒 CritiCall Full Test</h1>
+                    <p class="subtitle">This section unlocks later in the semester.</p>
+                    <div style="text-align: center; margin-top: 30px;">
+                        <button onclick="window.location.href='criticall.html'" class="secondary-btn">← Back to CritiCall Practice</button>
+                    </div>
+                `;
             }
         });
     </script>

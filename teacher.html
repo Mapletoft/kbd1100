@@ -11,6 +11,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="js/course-settings.js"></script>
 <style>
     body {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -129,6 +130,57 @@
         border-radius: 10px;
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
+
+    .access-panel {
+        background: #f5f8ff;
+        border: 2px solid #d7e3ff;
+        border-radius: 10px;
+        padding: 20px 25px;
+        margin-bottom: 25px;
+    }
+
+    .access-panel h3 {
+        margin: 0 0 5px 0;
+        color: #003d7a;
+    }
+
+    .access-hint {
+        margin: 0 0 15px 0;
+        color: #555;
+        font-size: 14px;
+    }
+
+    .access-toggles {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        padding: 10px 15px;
+        cursor: pointer;
+        font-size: 15px;
+    }
+
+    .toggle-row input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .access-status {
+        display: inline-block;
+        margin-top: 12px;
+        font-size: 14px;
+        color: #0056b3;
+        min-height: 18px;
+    }
 </style>
 </head>
   
@@ -143,6 +195,38 @@
     </div>
 
     <div class="dashboard-content">
+      <div class="access-panel">
+        <h3>🔓 Course Access Controls</h3>
+        <p class="access-hint">Turn a section on when your students should see it. Skill Building/Typing is always visible; everything below starts locked at the beginning of the semester.</p>
+        <div class="access-toggles">
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-fundamentalsUnlocked" data-field="fundamentalsUnlocked" />
+            <span>📘 Keyboarding Fundamentals (Lessons 1-12)</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-programSpecificUnlocked" data-field="programSpecificUnlocked" />
+            <span>🚔 Program-Specific Lessons (CAD/Dispatch)</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-officeUnlocked" data-field="officeUnlocked" />
+            <span>💼 Office Practice (Word/Excel)</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-timedTestsUnlocked" data-field="timedTestsUnlocked" />
+            <span>⏱️ Timed Typing Tests</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-criticallPracticeUnlocked" data-field="criticallPracticeUnlocked" />
+            <span>🚨 CritiCall Practice</span>
+          </label>
+          <label class="toggle-row">
+            <input type="checkbox" id="toggle-criticallTestUnlocked" data-field="criticallTestUnlocked" />
+            <span>📋 CritiCall Full Test</span>
+          </label>
+        </div>
+        <span id="accessSaveStatus" class="access-status"></span>
+      </div>
+
       <div class="toolbar">
         <input id="filterText" type="text" placeholder="Filter by email, name, or exercise..." />
         <button id="refresh">🔄 Refresh</button>
@@ -183,11 +267,46 @@
         return;
       }
       await loadProgress();
+      await loadAccessPanel();
     });
 
     document.getElementById('signOut').onclick = () => auth.signOut().then(() => location.href='index.html');
     document.getElementById('refresh').onclick = () => loadProgress();
     document.getElementById('filterText').addEventListener('input', () => renderRows(window.__rows || []));
+
+    /***************
+     * COURSE ACCESS CONTROLS
+     ***************/
+    const ACCESS_FIELDS = Object.keys(DEFAULT_COURSE_SETTINGS);
+
+    async function loadAccessPanel() {
+      const settings = await getCourseSettings();
+      ACCESS_FIELDS.forEach(field => {
+        document.getElementById(`toggle-${field}`).checked = !!settings[field];
+      });
+      ACCESS_FIELDS.forEach(field => {
+        document.getElementById(`toggle-${field}`).addEventListener('change', onAccessToggleChange);
+      });
+    }
+
+    async function onAccessToggleChange(e) {
+      const field = e.target.dataset.field;
+      const status = document.getElementById('accessSaveStatus');
+      status.textContent = 'Saving...';
+      try {
+        await db.collection('courseSettings').doc('KBD1100').set({
+          [field]: e.target.checked,
+          updatedAt: firebase.firestore.Timestamp.now(),
+          updatedBy: auth.currentUser.email
+        }, { merge: true });
+        status.textContent = `✓ Saved (students will see this next time they load the page)`;
+      } catch (err) {
+        console.error('Failed to save course setting:', err);
+        status.textContent = '✗ Failed to save — try again';
+        e.target.checked = !e.target.checked;
+      }
+      setTimeout(() => { status.textContent = ''; }, 4000);
+    }
 
     async function loadProgress() {
       // Query ALL progress documents across users (rules allow only teacher)

@@ -9,7 +9,8 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js"></script>
-    
+    <script src="js/course-settings.js"></script>
+
     <style>
         .criticall-container {
             background: white;
@@ -392,7 +393,7 @@
             <button onclick="window.location.href='index.html'" class="btn btn-primary" style="margin-top: 15px;">← Back to Main Menu</button>
         </div>
         
-        <div class="module-grid">
+        <div class="module-grid" id="moduleGrid">
             <div class="module-card" onclick="openModule('dataEntry')">
                 <h3>📝 Data Entry</h3>
                 <p>Listen to emergency calls and accurately record caller information, location, and incident type.</p>
@@ -468,13 +469,19 @@
                 <p></p>
             </div>
             
-            <div class="module-card" onclick="window.location.href='criticalltest.html'" style="grid-column: span 2; );">
+            <div class="module-card" id="fullTestCard" onclick="window.location.href='criticalltest.html'" style="grid-column: span 2; );">
                 <h3>📋 Full CritiCall Test</h3>
                 <p>Complete simulation combining randomized modules and questions.</p>
             </div>
         </div>
+
+        <div id="practiceLockedMessage" style="display: none; padding: 60px 30px; text-align: center;">
+            <h2>🔒 CritiCall Practice Unlocks Later This Semester</h2>
+            <p>Your instructor hasn't opened this section yet — check back once it's announced in class.</p>
+            <button onclick="window.location.href='typing.html'" class="btn btn-primary" style="margin-top: 15px;">← Back to Practice Hub</button>
+        </div>
     </div>
-    
+
     <div class="module-overlay" id="moduleOverlay" onclick="closeModule()"></div>
     <div class="module-container" id="moduleContainer">
         <div class="module-header">
@@ -501,7 +508,28 @@
         // Initialize Firebase
         auth = firebase.auth();
         db = firebase.firestore();
-        
+
+        // Auth gate + semester-pacing gate (courseSettings/KBD1100, set from teacher.html)
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) { window.location.href = 'index.html'; return; }
+
+            const settings = await getCourseSettings();
+
+            if (!settings.criticallPracticeUnlocked) {
+                document.getElementById('moduleGrid').style.display = 'none';
+                document.getElementById('practiceLockedMessage').style.display = 'block';
+                return;
+            }
+
+            const fullTestCard = document.getElementById('fullTestCard');
+            if (fullTestCard && !settings.criticallTestUnlocked) {
+                fullTestCard.classList.add('coming-soon');
+                fullTestCard.removeAttribute('onclick');
+                fullTestCard.querySelector('h3').textContent = '🔒 Full CritiCall Test';
+                fullTestCard.querySelector('p').textContent = 'Unlocks later this semester.';
+            }
+        });
+
         // Data Entry Audio Files Database
         const dataEntryScenarios = [
             {

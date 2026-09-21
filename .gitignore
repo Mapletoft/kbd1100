@@ -1,0 +1,7 @@
+# Local admin/maintenance scripts - never deploy these to the public site.
+# They handle real student data/credentials and are only ever run locally.
+backup-all-data.html
+delete-old-students.html
+bulk-create-students.html
+firestore-rules-TEMPORARY.txt
+firestore.rules.txt

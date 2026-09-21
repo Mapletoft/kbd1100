@@ -303,6 +303,29 @@ body {
     font-size: 24px;
 }
 
+.tier-heading {
+    margin-top: 30px;
+    margin-bottom: 5px;
+    color: #003d7a;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 8px;
+}
+
+.tier-heading:first-of-type {
+    margin-top: 10px;
+}
+
+.tier-locked-msg {
+    background: #f5f8ff;
+    border: 2px dashed #c3d4f0;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 20px;
+    text-align: center;
+    color: #555;
+    font-size: 15px;
+}
+
 /* Typing Area */
 .typing-area {
     background: #f8f9fa;
@@ -391,6 +414,138 @@ body {
     font-size: 28px;
     font-weight: bold;
     color: #003d7a;
+}
+
+.stat-box.highlight-box {
+    border-color: #ffc107;
+    background: #fffdf5;
+}
+
+.stat-box.highlight-box .stat-value {
+    color: #b8860b;
+}
+
+/* Weekly activity banner */
+.streak-banner {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    border: 2px solid #ffcc80;
+    border-radius: 10px;
+    padding: 12px 20px;
+    margin: 15px 0;
+    font-size: 15px;
+    font-weight: 600;
+    color: #7a4a00;
+    text-align: center;
+}
+
+/* WPM trend chart */
+.chart-container {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 15px;
+    margin-top: 15px;
+}
+
+.chart-container svg {
+    width: 100%;
+    height: 180px;
+    display: block;
+}
+
+.chart-empty-msg {
+    text-align: center;
+    color: #888;
+    padding: 40px 0;
+}
+
+.chart-legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    font-size: 13px;
+    color: #666;
+    margin-top: 8px;
+}
+
+.chart-legend .dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+}
+
+.dot-passed { background: #4CAF50; }
+.dot-notpassed { background: #ff9800; }
+
+/* Activity-by-lesson accordion */
+.lesson-activity-list {
+    margin-top: 15px;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.lesson-activity-item + .lesson-activity-item {
+    border-top: 1px solid #e0e0e0;
+}
+
+.lesson-activity-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 18px;
+    cursor: pointer;
+    background: white;
+    transition: background 0.15s;
+}
+
+.lesson-activity-header:hover {
+    background: #f5f8ff;
+}
+
+.lesson-activity-header .chevron {
+    transition: transform 0.15s;
+    color: #888;
+}
+
+.lesson-activity-header.open .chevron {
+    transform: rotate(180deg);
+}
+
+.lesson-activity-summary {
+    color: #666;
+    font-size: 13px;
+}
+
+.lesson-activity-details {
+    padding: 0 18px 14px 18px;
+    background: #fafbfd;
+}
+
+.lesson-attempts-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.lesson-attempts-table th, .lesson-attempts-table td {
+    padding: 8px 10px;
+    text-align: left;
+    border-bottom: 1px solid #e8e8e8;
+}
+
+/* "New personal best" celebration banner in the results modal */
+.new-best-banner {
+    background: linear-gradient(135deg, #ffd54f 0%, #ffb300 100%);
+    color: #4a3200;
+    font-weight: bold;
+    font-size: 18px;
+    padding: 12px;
+    border-radius: 10px;
+    margin-bottom: 15px;
+    text-align: center;
 }
 
 /* Control Buttons */
