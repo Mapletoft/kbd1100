@@ -12,6 +12,9 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.4/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="js/course-settings.js"></script>
+
+  <!-- Chart.js, used only by the Office Practice spreadsheet's Insert Chart button -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.5.1/chart.min.js"></script>
 </head>
 <body>
   <div class="app-container">
@@ -104,7 +107,7 @@
         <!-- Office tab content section -->
 <div id="office" class="tab-content">
     <h2>Microsoft Office Practice</h2>
-    
+
     <!-- Sub-tabs for Word and Excel -->
     <div style="display: flex; gap: 10px; margin: 20px 0; border-bottom: 2px solid #e0e0e0;">
         <button onclick="showOfficeTool('word')" class="btn btn-primary">📝 Word Processor</button>
@@ -114,118 +117,88 @@
     <!-- Word Processor -->
     <div id="wordTool" class="office-tool">
         <h3>Word Processor Practice</h3>
-        
+
         <!-- Formatting Toolbar -->
-        <div class="word-toolbar" style="background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-            <button onclick="formatText('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
-            <button onclick="formatText('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
-            <button onclick="formatText('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
-            <span style="margin: 0 10px;">|</span>
-            <button onclick="formatText('justifyLeft')" title="Align Left">⬅️</button>
-            <button onclick="formatText('justifyCenter')" title="Center">↔️</button>
-            <button onclick="formatText('justifyRight')" title="Align Right">➡️</button>
-            <span style="margin: 0 10px;">|</span>
-            <button onclick="insertTable()" title="Insert Table">📋 Table</button>
-            <button onclick="saveWordDoc()" title="Save (Ctrl+S)">💾 Save</button>
-            <button onclick="loadWordDoc()" title="Open">📁 Open</button>
-            <button onclick="printDoc()" title="Print (Ctrl+P)">🖨️ Print</button>
-            <span style="margin: 0 10px;">|</span>
-            <button onclick="wordCount()" title="Word Count">📊 Count</button>
-            <button onclick="findReplace()" title="Find & Replace">🔍 Find</button>
-            <button onclick="insertDateTime()" title="Insert Date/Time">📅 Date</button>
-            <button onclick="toUpperCase()" title="Convert to UPPERCASE">🔠 CAPS</button>
-            <button onclick="showPracticeTask('word')" class="btn btn-success">📋 Get Practice Task</button>
+        <div class="office-toolbar word-toolbar">
+            <div class="toolbar-group">
+                <button onclick="formatText('bold')" title="Bold (Ctrl+B)"><b>B</b></button>
+                <button onclick="formatText('italic')" title="Italic (Ctrl+I)"><i>I</i></button>
+                <button onclick="formatText('underline')" title="Underline (Ctrl+U)"><u>U</u></button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="formatText('justifyLeft')" title="Align Left">⬅️</button>
+                <button onclick="formatText('justifyCenter')" title="Center">↔️</button>
+                <button onclick="formatText('justifyRight')" title="Align Right">➡️</button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="insertTable()" title="Insert Table">📋 Table</button>
+                <button onclick="saveWordDoc()" title="Save (Ctrl+S)">💾 Save</button>
+                <button onclick="loadWordDoc()" title="Open">📁 Open</button>
+                <button onclick="printDoc()" title="Print (Ctrl+P)">🖨️ Print</button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="wordCount()" title="Word Count">📊 Count</button>
+                <button onclick="findReplace()" title="Find & Replace">🔍 Find</button>
+                <button onclick="insertDateTime()" title="Insert Date/Time">📅 Date</button>
+                <button onclick="toUpperCase()" title="Convert to UPPERCASE">🔠 CAPS</button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="newWordDocument()" title="Start a new blank document">🆕 New Document</button>
+            </div>
         </div>
 
         <!-- Document Area -->
-        <div contenteditable="true" id="wordDocument" style="min-height: 400px; padding: 40px; background: white; border: 1px solid #ccc; font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5;">
-            <h1 style="text-align: center;">MEMO</h1>
-            <p><strong>TO:</strong> All Dispatch Staff<br>
-            <strong>FROM:</strong> [Your Name]<br>
-            <strong>DATE:</strong> <span id="currentDate"></span><br>
-            <strong>RE:</strong> Training Exercise</p>
-            
-            <p>Type your memo content here. Practice using keyboard shortcuts:</p>
-            <ul>
-                <li>Ctrl+B for Bold</li>
-                <li>Ctrl+I for Italic</li>
-                <li>Ctrl+S to Save</li>
-                <li>Ctrl+Z to Undo</li>
-            </ul>
-        </div>
+        <div contenteditable="true" id="wordDocument" class="office-document"></div>
 
-        <div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
-            <strong>Practice Tasks:</strong>
-            <ol>
-                <li>Format the heading as bold and centered</li>
-                <li>Add a table for shift schedules</li>
-                <li>Save your document with a meaningful name</li>
-            </ol>
+        <div class="task-checklist" id="wordTasksPanel">
+            <h4>📋 Practice Tasks</h4>
+            <div id="wordTasksList"></div>
         </div>
     </div>
 
     <!-- Excel/Spreadsheet -->
     <div id="excelTool" class="office-tool" style="display: none;">
         <h3>Spreadsheet Practice - Dispatcher Overtime Tracker</h3>
-        
+
         <!-- Excel Toolbar -->
-        <div class="excel-toolbar" style="background: #f0f0f0; padding: 10px; border-radius: 5px; margin-bottom: 10px;">
-            <button onclick="addRow()">➕ Add Row</button>
-            <button onclick="addColumn()">📊 Add Column</button>
-            <button onclick="autoSum()">Σ AutoSum</button>
-            <button onclick="calculateAverage()">📈 Average</button>
-            <button onclick="formatCells()">🎨 Format</button>
-            <button onclick="saveExcel()">💾 Save</button>
-            <button onclick="showPracticeTask('excel')" class="btn btn-success">📋 Get Practice Task</button>
-            <button onclick="conditionalFormat()">🎨 Color by Value</button>
+        <div class="office-toolbar excel-toolbar">
+            <div class="toolbar-group">
+                <button onclick="addRow()">➕ Add Row</button>
+                <button onclick="addColumn()">➕ Add Column</button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="autoSum()">Σ AutoSum</button>
+                <button onclick="calculateAverage()">📈 Average</button>
+                <button onclick="formatCells()">🎨 Bold Cell</button>
+                <button onclick="conditionalFormat()">🎨 Color by Value</button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="insertChart()">📊 Insert Chart</button>
+                <button onclick="saveExcel()">💾 Save</button>
+            </div>
+            <div class="toolbar-group">
+                <button onclick="newSpreadsheet()" title="Start a new blank spreadsheet">🆕 New Spreadsheet</button>
+            </div>
         </div>
 
         <!-- Spreadsheet Grid -->
-        <div style="overflow: auto; max-height: 500px;">
-            <table id="spreadsheet" style="width: 100%; border-collapse: collapse;">
-                <thead>
-                    <tr>
-                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;"></th>
-                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">A</th>
-                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">B</th>
-                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">C</th>
-                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">D</th>
-                        <th style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">E</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">1</td>
-                        <td contenteditable="true" class="cell" data-cell="A1" style="padding: 5px; border: 1px solid #ccc;">Employee Name</td>
-                        <td contenteditable="true" class="cell" data-cell="B1" style="padding: 5px; border: 1px solid #ccc;">Regular Hours</td>
-                        <td contenteditable="true" class="cell" data-cell="C1" style="padding: 5px; border: 1px solid #ccc;">Overtime Hours</td>
-                        <td contenteditable="true" class="cell" data-cell="D1" style="padding: 5px; border: 1px solid #ccc;">Total Hours</td>
-                        <td contenteditable="true" class="cell" data-cell="E1" style="padding: 5px; border: 1px solid #ccc;">Pay Rate</td>
-                    </tr>
-                    <tr>
-                        <td style="background: #e0e0e0; padding: 5px; border: 1px solid #999;">2</td>
-                        <td contenteditable="true" class="cell" data-cell="A2" style="padding: 5px; border: 1px solid #ccc;">John Smith</td>
-                        <td contenteditable="true" class="cell" data-cell="B2" style="padding: 5px; border: 1px solid #ccc;">40</td>
-                        <td contenteditable="true" class="cell" data-cell="C2" style="padding: 5px; border: 1px solid #ccc;">5</td>
-                        <td contenteditable="true" class="cell formula" data-cell="D2" style="padding: 5px; border: 1px solid #ccc;">=B2+C2</td>
-                        <td contenteditable="true" class="cell" data-cell="E2" style="padding: 5px; border: 1px solid #ccc;">25.00</td>
-                    </tr>
-                    <!-- Add more rows as needed -->
-                </tbody>
+        <div class="spreadsheet-scroll">
+            <table id="spreadsheet" class="office-spreadsheet">
+                <thead id="spreadsheetHead"></thead>
+                <tbody id="spreadsheetBody"></tbody>
             </table>
         </div>
 
-        <div style="margin-top: 10px; padding: 10px; background: #f9f9f9; border-radius: 5px;">
-            <strong>Formula Bar:</strong> <input type="text" id="formulaBar" style="width: 100%; padding: 5px; font-family: monospace;">
-            <br><br>
-            <strong>Practice Tasks:</strong>
-            <ol>
-                <li>Enter employee hours data</li>
-                <li>Use =B2+C2 to calculate total hours</li>
-                <li>Use =SUM(B2:B10) to total a column</li>
-                <li>Use =AVERAGE(D2:D10) for average hours</li>
-                <li>Format cells with borders and shading</li>
-            </ol>
+        <div class="formula-bar-row">
+            <strong>Formula Bar:</strong>
+            <input type="text" id="formulaBar" readonly placeholder="Click a formula cell to see it here">
+        </div>
+
+        <div id="excelCharts" class="excel-charts"></div>
+
+        <div class="task-checklist" id="excelTasksPanel">
+            <h4>📋 Practice Tasks</h4>
+            <div id="excelTasksList"></div>
         </div>
     </div>
 </div>
@@ -237,6 +210,10 @@
     
     <!-- Test Selection Buttons -->
     <div class="lesson-grid">
+        <div class="lesson-card" onclick="initTimedTest(0.5)">
+            <h3>30 Second Sprint</h3>
+            <p>Quick speed burst</p>
+        </div>
         <div class="lesson-card" onclick="initTimedTest(1)">
             <h3>1 Minute Test</h3>
             <p>Quick practice</p>
@@ -282,28 +259,45 @@
           
           <!-- Test History -->
           <div id="testHistory" style="margin-top: 30px; display: none;">
-              <h3>Your Test Results</h3>
+
+              <h3>📋 Practice Tests</h3>
+              <p style="color: #666; font-size: 14px; margin-top: -5px;">30-second, 1-minute, and 2-minute tests — great for building speed, but not graded. Newest first.</p>
+              <table style="width: 100%; border-collapse: collapse;">
+                  <thead>
+                      <tr style="background: #f5f5f5;">
+                          <th style="padding: 10px;">Date</th>
+                          <th style="padding: 10px;">Duration</th>
+                          <th style="padding: 10px;">WPM</th>
+                          <th style="padding: 10px;">Accuracy</th>
+                      </tr>
+                  </thead>
+                  <tbody id="practiceTestsBody"></tbody>
+              </table>
+              <p id="practiceTestsEmptyMsg" style="display: none; color: #888; padding: 15px 0;">No practice tests yet.</p>
+
+              <h3 style="margin-top: 35px;">⭐ 3-Minute Graded Tests</h3>
+              <p style="color: #666; font-size: 14px; margin-top: -5px;">Sorted by your best WPM, so your strongest attempts are right at the top. Select your best 5 to lock in for grading.</p>
               <table style="width: 100%; border-collapse: collapse;">
                   <thead>
                       <tr style="background: #f5f5f5;">
                           <th style="padding: 10px; width: 50px;">Select</th>
                           <th style="padding: 10px;">Date</th>
-                          <th style="padding: 10px;">Duration</th>
                           <th style="padding: 10px;">WPM</th>
                           <th style="padding: 10px;">Accuracy</th>
                           <th style="padding: 10px;">Status</th>
                       </tr>
                   </thead>
-                  <tbody id="testHistoryBody"></tbody>
+                  <tbody id="gradedTestsBody"></tbody>
               </table>
-              
+              <p id="gradedTestsEmptyMsg" style="display: none; color: #888; padding: 15px 0;">No 3-minute tests yet — take one above to get started.</p>
+
               <!-- Submit Button -->
               <div class="control-buttons" style="margin-top: 20px;">
-                  <button class="btn btn-success" onclick="submitSelectedTests()">
+                  <button class="btn btn-success" id="submitTestsBtn" onclick="submitSelectedTests()">
                       📝 Submit Selected for Grading (5 Required)
                   </button>
-                  <p style="color: #666; font-size: 14px; margin-top: 10px; text-align: center;">
-                      Select your best 5 three-minute tests to submit for grading. 
+                  <p style="color: #666; font-size: 14px; margin-top: 10px; text-align: center;" id="submitTestsHint">
+                      Select your best 5 three-minute tests to submit for grading.
                       You can take as many tests as you want, but only 5 will be graded.
                   </p>
               </div>
@@ -672,6 +666,11 @@
 
       // Build UI
       renderLessons();
+      document.getElementById('wordDocument').innerHTML = DEFAULT_WORD_TEMPLATE;
+      document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+      renderDefaultSpreadsheet();
+      renderTaskChecklist('word');
+      renderTaskChecklist('excel');
 
       // Load Firestore progress + recent attempts
       await Promise.all([loadProgressFromFirestore(user.uid), loadRecentAttempts(user.uid), loadWeeklyActivity(user.uid)]);
@@ -854,6 +853,7 @@
 
       if (tabName === 'progress') updateProgressReport();
       if (tabName === 'tests') loadTestHistory();  // Load test history when tests tab opens
+      if (tabName === 'office') loadOfficeTasksCompleted();
     }
 
     function updateProgressDisplay() {
@@ -1433,7 +1433,31 @@ function showOfficeTool(tool) {
     document.getElementById('excelTool').style.display = tool === 'excel' ? 'block' : 'none';
 }
 
-// Word Functions
+/***************
+ * WORD FUNCTIONS
+ ***************/
+const DEFAULT_WORD_TEMPLATE = `
+    <h1 style="text-align: center;">MEMO</h1>
+    <p><strong>TO:</strong> All Dispatch Staff<br>
+    <strong>FROM:</strong> [Your Name]<br>
+    <strong>DATE:</strong> <span id="currentDate"></span><br>
+    <strong>RE:</strong> Training Exercise</p>
+
+    <p>Type your memo content here. Practice using keyboard shortcuts:</p>
+    <ul>
+        <li>Ctrl+B for Bold</li>
+        <li>Ctrl+I for Italic</li>
+        <li>Ctrl+S to Save</li>
+        <li>Ctrl+Z to Undo</li>
+    </ul>
+`;
+
+function newWordDocument() {
+    if (!confirm('Start a new document? Any unsaved changes will be lost.')) return;
+    document.getElementById('wordDocument').innerHTML = DEFAULT_WORD_TEMPLATE;
+    document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
+}
+
 function formatText(command) {
     document.execCommand(command, false, null);
     document.getElementById('wordDocument').focus();
@@ -1466,54 +1490,45 @@ function saveWordDoc() {
     a.href = url;
     a.download = 'dispatch-memo.html';
     a.click();
-    alert('Document saved! In real Word, you would use File > Save or Ctrl+S');
+    saveOfficeProgress('Completed Word document practice');
 }
 
-// Excel Functions
-function calculateFormulas() {
-    document.querySelectorAll('.cell').forEach(cell => {
-        const content = cell.textContent;
-        if (content.startsWith('=')) {
-            try {
-                // Simple formula parser
-                let formula = content.substring(1);
-                
-                // Handle SUM
-                if (formula.includes('SUM')) {
-                    const range = formula.match(/([A-Z]\d+):([A-Z]\d+)/);
-                    if (range) {
-                        // Calculate sum (simplified)
-                        cell.textContent = '45'; // Placeholder
-                    }
-                }
-                // Handle basic math
-                else if (formula.includes('+')) {
-                    const parts = formula.split('+');
-                    let sum = 0;
-                    parts.forEach(part => {
-                        const cellRef = document.querySelector(`[data-cell="${part.trim()}"]`);
-                        if (cellRef) {
-                            sum += parseFloat(cellRef.textContent) || 0;
-                        }
-                    });
-                    cell.textContent = sum;
-                }
-            } catch (e) {
-                console.log('Formula error');
-            }
-        }
-    });
+// "Open" a document previously downloaded via Save - reads a local .html
+// file back into the editor. loadWordDoc()/printDoc() were referenced by
+// toolbar buttons but never actually implemented anywhere - both were dead,
+// broken buttons before this rewrite.
+function loadWordDoc() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = '.html,text/html';
+    input.onchange = () => {
+        const file = input.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            document.getElementById('wordDocument').innerHTML = reader.result;
+        };
+        reader.readAsText(file);
+    };
+    input.click();
 }
 
-function autoSum() {
-    alert('Click a cell, then select the range you want to sum. In real Excel, this would insert =SUM() automatically.');
+function printDoc() {
+    const content = document.getElementById('wordDocument').innerHTML;
+    const printWindow = window.open('', '_blank');
+    printWindow.document.write(`
+        <html>
+        <head><title>Print Document</title></head>
+        <body style="font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 1.5; padding: 40px;">
+            ${content}
+        </body>
+        </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
 }
 
-function saveExcel() {
-    alert('Spreadsheet saved! In real Excel, you would use File > Save or Ctrl+S');
-}
-
-// Word count feature
 function wordCount() {
     const content = document.getElementById('wordDocument').innerText;
     const words = content.trim().split(/\s+/).length;
@@ -1521,40 +1536,34 @@ function wordCount() {
     alert(`Word Count: ${words}\nCharacter Count: ${chars}\nTypical dispatch report: 150-300 words`);
 }
 
-// Find and Replace
 function findReplace() {
     const find = prompt('Find what:');
     if (!find) return;
     const replace = prompt('Replace with:');
     if (replace === null) return;
-    
+
     const doc = document.getElementById('wordDocument');
     const content = doc.innerHTML;
     const newContent = content.replaceAll(find, `<mark style="background: yellow;">${replace}</mark>`);
     doc.innerHTML = newContent;
-    
+
     setTimeout(() => {
         doc.innerHTML = doc.innerHTML.replaceAll('<mark style="background: yellow;">', '').replaceAll('</mark>', '');
     }, 2000);
 }
 
-// Insert current date/time (useful for dispatch logs)
 function insertDateTime() {
     const now = new Date();
     const dateTime = now.toLocaleString('en-CA');
     document.execCommand('insertText', false, dateTime);
 }
 
-// Text to uppercase (for codes/alerts)
 function toUpperCase() {
     const selection = window.getSelection().toString();
     if (selection) {
         document.execCommand('insertText', false, selection.toUpperCase());
     }
 }
-    
-// Initialize
-document.getElementById('currentDate').textContent = new Date().toLocaleDateString();
 
 // Add keyboard shortcuts
 document.addEventListener('keydown', function(e) {
@@ -1568,92 +1577,333 @@ document.addEventListener('keydown', function(e) {
     }
 });
 
-// Calculate Excel formulas on blur
-document.addEventListener('blur', function(e) {
-    if (e.target.classList.contains('cell')) {
-        calculateFormulas();
+/***************
+ * EXCEL - FORMULA ENGINE
+ * A small, real, safe expression evaluator (no eval()/Function()). Supports:
+ *   - Range functions: SUM/AVERAGE/MIN/MAX/COUNT over a same-row or
+ *     same-column range, e.g. =SUM(B2:B5)
+ *   - Arithmetic between cell refs and numbers: + - * / and parentheses,
+ *     e.g. =(B2+C2)*E2
+ ***************/
+function parseCellRef(ref) {
+    const m = ref.trim().match(/^([A-Za-z]+)(\d+)$/);
+    if (!m) return null;
+    return { col: m[1].toUpperCase(), row: parseInt(m[2], 10) };
+}
+
+function resolveRange(startRef, endRef) {
+    const start = parseCellRef(startRef);
+    const end = parseCellRef(endRef);
+    if (!start || !end) return { error: `Invalid range "${startRef}:${endRef}"` };
+
+    const refs = [];
+    if (start.col === end.col) {
+        const lo = Math.min(start.row, end.row), hi = Math.max(start.row, end.row);
+        for (let r = lo; r <= hi; r++) refs.push(start.col + r);
+    } else if (start.row === end.row) {
+        const loCode = Math.min(start.col.charCodeAt(0), end.col.charCodeAt(0));
+        const hiCode = Math.max(start.col.charCodeAt(0), end.col.charCodeAt(0));
+        for (let c = loCode; c <= hiCode; c++) refs.push(String.fromCharCode(c) + start.row);
+    } else {
+        return { error: 'Only same-row or same-column ranges are supported' };
     }
-}, true);
+    return { refs };
+}
 
-    // function to track when they complete office tasks
-async function saveOfficeProgress(activity) {
-    const u = auth.currentUser;
-    if (!u) return;
-    
-    const userDoc = db.collection('users').doc(u.uid);
-    await userDoc.collection('officeProgress').add({
-        activity: activity, // e.g., "Saved Word document", "Created Excel formula"
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+function getCellValue(ref, depth) {
+    depth = depth || 0;
+    if (depth > 10) return { error: `Circular reference at ${ref}` };
+    const cell = document.querySelector(`#spreadsheet .cell[data-cell="${ref}"]`);
+    if (!cell) return { value: 0 }; // reference outside the sheet - treat as blank
+
+    if (cell.dataset.formula) {
+        return evaluateFormula(cell.dataset.formula, depth + 1);
+    }
+    const text = cell.textContent.trim();
+    if (text === '') return { value: 0 };
+    const num = parseFloat(text);
+    if (isNaN(num)) return { error: `${ref} is not a number` };
+    return { value: num };
+}
+
+function tokenizeExpression(str) {
+    const tokens = [];
+    let i = 0;
+    while (i < str.length) {
+        const ch = str[i];
+        if (/\s/.test(ch)) { i++; continue; }
+        if ('+-*/()'.includes(ch)) { tokens.push({ type: ch }); i++; continue; }
+        if (/[A-Za-z]/.test(ch)) {
+            let j = i;
+            while (j < str.length && /[A-Za-z]/.test(str[j])) j++;
+            const letters = str.slice(i, j);
+            let k = j;
+            while (k < str.length && /\d/.test(str[k])) k++;
+            if (k === j) throw new Error(`Invalid reference near "${letters}"`);
+            tokens.push({ type: 'ref', value: letters.toUpperCase() + str.slice(j, k) });
+            i = k;
+            continue;
+        }
+        if (/[\d.]/.test(ch)) {
+            let j = i;
+            while (j < str.length && /[\d.]/.test(str[j])) j++;
+            const num = parseFloat(str.slice(i, j));
+            if (isNaN(num)) throw new Error(`Invalid number near "${str.slice(i, j)}"`);
+            tokens.push({ type: 'num', value: num });
+            i = j;
+            continue;
+        }
+        throw new Error(`Unexpected character "${ch}"`);
+    }
+    return tokens;
+}
+
+function parseExpression(p) {
+    let left = parseTerm(p);
+    if (left.error) return left;
+    while (p.pos < p.tokens.length && (p.tokens[p.pos].type === '+' || p.tokens[p.pos].type === '-')) {
+        const op = p.tokens[p.pos].type;
+        p.pos++;
+        const right = parseTerm(p);
+        if (right.error) return right;
+        left = { value: op === '+' ? left.value + right.value : left.value - right.value };
+    }
+    return left;
+}
+
+function parseTerm(p) {
+    let left = parseFactor(p);
+    if (left.error) return left;
+    while (p.pos < p.tokens.length && (p.tokens[p.pos].type === '*' || p.tokens[p.pos].type === '/')) {
+        const op = p.tokens[p.pos].type;
+        p.pos++;
+        const right = parseFactor(p);
+        if (right.error) return right;
+        if (op === '/' && right.value === 0) return { error: 'Division by zero' };
+        left = { value: op === '*' ? left.value * right.value : left.value / right.value };
+    }
+    return left;
+}
+
+function parseFactor(p) {
+    if (p.pos >= p.tokens.length) return { error: 'Unexpected end of formula' };
+    const token = p.tokens[p.pos];
+
+    if (token.type === '-') {
+        p.pos++;
+        const val = parseFactor(p);
+        if (val.error) return val;
+        return { value: -val.value };
+    }
+    if (token.type === '(') {
+        p.pos++;
+        const val = parseExpression(p);
+        if (val.error) return val;
+        if (p.pos >= p.tokens.length || p.tokens[p.pos].type !== ')') {
+            return { error: 'Missing closing parenthesis' };
+        }
+        p.pos++;
+        return val;
+    }
+    if (token.type === 'num') {
+        p.pos++;
+        return { value: token.value };
+    }
+    if (token.type === 'ref') {
+        p.pos++;
+        return getCellValue(token.value, p.depth);
+    }
+    return { error: 'Unexpected token in formula' };
+}
+
+const RANGE_FUNCTIONS = ['SUM', 'AVERAGE', 'MIN', 'MAX', 'COUNT'];
+
+function evaluateFormula(rawFormula, depth) {
+    depth = depth || 0;
+    if (depth > 10) return { error: 'Formula too deeply nested (possible circular reference)' };
+
+    const formula = rawFormula.trim().replace(/^=/, '');
+    if (formula === '') return { error: 'Empty formula' };
+
+    const fnMatch = formula.match(/^([A-Za-z]+)\(\s*([A-Za-z]+\d+)\s*:\s*([A-Za-z]+\d+)\s*\)$/);
+    if (fnMatch) {
+        const fnName = fnMatch[1].toUpperCase();
+        if (!RANGE_FUNCTIONS.includes(fnName)) {
+            return { error: `Unknown function ${fnName}` };
+        }
+        const range = resolveRange(fnMatch[2], fnMatch[3]);
+        if (range.error) return range;
+
+        const values = [];
+        for (const ref of range.refs) {
+            const v = getCellValue(ref, depth + 1);
+            if (v.error) return v;
+            values.push(v.value);
+        }
+        if (values.length === 0) return { error: 'Empty range' };
+
+        switch (fnName) {
+            case 'SUM': return { value: values.reduce((a, b) => a + b, 0) };
+            case 'AVERAGE': return { value: values.reduce((a, b) => a + b, 0) / values.length };
+            case 'MIN': return { value: Math.min(...values) };
+            case 'MAX': return { value: Math.max(...values) };
+            case 'COUNT': return { value: values.length };
+        }
+    }
+
+    try {
+        const tokens = tokenizeExpression(formula);
+        const parser = { tokens, pos: 0, depth: depth + 1 };
+        const result = parseExpression(parser);
+        if (result.error) return result;
+        if (parser.pos < tokens.length) return { error: 'Unexpected characters in formula' };
+        return { value: result.value };
+    } catch (e) {
+        return { error: e.message || 'Invalid formula' };
+    }
+}
+
+function applyFormulaToCell(cell) {
+    const result = evaluateFormula(cell.dataset.formula);
+    if (result.error) {
+        cell.textContent = '#ERROR';
+        cell.title = result.error;
+        cell.classList.add('cell-error');
+    } else {
+        const rounded = Math.round(result.value * 100) / 100;
+        cell.textContent = String(rounded);
+        cell.title = cell.dataset.formula;
+        cell.classList.remove('cell-error');
+    }
+}
+
+function recalculateAllFormulas() {
+    document.querySelectorAll('#spreadsheet .cell').forEach(cell => {
+        if (cell.dataset.formula) applyFormulaToCell(cell);
     });
-    
-    alert('Progress saved!');
 }
 
-// Modify the save functions to track progress:
-function saveWordDoc() {
-    const content = document.getElementById('wordDocument').innerHTML;
-    const blob = new Blob([content], { type: 'text/html' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'dispatch-memo.html';
-    a.click();
-    
-    // Track this activity
-    saveOfficeProgress('Completed Word document practice');
+/***************
+ * EXCEL - GRID / TOOLBAR
+ ***************/
+let excelColumnCount = 5;
+let lastFocusedCell = null;
+
+function columnLetter(index) {
+    return String.fromCharCode(65 + index);
 }
 
-function saveExcel() {
-    // Track this activity
-    saveOfficeProgress('Completed Excel spreadsheet practice');
-    alert('Spreadsheet practice completed!');
+function renderSpreadsheetHeader() {
+    let html = '<tr><th class="row-header"></th>';
+    for (let i = 0; i < excelColumnCount; i++) {
+        html += `<th class="col-header">${columnLetter(i)}</th>`;
+    }
+    html += '</tr>';
+    document.getElementById('spreadsheetHead').innerHTML = html;
+}
+
+// values: array of strings for each column in this row. A value starting
+// with "=" is stored as a live formula rather than literal text.
+function appendSpreadsheetRow(values) {
+    const tbody = document.getElementById('spreadsheetBody');
+    const rowNumber = tbody.rows.length + 1;
+    const tr = document.createElement('tr');
+
+    let html = `<td class="row-header">${rowNumber}</td>`;
+    for (let i = 0; i < excelColumnCount; i++) {
+        html += `<td contenteditable="true" class="cell" data-cell="${columnLetter(i)}${rowNumber}"></td>`;
+    }
+    tr.innerHTML = html;
+    tbody.appendChild(tr);
+
+    const cells = tr.querySelectorAll('.cell');
+    (values || []).forEach((val, i) => {
+        if (val === undefined || !cells[i]) return;
+        if (typeof val === 'string' && val.trim().startsWith('=')) {
+            cells[i].dataset.formula = val.trim();
+        } else {
+            cells[i].textContent = val;
+        }
+    });
+}
+
+const DEFAULT_SPREADSHEET_ROWS = [
+    ['Employee Name', 'Regular Hours', 'Overtime Hours', 'Total Hours', 'Pay Rate'],
+    ['John Smith', '40', '5', '=B2+C2', '25.00']
+];
+
+function renderDefaultSpreadsheet() {
+    excelColumnCount = 5;
+    renderSpreadsheetHeader();
+    document.getElementById('spreadsheetBody').innerHTML = '';
+    DEFAULT_SPREADSHEET_ROWS.forEach(row => appendSpreadsheetRow(row));
+    document.getElementById('excelCharts').innerHTML = '';
+    document.getElementById('formulaBar').value = '';
+    recalculateAllFormulas();
+}
+
+function newSpreadsheet() {
+    if (!confirm('Start a new spreadsheet? Any unsaved changes and charts will be lost.')) return;
+    renderDefaultSpreadsheet();
 }
 
 function addRow() {
-    const table = document.getElementById('spreadsheet').getElementsByTagName('tbody')[0];
-    const rowCount = table.rows.length + 1;
-    const newRow = table.insertRow();
-    
-    // Row number cell
-    const cellNum = newRow.insertCell(0);
-    cellNum.style = "background: #e0e0e0; padding: 5px; border: 1px solid #999;";
-    cellNum.textContent = rowCount;
-    
-    // Data cells A-E
-    for (let i = 0; i < 5; i++) {
-        const cell = newRow.insertCell(i + 1);
-        cell.contentEditable = true;
-        cell.className = "cell";
-        cell.dataset.cell = String.fromCharCode(65 + i) + rowCount;
-        cell.style = "padding: 5px; border: 1px solid #ccc;";
-    }
-    alert('Row added!');
+    appendSpreadsheetRow([]);
 }
 
 function addColumn() {
-    alert('In a real spreadsheet, this would add a new column. For this practice, we have columns A-E available.');
+    if (excelColumnCount >= 26) {
+        alert('Maximum of 26 columns (A-Z) reached.');
+        return;
+    }
+    const newIndex = excelColumnCount;
+    excelColumnCount++;
+    renderSpreadsheetHeader();
+
+    document.querySelectorAll('#spreadsheetBody tr').forEach((tr, i) => {
+        const rowNumber = i + 1;
+        const td = document.createElement('td');
+        td.contentEditable = 'true';
+        td.className = 'cell';
+        td.dataset.cell = columnLetter(newIndex) + rowNumber;
+        tr.appendChild(td);
+    });
+}
+
+function insertRangeFormula(fnName) {
+    const targetCell = prompt(`Which cell should hold the ${fnName.toLowerCase()}? (e.g. D6)`);
+    if (!targetCell) return;
+    const range = prompt(`Range to ${fnName.toLowerCase()}? (e.g. B2:B5)`);
+    if (!range) return;
+
+    const cell = document.querySelector(`#spreadsheet .cell[data-cell="${targetCell.trim().toUpperCase()}"]`);
+    if (!cell) {
+        alert(`Cell ${targetCell} doesn't exist on this sheet.`);
+        return;
+    }
+    cell.dataset.formula = `=${fnName}(${range.trim().toUpperCase()})`;
+    recalculateAllFormulas();
 }
 
 function autoSum() {
-    const selection = prompt('Enter the range to sum (e.g., B2:B5):');
-    if (selection) {
-        alert(`In Excel, this would create =SUM(${selection}). Type this formula in a cell to practice!`);
-    }
+    insertRangeFormula('SUM');
 }
 
 function calculateAverage() {
-    const selection = prompt('Enter the range to average (e.g., C2:C5):');
-    if (selection) {
-        alert(`In Excel, this would create =AVERAGE(${selection}). Type this formula in a cell to practice!`);
-    }
+    insertRangeFormula('AVERAGE');
 }
 
 function formatCells() {
-    alert('Select cells and use these shortcuts:\nCtrl+B for Bold\nCtrl+I for Italic\nIn real Excel, you would right-click and choose Format Cells');
+    if (!lastFocusedCell) {
+        alert('Click into a cell first, then use this button to bold it.');
+        return;
+    }
+    lastFocusedCell.focus();
+    document.execCommand('bold', false, null);
 }
 
 function conditionalFormat() {
-    document.querySelectorAll('.cell').forEach(cell => {
+    document.querySelectorAll('#spreadsheet .cell').forEach(cell => {
         const value = parseFloat(cell.textContent);
         if (!isNaN(value)) {
             if (value > 40) {
@@ -1668,102 +1918,254 @@ function conditionalFormat() {
     alert('Cells formatted! Red = Overtime, Green = Normal hours, Yellow = Under hours');
 }
 
-// Sort column
-function sortColumn() {
-    const col = prompt('Which column to sort? (A, B, C, D, or E)');
-    if (!col || !'ABCDE'.includes(col.toUpperCase())) return;
-    
-    alert(`In Excel, this would sort column ${col}. Click Data > Sort to practice!`);
+function saveExcel() {
+    saveOfficeProgress('Completed Excel spreadsheet practice');
 }
 
-// Quick fill series (like Excel's drag fill)
-function fillSeries() {
-    const start = prompt('Enter starting value:');
-    const increment = prompt('Enter increment (e.g., 1 for 1,2,3...):');
-    
-    if (start && increment) {
-        let val = parseFloat(start);
-        const inc = parseFloat(increment);
-        
-        document.querySelectorAll('.cell[data-cell^="A"]').forEach((cell, index) => {
-            if (index > 0 && index < 6) {
-                cell.textContent = val;
-                val += inc;
-            }
-        });
+// Focus/blur handling: focusing a formula cell shows its raw formula (both
+// in the cell itself and the Formula Bar) so it can be reviewed/re-entered;
+// blurring commits whatever's there back as either a formula or plain value,
+// then recalculates every formula cell (so cells depending on the one that
+// changed stay up to date).
+document.addEventListener('focus', function(e) {
+    if (!e.target.classList || !e.target.classList.contains('cell')) return;
+    const cell = e.target;
+    lastFocusedCell = cell;
+    if (cell.dataset.formula) cell.textContent = cell.dataset.formula;
+    document.getElementById('formulaBar').value = cell.dataset.formula || cell.textContent;
+}, true);
+
+document.addEventListener('blur', function(e) {
+    if (!e.target.classList || !e.target.classList.contains('cell')) return;
+    const cell = e.target;
+    const text = cell.textContent.trim();
+    if (text.startsWith('=')) {
+        cell.dataset.formula = text;
+    } else {
+        delete cell.dataset.formula;
     }
+    recalculateAllFormulas();
+}, true);
+
+/***************
+ * EXCEL - CHARTS
+ ***************/
+let chartCounter = 0;
+
+function insertChart() {
+    const labelRange = prompt('Range for chart labels? (e.g. A2:A5)');
+    if (!labelRange) return;
+    const valueRange = prompt('Range for chart values? (e.g. D2:D5)');
+    if (!valueRange) return;
+
+    const labelParts = labelRange.trim().toUpperCase().split(':');
+    const valueParts = valueRange.trim().toUpperCase().split(':');
+    if (labelParts.length !== 2 || valueParts.length !== 2) {
+        alert('Please enter ranges like A2:A5.');
+        return;
+    }
+
+    const labelRefs = resolveRange(labelParts[0], labelParts[1]);
+    const valueRefs = resolveRange(valueParts[0], valueParts[1]);
+    if (labelRefs.error) { alert(labelRefs.error); return; }
+    if (valueRefs.error) { alert(valueRefs.error); return; }
+
+    const labels = labelRefs.refs.map(ref => {
+        const cell = document.querySelector(`#spreadsheet .cell[data-cell="${ref}"]`);
+        return cell ? cell.textContent.trim() : ref;
+    });
+
+    const values = [];
+    for (const ref of valueRefs.refs) {
+        const v = getCellValue(ref);
+        if (v.error) { alert(`Could not read value from ${ref}: ${v.error}`); return; }
+        values.push(v.value);
+    }
+
+    const typeInput = (prompt('Chart type? Type "bar" or "line"', 'bar') || '').trim().toLowerCase();
+    const chartType = typeInput === 'line' ? 'line' : 'bar';
+
+    chartCounter++;
+    const chartId = `excelChart${chartCounter}`;
+    const wrapper = document.createElement('div');
+    wrapper.className = 'excel-chart-card';
+    wrapper.innerHTML = `
+        <button class="chart-remove-btn" onclick="this.parentElement.remove()" title="Remove chart">✕</button>
+        <canvas id="${chartId}"></canvas>
+    `;
+    document.getElementById('excelCharts').appendChild(wrapper);
+
+    new Chart(document.getElementById(chartId), {
+        type: chartType,
+        data: {
+            labels: labels,
+            datasets: [{
+                label: valueRange.toUpperCase(),
+                data: values,
+                backgroundColor: 'rgba(0, 86, 179, 0.5)',
+                borderColor: 'rgba(0, 86, 179, 1)',
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true } }
+        }
+    });
+}
+
+/***************
+ * OFFICE PROGRESS TRACKING
+ ***************/
+// Accepts either a plain activity string (used by saveWordDoc/saveExcel) or
+// a structured { type, taskTitle } object (used by the task checklist).
+async function saveOfficeProgress(activity) {
+    const u = auth.currentUser;
+    if (!u) return;
+
+    const data = typeof activity === 'string'
+        ? { activity }
+        : { type: activity.type, taskTitle: activity.taskTitle };
+
+    await db.collection('users').doc(u.uid).collection('officeProgress').add({
+        ...data,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
 }
 
 const practiceTasks = {
     word: [
         {
             title: "Incident Report",
-            instruction: "Create an incident report with: Date/Time, Location, Units Responding, Description",
+            instruction: "Create an incident report with: Date/Time, Location, Units Responding, Description.",
+            example: "DATE: Sept 25, 2026, 14:32\nLOCATION: 123 Main St\nUNITS RESPONDING: Engine 4, Ambulance 2\nDESCRIPTION: Structure fire reported, smoke visible from 2nd floor.",
             check: "Does your report include all required fields?"
         },
         {
             title: "Shift Schedule",
-            instruction: "Create a table showing: Employee Name, Shift Time, Position, Badge Number",
+            instruction: "Use the 📋 Table button to insert a table, then fill it in with: Employee Name, Shift Time, Position, Badge Number.",
+            example: "Employee | Shift | Position | Badge #\nJ. Smith | 07:00-15:00 | Dispatcher | 214",
             check: "Is your table properly formatted with headers?"
         },
         {
             title: "Emergency Bulletin",
-            instruction: "Format an urgent notice: Use CAPS for 'URGENT', bold the main message, add timestamp",
+            instruction: "Format an urgent notice: use 🔠 CAPS for 'URGENT', bold the main message, and add a timestamp with the 📅 Date button.",
+            example: "URGENT: All units respond to Highway 401 multi-vehicle collision. [timestamp]",
             check: "Is the urgency clear at first glance?"
+        },
+        {
+            title: "Staff Memo",
+            instruction: "Fill in the memo template's RE line with a schedule-change topic, then write 2-3 sentences explaining the change.",
+            example: "RE: Holiday Schedule Change\nAll staff must submit availability by Friday at 5pm.",
+            check: "Would a coworker understand the change just from the heading?"
+        },
+        {
+            title: "Find & Replace Practice",
+            instruction: "Type a short paragraph that uses the word \"unit\" three or four times, then use 🔍 Find to replace every \"unit\" with \"vehicle\".",
+            example: "Unit 4 responded to the call. Unit 4 arrived on scene. Unit 4 cleared at 15:10.",
+            check: "Did every instance actually get replaced?"
+        },
+        {
+            title: "Word Count Check",
+            instruction: "Write a short incident summary, then click 📊 Count and check it falls in the typical 150-300 word range.",
+            example: "(aim for roughly 150-300 words describing an incident from start to finish)",
+            check: "Is your summary within the target word count?"
         }
     ],
     excel: [
         {
             title: "Overtime Calculator",
-            instruction: "Enter hours for 5 employees. Use =B2+C2 to calculate total hours",
-            check: "Do your formulas calculate correctly?"
+            instruction: "Enter hours for 5 employees in columns B (Regular) and C (Overtime). In column D, use =B2+C2 to calculate total hours.",
+            example: "=B2+C2",
+            check: "Do your formulas calculate correctly for every row?"
+        },
+        {
+            title: "Total Pay Calculator",
+            instruction: "Use ➕ Add Column to add a \"Total Pay\" column. Overtime hours are paid at 1.5x the regular rate: Total Pay = (Regular Hours × Rate) + (Overtime Hours × Rate × 1.5).",
+            example: "=(B2*E2)+(C2*E2*1.5)",
+            check: "For 5 overtime hours at $25/hr, does that add exactly $187.50 to their pay?"
         },
         {
             title: "Shift Coverage",
-            instruction: "Create a weekly schedule grid showing who covers each shift",
+            instruction: "Create a weekly schedule grid: one row per employee, one column per day, showing which shift they cover.",
+            example: "Row: J. Smith | Mon: 07:00-15:00 | Tue: OFF | Wed: 07:00-15:00 ...",
             check: "Can you see at a glance who works when?"
         },
         {
             title: "Response Time Tracker",
-            instruction: "Track call times and use =AVERAGE to find average response time",
-            check: "What's the average response time?"
+            instruction: "Enter call response times in a column, then use =AVERAGE to find the average response time.",
+            example: "=AVERAGE(D2:D6)",
+            check: "What's the average response time you calculated?"
+        },
+        {
+            title: "Highest and Lowest Hours",
+            instruction: "Use =MAX and =MIN on your Total Hours column to find who worked the most and least this week.",
+            example: "=MAX(D2:D6)   and   =MIN(D2:D6)",
+            check: "Who's working the most, and who's working the least?"
+        },
+        {
+            title: "Color-Code Overtime",
+            instruction: "With hours entered, click 🎨 Color by Value to automatically flag anyone working overtime (over 40 hours).",
+            example: "(just click the button once your hours data is entered)",
+            check: "Are the overtime employees clearly highlighted in red?"
+        },
+        {
+            title: "Overtime Chart",
+            instruction: "Use 📊 Insert Chart to chart total hours against employee names.",
+            example: "Labels: A2:A6   Values: D2:D6",
+            check: "Does the chart clearly show who's working the most hours?"
         }
     ]
 };
 
-function showPracticeTask(type) {
-    const tasks = practiceTasks[type];
-    const task = tasks[Math.floor(Math.random() * tasks.length)];
-    
-    const taskDiv = document.createElement('div');
-    taskDiv.style = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        background: #fff3cd;
-        border: 2px solid #ffc107;
-        padding: 20px;
-        border-radius: 10px;
-        max-width: 300px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        z-index: 1000;
-    `;
-    
-    taskDiv.innerHTML = `
-        <h4 style="margin-top: 0;">📋 Practice Task</h4>
-        <strong>${task.title}</strong>
-        <p>${task.instruction}</p>
-        <p style="font-style: italic;">${task.check}</p>
-        <button onclick="this.parentElement.remove()">Close</button>
-        <button onclick="completePracticeTask('${type}', '${task.title}')">Mark Complete</button>
-    `;
-    
-    document.body.appendChild(taskDiv);
+// { word: Set<taskTitle>, excel: Set<taskTitle> } of completed tasks for
+// the signed-in student, loaded from Firestore when the Office tab opens.
+let officeTasksCompleted = { word: new Set(), excel: new Set() };
+
+async function loadOfficeTasksCompleted() {
+    const u = auth.currentUser;
+    if (!u) return;
+
+    const snap = await db.collection('users').doc(u.uid).collection('officeProgress').get();
+    officeTasksCompleted = { word: new Set(), excel: new Set() };
+    snap.forEach(doc => {
+        const data = doc.data();
+        if (data.type && data.taskTitle && officeTasksCompleted[data.type]) {
+            officeTasksCompleted[data.type].add(data.taskTitle);
+        }
+    });
+
+    renderTaskChecklist('word');
+    renderTaskChecklist('excel');
 }
 
-function completePracticeTask(type, title) {
-    saveOfficeProgress(`Completed ${type} task: ${title}`);
-    document.querySelector('[onclick*="completePracticeTask"]').parentElement.remove();
+function renderTaskChecklist(type) {
+    const container = document.getElementById(`${type}TasksList`);
+    if (!container) return;
+
+    container.innerHTML = practiceTasks[type].map(task => {
+        const done = officeTasksCompleted[type] && officeTasksCompleted[type].has(task.title);
+        const safeTitle = task.title.replace(/'/g, "\\'");
+        return `
+            <div class="task-item ${done ? 'task-done' : ''}">
+                <div class="task-item-header">
+                    <strong>${done ? '✅' : '⬜'} ${task.title}</strong>
+                    ${done ? '' : `<button onclick="completePracticeTask('${type}', '${safeTitle}')">Mark Complete</button>`}
+                </div>
+                <p>${task.instruction}</p>
+                ${task.example ? `<div class="task-example"><span class="task-example-label">Example:</span>${task.example}</div>` : ''}
+                <p class="task-check">${task.check}</p>
+            </div>
+        `;
+    }).join('');
+}
+
+async function completePracticeTask(type, title) {
+    await saveOfficeProgress({ type, taskTitle: title });
+    if (!officeTasksCompleted[type]) officeTasksCompleted[type] = new Set();
+    officeTasksCompleted[type].add(title);
+    renderTaskChecklist(type);
 }
 
 // Timed Test System
@@ -1785,28 +2187,84 @@ const testTexts = [
     
     "Professional communication is vital in emergency services. Clear and concise messages prevent misunderstandings that could delay response times. Dispatchers must remain calm even in the most stressful situations.",
     
-    "Shift schedules in dispatch centers ensure twenty four hour coverage seven days a week. Staff rotations are carefully planned to maintain alertness and prevent fatigue. Backup dispatchers are always available for high volume periods."
+    "Shift schedules in dispatch centers ensure twenty four hour coverage seven days a week. Staff rotations are carefully planned to maintain alertness and prevent fatigue. Backup dispatchers are always available for high volume periods.",
+
+    "Active listening is one of the most important skills a dispatcher can develop. Callers are often frightened, injured, or in shock, and may struggle to explain what is happening. A calm, steady voice can help a caller focus and provide the details responders need.",
+
+    "Every dispatch center maintains detailed logs of incoming calls, dispatched units, and response times. These records support quality assurance reviews, training programs, and legal proceedings. Accuracy in data entry is just as important as speed.",
+
+    "Multitasking is a core requirement of dispatch work. An operator may be entering caller information, monitoring radio traffic, and tracking multiple active incidents all at once. Strong organizational habits prevent critical details from being missed.",
+
+    "Priority dispatching means the most urgent calls are handled first, regardless of the order they were received. Life threatening emergencies always take precedence over property related incidents. Dispatchers are trained to make these judgment calls quickly.",
+
+    "Mutual aid agreements allow neighboring agencies to assist one another during large scale incidents. Dispatchers coordinate these requests, ensuring that additional units, equipment, or personnel arrive where they are needed most.",
+
+    "Cross referencing caller information against existing records can reveal important details, such as prior incidents at the same address or known hazards. This extra layer of verification helps keep responders safer in the field.",
+
+    "New dispatchers typically complete an extensive training period before working independently. This includes classroom instruction, simulated call scenarios, and supervised shifts. Confidence and accuracy both improve significantly with repetition.",
+
+    "Clear radio etiquette keeps communication channels organized during busy periods. Using standardized phrases and avoiding unnecessary chatter ensures that critical transmissions are heard and understood the first time.",
+
+    "During severe weather events, call volumes can increase dramatically in a very short period. Dispatch centers activate additional staffing plans to manage the surge, while still maintaining accuracy and professionalism on every call.",
+
+    "Documentation errors, even small ones, can have significant consequences in emergency response. A misspelled street name or transposed phone number can delay help from reaching someone who needs it. Attention to detail is not optional in this field.",
+
+    "Dispatchers often serve as a lifeline for callers experiencing the worst moment of their lives. Providing clear pre arrival instructions, such as basic first aid steps, can make a real difference before responders arrive on scene.",
+
+    "Interagency communication between police, fire, and emergency medical services requires precise terminology. Dispatchers must understand each service's protocols to relay information accurately and avoid costly misunderstandings.",
+
+    "Technology continues to change how dispatch centers operate, from automatic location detection on cell phone calls to text to nine one one services. Staying current with these systems is an ongoing part of the job.",
+
+    "A calm and professional tone can de-escalate a tense situation even over the phone. Dispatchers are trained to project confidence, ask clear questions, and keep callers informed about what happens next while help is on the way."
 ];
+
+// Human-friendly label for a test duration, e.g. 0.5 -> "30 sec", 3 -> "3 min"
+function formatTestDuration(minutes) {
+    return minutes < 1 ? `${Math.round(minutes * 60)} sec` : `${minutes} min`;
+}
+
+// Shuffled copy of an array (Fisher-Yates) - lets us pick several texts
+// without repeating one until every other text has had a turn.
+function shuffleCopy(arr) {
+    const copy = [...arr];
+    for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+}
+
+// Pulls the next paragraph from the current test's shuffled pool, reshuffling
+// once every paragraph has had a turn, so it cycles through all of them
+// before any paragraph can repeat.
+function nextTimedTestText() {
+    if (timedTest.poolIndex >= timedTest.textPool.length) {
+        timedTest.textPool = shuffleCopy(testTexts);
+        timedTest.poolIndex = 0;
+    }
+    return timedTest.textPool[timedTest.poolIndex++];
+}
 
 function initTimedTest(minutes) {
    // Reset any previous timer/state
   if (timedTest.timer) clearInterval(timedTest.timer);
-  timedTest = { duration: minutes * 60, timeLeft: 0, timer: null, startTime: null, testType: minutes };
-    
+  timedTest = { duration: minutes * 60, timeLeft: 0, timer: null, startTime: null, testType: minutes, textPool: shuffleCopy(testTexts), poolIndex: 0 };
+
     // Show test interface
     document.getElementById('timedTestArea').style.display = 'block';
-    document.getElementById('timedTestTitle').textContent = `${minutes} Minute Typing Test`;
-    
-    // Select random text(s) based on duration
+    document.getElementById('timedTestTitle').textContent = `${formatTestDuration(minutes)} Typing Test`;
+
+    // Select random text(s) based on duration - draws from a shuffled pool so
+    // the same paragraph can't appear twice until every other one has been used.
     let testContent = "";
-    const textCount = minutes; // Use more texts for longer tests
+    const textCount = Math.max(1, Math.round(minutes));
     for (let i = 0; i < textCount; i++) {
-        testContent += testTexts[Math.floor(Math.random() * testTexts.length)] + " ";
+        testContent += nextTimedTestText() + " ";
     }
-    
+
     document.getElementById('timedTestPrompt').textContent = testContent;
     document.getElementById('timedTestInput').value = '';
-    document.getElementById('timeRemaining').textContent = `${minutes}:00`;
+    document.getElementById('timeRemaining').textContent = minutes < 1 ? `0:${String(Math.round(minutes * 60)).padStart(2, '0')}` : `${minutes}:00`;
     document.getElementById('startTimedBtn').disabled = false;
 }
 
@@ -1850,9 +2308,10 @@ function maybeExtendTimedPrompt(currentTypedLen) {
   temp.innerHTML = promptEl.innerHTML;
   const currentPrompt = temp.textContent || temp.innerText || '';
 
-  // If they are within 80 chars of the end, append another random test text
+  // If they are within 80 chars of the end, append another test text -
+  // drawn from the same non-repeating pool as the rest of this test.
   if (currentPrompt.length - currentTypedLen < 80) {
-    const extra = testTexts[Math.floor(Math.random() * testTexts.length)] + ' ';
+    const extra = nextTimedTestText() + ' ';
     const extended = currentPrompt + extra;
     // Re-render highlighted view against the new extended text
     updateTimedPromptDisplay(document.getElementById('timedTestInput').value, extended);
@@ -1919,18 +2378,20 @@ function finishTimedTest() {
                 ? `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\n⭐ This 3-minute test is ready to submit for grading.\n\nScroll down to see your test results. Select your best 5 tests and click "Submit Selected for Grading".`
                 : `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\nPractice test - not graded.`;
             alert(message);
-            
-            // Add to table with the document ID
-            addToTestHistory(result);
+
+            // Reload the full history so everything stays correctly grouped/sorted
+            loadTestHistory();
+            scrollToTestHistory();
         }).catch(error => {
             console.error('Error saving test:', error);
             alert('Error saving test. Please try again.');
         });
     } else {
-        // Not logged in - just show in table without saving
+        // Not logged in - just show this one result without saving
         const message = `Test Complete!\nWPM: ${wpm}\nAccuracy: ${accuracy}\n\nPlease log in to save your results.`;
         alert(message);
-        addToTestHistory(result);
+        renderTestHistory([result]);
+        scrollToTestHistory();
     }
     
     // Reset
@@ -1951,43 +2412,51 @@ function cancelTimedTest() {
   document.getElementById('timedAccuracy').textContent = '100%';
 }
 
-function addToTestHistory(result) {
-    document.getElementById('testHistory').style.display = 'block';
-    const tbody = document.getElementById('testHistoryBody');
-    const row = tbody.insertRow(0); // Add at top
-    
-    // Only show checkbox for 3-minute tests that haven't been submitted
-    const showCheckbox = result.duration === 3 && !result.submitted;
-    const checkboxHtml = showCheckbox 
-        ? `<input type="checkbox" class="test-checkbox" data-test-id="${result.id || ''}" ${!result.id ? 'disabled' : ''}>` 
-        : '';
-    
-    // Determine status text
-    let statusText = 'Practice';
-    if (result.duration === 3) {
-        if (result.submitted) {
-            statusText = '✅ Submitted';
-        } else {
-            statusText = '⭐ Ready to Submit';
-        }
-    }
-    
-    row.innerHTML = `
-        <td style="padding: 10px; text-align: center;">${checkboxHtml}</td>
-        <td style="padding: 10px;">${result.date} ${result.time}</td>
-        <td style="padding: 10px;">${result.duration} min</td>
-        <td style="padding: 10px;">${result.wpm}</td>
-        <td style="padding: 10px;">${result.accuracy}%</td>
-        <td style="padding: 10px;">${statusText}</td>
-    `;
-    
-    // Highlight the new row briefly
-    row.style.background = '#d4edda';
-    setTimeout(() => {
-        row.style.background = '';
-    }, 2000);
-    
-    // Scroll to the test results table
+// Renders the full Practice / Graded split from a list of test results.
+// `results` should already be newest-first (that's the order the Firestore
+// query returns) - the graded table re-sorts its own copy by best WPM.
+function renderTestHistory(results) {
+    document.getElementById('testHistory').style.display = results.length ? 'block' : 'none';
+
+    const practice = results.filter(r => r.duration !== 3);
+    const graded = results.filter(r => r.duration === 3).sort((a, b) => b.wpm - a.wpm);
+
+    submittedTestCount = graded.filter(r => r.submitted).length;
+
+    const practiceBody = document.getElementById('practiceTestsBody');
+    practiceBody.innerHTML = practice.map(r => `
+        <tr>
+            <td style="padding: 10px;">${r.date} ${r.time}</td>
+            <td style="padding: 10px;">${formatTestDuration(r.duration)}</td>
+            <td style="padding: 10px;">${r.wpm}</td>
+            <td style="padding: 10px;">${r.accuracy}%</td>
+        </tr>
+    `).join('');
+    document.getElementById('practiceTestsEmptyMsg').style.display = practice.length ? 'none' : 'block';
+
+    const gradedBody = document.getElementById('gradedTestsBody');
+    gradedBody.innerHTML = graded.map(r => {
+        const showCheckbox = !r.submitted;
+        const checkboxHtml = showCheckbox
+            ? `<input type="checkbox" class="test-checkbox" data-test-id="${r.id || ''}" ${!r.id ? 'disabled' : ''}>`
+            : '';
+        const statusText = r.submitted ? '✅ Submitted' : '⭐ Ready to Submit';
+        return `
+            <tr>
+                <td style="padding: 10px; text-align: center;">${checkboxHtml}</td>
+                <td style="padding: 10px;">${r.date} ${r.time}</td>
+                <td style="padding: 10px;">${r.wpm}</td>
+                <td style="padding: 10px;">${r.accuracy}%</td>
+                <td style="padding: 10px;">${statusText}</td>
+            </tr>
+        `;
+    }).join('');
+    document.getElementById('gradedTestsEmptyMsg').style.display = graded.length ? 'none' : 'block';
+
+    updateSubmitPanel();
+}
+
+function scrollToTestHistory() {
     setTimeout(() => {
         document.getElementById('testHistory').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }, 300);
@@ -1995,8 +2464,13 @@ function addToTestHistory(result) {
 
 // Submit selected tests for grading
 function submitSelectedTests() {
+    if (submittedTestCount >= 5) {
+        alert("You've already submitted your 5 tests for grading — that set is locked in.");
+        return;
+    }
+
     const checkboxes = document.querySelectorAll('.test-checkbox:checked');
-    
+
     if (checkboxes.length !== 5) {
         alert(`Please select exactly 5 tests to submit.\nYou currently have ${checkboxes.length} selected.`);
         return;
@@ -2033,21 +2507,37 @@ function submitSelectedTests() {
     });
 }
 
+// How many 3-minute tests this student has already locked in for grading.
+let submittedTestCount = 0;
+
+function updateSubmitPanel() {
+    const btn = document.getElementById('submitTestsBtn');
+    const hint = document.getElementById('submitTestsHint');
+    if (!btn || !hint) return;
+
+    if (submittedTestCount >= 5) {
+        btn.disabled = true;
+        btn.textContent = '✅ Your 5 Tests Are Submitted';
+        hint.textContent = "You've already submitted your 5 three-minute tests for grading — that set is locked in and can't be changed.";
+    } else {
+        btn.disabled = false;
+        btn.textContent = '📝 Submit Selected for Grading (5 Required)';
+        hint.textContent = 'Select your best 5 three-minute tests to submit for grading. You can take as many tests as you want, but only 5 will be graded.';
+    }
+}
+
 // Load test history from Firebase
 function loadTestHistory() {
     if (!auth.currentUser) return;
-    
+
     db.collection('users').doc(auth.currentUser.uid)
       .collection('timedTests')
       .orderBy('timestamp', 'desc')
       .get()
       .then(snapshot => {
-          const tbody = document.getElementById('testHistoryBody');
-          tbody.innerHTML = ''; // Clear existing
-          
-          snapshot.forEach(doc => {
+          const results = snapshot.docs.map(doc => {
               const data = doc.data();
-              const result = {
+              return {
                   id: doc.id,
                   date: data.date,
                   time: data.time,
@@ -2057,12 +2547,8 @@ function loadTestHistory() {
                   submitted: data.submitted || false,
                   forGrade: data.forGrade || false
               };
-              addToTestHistory(result);
           });
-          
-          if (!snapshot.empty) {
-              document.getElementById('testHistory').style.display = 'block';
-          }
+          renderTestHistory(results);
       })
       .catch(error => {
           console.error('Error loading test history:', error);

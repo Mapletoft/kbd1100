@@ -645,30 +645,219 @@ body {
     margin-top: 20px;
 }
 
-.word-toolbar, .excel-toolbar {
+.office-toolbar {
     display: flex;
-    gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #eef1f5 100%);
+    border: 1px solid #dde2e8;
+    padding: 10px 15px;
+    border-radius: 8px;
+    margin-bottom: 15px;
 }
 
-.word-toolbar button, .excel-toolbar button {
-    padding: 8px 15px;
+.toolbar-group {
+    display: flex;
+    gap: 6px;
+    padding-right: 15px;
+    border-right: 1px solid #d5dae0;
+}
+
+.toolbar-group:last-child {
+    border-right: none;
+    padding-right: 0;
+}
+
+.office-toolbar button {
+    padding: 8px 12px;
     border: 1px solid #ccc;
     background: white;
     cursor: pointer;
     border-radius: 5px;
+    font-size: 14px;
+    transition: background 0.15s, border-color 0.15s;
 }
 
-.word-toolbar button:hover, .excel-toolbar button:hover {
-    background: #f0f0f0;
+.office-toolbar button:hover {
+    background: #eef4ff;
+    border-color: #0056b3;
 }
 
-#wordDocument {
+.office-document {
+    min-height: 400px;
+    padding: 40px;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-family: 'Times New Roman', serif;
+    font-size: 12pt;
+    line-height: 1.5;
     max-width: 100%;
     overflow-x: auto;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-#spreadsheet {
+.spreadsheet-scroll {
+    overflow: auto;
+    max-height: 500px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.office-spreadsheet {
+    width: 100%;
+    border-collapse: collapse;
     max-width: 100%;
-    overflow-x: auto;
+}
+
+.office-spreadsheet .row-header,
+.office-spreadsheet .col-header {
+    background: #e8ecf1;
+    padding: 6px;
+    border: 1px solid #c9d0d8;
+    text-align: center;
+    font-weight: 600;
+    color: #444;
+}
+
+.office-spreadsheet .cell {
+    padding: 6px 8px;
+    border: 1px solid #dde2e8;
+    min-width: 90px;
+}
+
+.office-spreadsheet .cell:focus {
+    outline: 2px solid #0056b3;
+    outline-offset: -2px;
+    background: #f5f9ff;
+}
+
+.office-spreadsheet .cell.cell-error {
+    color: #f44336;
+    background: #ffebee;
+    font-weight: bold;
+}
+
+.formula-bar-row {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.formula-bar-row input {
+    flex: 1;
+    padding: 6px 8px;
+    font-family: monospace;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background: white;
+}
+
+/* Practice task checklist */
+.task-checklist {
+    margin-top: 20px;
+    padding: 15px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid #e5e5e5;
+}
+
+.task-checklist h4 {
+    margin-top: 0;
+}
+
+.task-item {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+}
+
+.task-item.task-done {
+    background: #f1f8f2;
+    border-color: #c8e6c9;
+}
+
+.task-item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.task-item p {
+    margin: 6px 0 0 0;
+    font-size: 14px;
+    color: #555;
+}
+
+.task-item .task-check {
+    font-style: italic;
+    color: #777;
+}
+
+.task-example {
+    margin: 8px 0 0 0;
+    padding: 8px 10px;
+    background: #f5f8ff;
+    border-left: 3px solid #0056b3;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 13px;
+    color: #003d7a;
+    white-space: pre-line;
+}
+
+.task-example-label {
+    display: block;
+    font-family: inherit;
+    font-weight: bold;
+    color: #666;
+    text-transform: uppercase;
+    font-size: 10px;
+    margin-bottom: 3px;
+}
+
+/* Excel charts */
+.excel-charts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.excel-chart-card {
+    position: relative;
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 15px;
+    width: 320px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.chart-remove-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    border: none;
+    background: #f5f5f5;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    cursor: pointer;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.chart-remove-btn:hover {
+    background: #ffebee;
+    color: #f44336;
 }
