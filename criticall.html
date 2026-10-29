@@ -25,6 +25,7 @@
     <script src="js/modules/mathematics.js"></script>
     <script src="js/modules/map-cross-multi.js"></script>
     <script src="js/modules/additional-modules.js"></script>
+    <script src="js/modules/multitasking.js"></script>
 
     <style>
         .criticall-container {
@@ -421,7 +422,7 @@
 
             <div class="module-card" id="module-memoryRecall" onclick="openModule('memoryRecall')">
                 <h3>🧠 Memory Recall</h3>
-                <p>Memorize and recall critical information from emergency scenarios.</p>
+                <p>Choose a difficulty level, memorize critical call details under a timer, then recall them from memory.</p>
             </div>
 
             <div class="module-card" id="module-mapReading" onclick="openModule('mapReading')">
@@ -471,7 +472,7 @@
 
             <div class="module-card" id="module-multitasking" onclick="openModule('multitasking')">
                 <h3>🎮 Multitasking</h3>
-                <p>Handle multiple emergency calls simultaneously while prioritizing urgency.</p>
+                <p>Manage 4 units and assign them to incoming calls by priority, while handling random math-question interruptions.</p>
             </div>
 
             <div class="module-card" id="module-decisionMaking" onclick="openModule('decisionMaking')">
@@ -515,10 +516,8 @@
         let audioPlayCount = 0;
         let selectedPriority = null;
         let selectedServices = [];
-        let memoryTimerInterval = null; // Global variable to track memory timer
         let splitAttentionInterval = null; // For split attention number cycling
         let splitAttentionTimer = null; // For split attention test timer
-        let multitaskingState = { activeCall: null, callQueue: [], score: 0 }; // For multitasking module
         
         // Initialize Firebase
         auth = firebase.auth();
@@ -564,74 +563,8 @@
         // Audio Data Entry scenarios -> js/modules/audio-data-entry.js
         // Call Summarization scenarios -> js/modules/call-summarization.js
         
-        // Memory Recall Questions by Difficulty
-        const memoryQuestions = {
-            easy: [
-                {
-                    items: ["Badge 423", "Unit 7", "Oak Street", "10-4", "Engine 2"],
-                    questions: [
-                        { q: "What badge number was shown?", a: "423" },
-                        { q: "What unit number was mentioned?", a: "7" },
-                        { q: "What street name appeared?", a: "Oak Street" }
-                    ]
-                },
-                {
-                    items: ["Code 3", "Maple Ave", "Badge 156", "Squad 9", "10-23"],
-                    questions: [
-                        { q: "What code was displayed?", a: "Code 3" },
-                        { q: "What avenue was shown?", a: "Maple Ave" },
-                        { q: "What was the badge number?", a: "156" }
-                    ]
-                }
-            ],
-            medium: [
-                {
-                    items: ["Suspect: Male, 6'2\"", "Weapon: Handgun", "Vehicle: Blue Sedan", "Plate: ABC 1234", "Direction: Northbound", "Last Seen: 5th & Main"],
-                    questions: [
-                        { q: "What was the suspect's height?", a: "6'2\"" },
-                        { q: "What type of weapon was mentioned?", a: "Handgun" },
-                        { q: "What color was the vehicle?", a: "Blue" },
-                        { q: "What was the license plate number?", a: "ABC 1234" },
-                        { q: "Which direction was the suspect heading?", a: "Northbound" }
-                    ]
-                },
-                {
-                    items: ["DOB: 03/15/1985", "Lic#: D532-8877-2341", "Height: 5'9\"", "Eyes: Brown", "Hair: Black", "Weight: 180 lbs"],
-                    questions: [
-                        { q: "What was the date of birth?", a: "03/15/1985" },
-                        { q: "What was the license number?", a: "D532-8877-2341" },
-                        { q: "What was the eye color?", a: "Brown" },
-                        { q: "What was the person's height?", a: "5'9\"" },
-                        { q: "What was the weight listed?", a: "180 lbs" }
-                    ]
-                }
-            ],
-            hard: [
-                {
-                    items: ["Call#: 2024-7893", "Time: 14:37", "Caller: Martinez, J.", "Location: 4521 Elmwood Dr, Apt 3B", "DOB: 11/22/1978", "Lic#: M582-3344-9871", "Responding: Units 7, 12, Engine 4", "Code: 10-52 with 10-18"],
-                    questions: [
-                        { q: "What was the call number?", a: "2024-7893" },
-                        { q: "What time was the call received?", a: "14:37" },
-                        { q: "What was the complete address including apartment?", a: "4521 Elmwood Dr, Apt 3B" },
-                        { q: "What was the caller's date of birth?", a: "11/22/1978" },
-                        { q: "List all responding units (separated by commas)", a: "7, 12, Engine 4" },
-                        { q: "What codes were mentioned?", a: "10-52 with 10-18" }
-                    ]
-                },
-                {
-                    items: ["Incident#: 2024-15673", "Complainant: Rodriguez-Smith, M.", "Address: 8934 Pinecrest Blvd #215", "Vehicle: 2019 Toyota Camry, Gray", "VIN: 4T1BF1FK3KU123456", "Suspect: White Male, 5'11\", 175lbs", "Clothing: Blue hoodie, jeans", "Time: 09:15 - 09:42"],
-                    questions: [
-                        { q: "What was the incident number?", a: "2024-15673" },
-                        { q: "What was the complainant's full name?", a: "Rodriguez-Smith, M." },
-                        { q: "What was the complete address?", a: "8934 Pinecrest Blvd #215" },
-                        { q: "What was the vehicle VIN?", a: "4T1BF1FK3KU123456" },
-                        { q: "Describe the suspect's clothing", a: "Blue hoodie, jeans" },
-                        { q: "What was the time frame of the incident?", a: "09:15 - 09:42" }
-                    ]
-                }
-            ]
-        };
-        
+        // Memory Recall question tiers -> js/modules/additional-modules.js (memoryRecallModule.questionBank)
+
         // Map Reading Scenarios
         // Map Reading scenarios -> js/modules/map-cross-multi.js (mapReadingModule)
 
@@ -840,29 +773,7 @@
         
         // Cross-Reference scenarios -> js/modules/map-cross-multi.js (crossReferenceModule)
 
-        // Multitasking - Call scenarios with priorities
-        const multitaskingCalls = [
-            { id: 1, text: "Chest pain, difficulty breathing", priority: "high", service: "EMS" },
-            { id: 2, text: "Suspicious person near school", priority: "medium", service: "Police" },
-            { id: 3, text: "Noise complaint from neighbor", priority: "low", service: "Police" },
-            { id: 4, text: "Structure fire, flames visible", priority: "high", service: "Fire" },
-            { id: 5, text: "Traffic accident, injuries reported", priority: "high", service: "All" },
-            { id: 6, text: "Lost pet report", priority: "low", service: "Police" },
-            { id: 7, text: "Power lines down, sparking", priority: "high", service: "Fire/Utilities" },
-            { id: 8, text: "Theft report from yesterday", priority: "low", service: "Police" },
-            { id: 9, text: "Unresponsive person", priority: "high", service: "EMS" },
-            { id: 10, text: "Loud party after midnight", priority: "medium", service: "Police" },
-            { id: 11, text: "Gas odor in building", priority: "high", service: "Fire" },
-            { id: 12, text: "Vehicle blocking driveway", priority: "low", service: "Police" },
-            { id: 13, text: "Domestic disturbance, yelling heard", priority: "medium", service: "Police" },
-            { id: 14, text: "Child fell from playground equipment", priority: "high", service: "EMS" },
-            { id: 15, text: "Parking violation", priority: "low", service: "Police" },
-            { id: 16, text: "Overdose, not breathing", priority: "high", service: "EMS" },
-            { id: 17, text: "Smoke alarm activation", priority: "medium", service: "Fire" },
-            { id: 18, text: "Request for police report", priority: "low", service: "Police" },
-            { id: 19, text: "Armed robbery in progress", priority: "high", service: "Police" },
-            { id: 20, text: "Water main break", priority: "medium", service: "Utilities" }
-        ];
+        // Multitasking call bank -> js/modules/multitasking.js (multitaskingModule.callBank)
         
         function openModule(moduleName) {
             if (event.target.classList.contains('coming-soon')) {
@@ -889,7 +800,7 @@
                     });
                     break;
                 case 'memoryRecall':
-                    showMemoryRecall();
+                    showMemoryRecallPicker();
                     break;
                 case 'mapReading':
                     document.getElementById('moduleTitle').textContent = '🗺️ Map Reading Practice';
@@ -937,7 +848,10 @@
                     });
                     break;
                 case 'multitasking':
-                    showMultitasking();
+                    document.getElementById('moduleTitle').textContent = '🎮 Multitasking Practice';
+                    multitaskingModule.render(document.getElementById('moduleContent'), 12, (results) => {
+                        handlePracticeModuleComplete('multitasking', 'Multitasking', results);
+                    });
                     break;
                 case 'decisionMaking':
                     document.getElementById('moduleTitle').textContent = '🎯 Decision Making Practice';
@@ -988,10 +902,10 @@
             totalQuestions = 0;
             audioPlayCount = 0;
             
-            // Clear memory timer if it exists
-            if (memoryTimerInterval) {
-                clearInterval(memoryTimerInterval);
-                memoryTimerInterval = null;
+            // Clear memory timer if it exists (now owned by memoryRecallModule itself)
+            if (typeof memoryRecallModule !== 'undefined' && memoryRecallModule.memoryTimer) {
+                clearInterval(memoryRecallModule.memoryTimer);
+                memoryRecallModule.memoryTimer = null;
             }
             
             // Clear split attention timers
@@ -1015,180 +929,36 @@
         // CALL SUMMARIZATION MODULE - moved to js/modules/call-summarization.js
         // (shared with the graded test; see openModule('callSummarization')).
         
-        // MEMORY RECALL MODULE
-        function showMemoryRecall() {
+        // MEMORY RECALL MODULE - difficulty picker, then hands off to the
+        // shared memoryRecallModule (js/modules/additional-modules.js),
+        // which now carries all three difficulty tiers and actually honors
+        // the round count passed in (it used to ignore it).
+        const MEMORY_RECALL_ROUNDS = { easy: 5, medium: 3, hard: 2 };
+
+        function showMemoryRecallPicker() {
             document.getElementById('moduleTitle').textContent = '🧠 Memory Recall Practice';
-            
-            // Clear any existing timer when going back to difficulty selection
-            if (memoryTimerInterval) {
-                clearInterval(memoryTimerInterval);
-                memoryTimerInterval = null;
-            }
-            
             const content = document.getElementById('moduleContent');
-            
+
             content.innerHTML = `
                 <h3>Select Difficulty Level:</h3>
                 <div style="display: flex; gap: 15px; justify-content: center; margin: 30px 0;">
-                    <button class="btn btn-success" onclick="startMemoryTest('easy')" style="min-width: 150px;">Easy<br><small>3 questions</small></button>
-                    <button class="btn btn-primary" onclick="startMemoryTest('medium')" style="min-width: 150px;">Medium<br><small>5 questions</small></button>
-                    <button class="btn btn-danger" onclick="startMemoryTest('hard')" style="min-width: 150px;">Hard<br><small>6 questions</small></button>
+                    <button class="btn btn-success" onclick="startMemoryRecallPractice('easy')" style="min-width: 150px;">Easy<br><small>5 rounds, 3 questions each</small></button>
+                    <button class="btn btn-primary" onclick="startMemoryRecallPractice('medium')" style="min-width: 150px;">Medium<br><small>3 rounds, 5 questions each</small></button>
+                    <button class="btn btn-danger" onclick="startMemoryRecallPractice('hard')" style="min-width: 150px;">Hard<br><small>2 rounds, 6 questions each</small></button>
                 </div>
             `;
         }
-        
-        function startMemoryTest(difficulty) {
-            // Clear any existing timer first
-            if (memoryTimerInterval) {
-                clearInterval(memoryTimerInterval);
-                memoryTimerInterval = null;
-            }
-            
-            const testData = memoryQuestions[difficulty][Math.floor(Math.random() * memoryQuestions[difficulty].length)];
-            
-            // Show memory items
-            const content = document.getElementById('moduleContent');
-            content.innerHTML = `
-                <h3>Memorize the following information (30 seconds):</h3>
-                <div class="memory-items">
-                    ${testData.items.map(item => `<div class="memory-item">${item}</div>`).join('')}
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <p style="font-size: 24px; font-weight: bold; color: #007bff;">Time remaining: <span id="timer">30</span>s</p>
-                </div>
-            `;
-            
-            // Countdown timer
-            let timeLeft = 30;
-            memoryTimerInterval = setInterval(() => {
-                timeLeft--;
-                const timerElement = document.getElementById('timer');
-                if (timerElement) {
-                    timerElement.textContent = timeLeft;
-                }
-                
-                if (timeLeft <= 0) {
-                    clearInterval(memoryTimerInterval);
-                    memoryTimerInterval = null;
-                    showMemoryQuestions(testData.questions);
-                }
-            }, 1000);
+
+        function startMemoryRecallPractice(difficulty) {
+            document.getElementById('moduleTitle').textContent = '🧠 Memory Recall Practice';
+            memoryRecallModule.render(
+                document.getElementById('moduleContent'),
+                MEMORY_RECALL_ROUNDS[difficulty],
+                (results) => handlePracticeModuleComplete('memoryRecall', 'Memory Recall', results),
+                difficulty
+            );
         }
-        
-        function showMemoryQuestions(questions) {
-            currentQuestion = 0;
-            correctAnswers = 0;
-            totalQuestions = questions.length;
-            window.currentMemoryQuestions = questions;
-            
-            showNextMemoryQuestion();
-        }
-        
-        function showNextMemoryQuestion() {
-            const questions = window.currentMemoryQuestions;
-            
-            if (currentQuestion >= questions.length) {
-                showMemoryResults();
-                return;
-            }
-            
-            const question = questions[currentQuestion];
-            const content = document.getElementById('moduleContent');
-            
-            content.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
-                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
-                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
-                    </div>
-                </div>
-                
-                <div class="memory-question">
-                    <h3>${question.q}</h3>
-                    <input type="text" id="memoryAnswer" placeholder="Your answer" style="width: 100%; padding: 15px; font-size: 18px; border: 2px solid #007bff; border-radius: 5px; margin-top: 15px;">
-                </div>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-success" onclick="submitMemoryAnswer()">Submit Answer</button>
-                </div>
-            `;
-            
-            // Focus on input
-            document.getElementById('memoryAnswer').focus();
-            
-            // Allow Enter key to submit
-            document.getElementById('memoryAnswer').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    submitMemoryAnswer();
-                }
-            });
-        }
-        
-        function submitMemoryAnswer() {
-            const questions = window.currentMemoryQuestions;
-            const question = questions[currentQuestion];
-            const userAnswer = document.getElementById('memoryAnswer').value.trim();
-            
-            // Flexible matching (case-insensitive, whitespace tolerant)
-            const correct = userAnswer.toLowerCase().replace(/\s+/g, ' ') === question.a.toLowerCase().replace(/\s+/g, ' ');
-            
-            if (correct) {
-                correctAnswers++;
-            }
-            
-            // Show feedback
-            const feedback = document.createElement('div');
-            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 15px; border-radius: 10px; margin-top: 15px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545');
-            feedback.innerHTML = `
-                <p style="font-size: 18px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
-                ${!correct ? `<p style="margin: 10px 0 0 0;">Correct answer: ${question.a}</p>` : ''}
-            `;
-            document.getElementById('moduleContent').appendChild(feedback);
-            
-            // Add continue button
-            setTimeout(() => {
-                const continueBtn = document.createElement('div');
-                continueBtn.style.textAlign = 'center';
-                continueBtn.style.marginTop = '20px';
-                continueBtn.innerHTML = '<button class="btn btn-primary" onclick="nextMemoryQuestion()">Next Question</button>';
-                document.getElementById('moduleContent').appendChild(continueBtn);
-            }, 500);
-        }
-        
-        function nextMemoryQuestion() {
-            currentQuestion++;
-            showNextMemoryQuestion();
-        }
-        
-        function showMemoryResults() {
-            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
-            const content = document.getElementById('moduleContent');
-            
-            content.innerHTML = `
-                <div class="score-display">
-                    <h3>Memory Recall Results</h3>
-                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
-                    <p>${percentage}% Correct</p>
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="showMemoryRecall()">Practice Again</button>
-                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
-                </div>
-            `;
-            
-            // Save score to Firebase
-            if (auth.currentUser) {
-                db.collection('users').doc(auth.currentUser.uid)
-                  .collection('criticallScores').add({
-                    module: 'memoryRecall',
-                    score: percentage,
-                    correct: correctAnswers,
-                    total: totalQuestions,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                  });
-            }
-        }
-        
+
         // Map Reading functions -> js/modules/map-cross-multi.js (mapReadingModule)
 
         // Reading Comprehension functions -> js/data/question-bank.js / question-bank-part2.js (readingComprehensionModule)
@@ -2186,235 +1956,10 @@
         
         // Cross-Reference functions -> js/modules/map-cross-multi.js (crossReferenceModule)
 
-        // MULTITASKING MODULE
-        function showMultitasking() {
-            document.getElementById('moduleTitle').textContent = '🎮 Multitasking Practice';
-            
-            const content = document.getElementById('moduleContent');
-            content.innerHTML = `
-                <h3>Instructions:</h3>
-                <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; margin-bottom: 20px;">
-                    <p><strong>This test simulates handling multiple emergency calls simultaneously:</strong></p>
-                    <ol style="margin: 10px 0; padding-left: 20px;">
-                        <li>Calls will appear in the queue with different priority levels</li>
-                        <li><span style="background: #dc3545; color: white; padding: 2px 8px; border-radius: 3px;">HIGH</span> priority = Life-threatening (handle first)</li>
-                        <li><span style="background: #ffc107; color: black; padding: 2px 8px; border-radius: 3px;">MEDIUM</span> priority = Urgent but not life-threatening</li>
-                        <li><span style="background: #28a745; color: white; padding: 2px 8px; border-radius: 3px;">LOW</span> priority = Routine calls</li>
-                        <li>Click on calls in order of priority (high first)</li>
-                        <li>New calls may appear while you're working</li>
-                        <li>You'll have 2 minutes to handle as many calls as possible</li>
-                    </ol>
-                    <p style="color: #856404; margin-top: 10px;"><strong>Goal: Handle calls in correct priority order</strong></p>
-                </div>
-                
-                <div style="text-align: center;">
-                    <button class="btn btn-success" onclick="startMultitasking()">Start Simulation</button>
-                </div>
-            `;
-        }
-        
-        function startMultitasking() {
-            // Reset state
-            multitaskingState = {
-                activeCall: null,
-                callQueue: [],
-                score: 0,
-                correctPicks: 0,
-                incorrectPicks: 0,
-                startTime: Date.now(),
-                duration: 120,
-                callsHandled: 0
-            };
-            
-            // Add initial calls
-            addRandomCalls(3);
-            
-            renderMultitaskingUI();
-            
-            // Add new calls periodically
-            multitaskingState.addCallsInterval = setInterval(() => {
-                if (multitaskingState.callQueue.length < 6) {
-                    addRandomCalls(1);
-                    renderMultitaskingUI();
-                }
-            }, 8000);
-            
-            // Timer
-            multitaskingState.timerInterval = setInterval(() => {
-                const elapsed = Math.floor((Date.now() - multitaskingState.startTime) / 1000);
-                const remaining = multitaskingState.duration - elapsed;
-                
-                if (remaining <= 0) {
-                    finishMultitasking();
-                    return;
-                }
-                
-                const minutes = Math.floor(remaining / 60);
-                const seconds = remaining % 60;
-                const timeElement = document.getElementById('multitaskingTimer');
-                if (timeElement) {
-                    timeElement.textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
-                }
-            }, 1000);
-        }
-        
-        function addRandomCalls(count) {
-            const available = multitaskingCalls.filter(c => 
-                !multitaskingState.callQueue.find(q => q.id === c.id)
-            );
-            
-            for (let i = 0; i < count && available.length > 0; i++) {
-                const randomIndex = Math.floor(Math.random() * available.length);
-                multitaskingState.callQueue.push(available[randomIndex]);
-                available.splice(randomIndex, 1);
-            }
-        }
-        
-        function renderMultitaskingUI() {
-            const content = document.getElementById('moduleContent');
-            
-            content.innerHTML = `
-                <div style="display: flex; gap: 20px; min-height: 500px;">
-                    <!-- Call Queue -->
-                    <div style="flex: 1; background: white; padding: 20px; border-radius: 10px; border: 2px solid #007bff;">
-                        <h3 style="margin-bottom: 15px;">📞 Incoming Calls</h3>
-                        <p style="color: #666; font-size: 14px; margin-bottom: 15px;">Click on the highest priority call first</p>
-                        
-                        <div id="callQueueContainer">
-                            ${multitaskingState.callQueue.map(call => {
-                                const priorityColor = call.priority === 'high' ? '#dc3545' : call.priority === 'medium' ? '#ffc107' : '#28a745';
-                                const priorityText = call.priority.toUpperCase();
-                                return `
-                                    <div class="call-item" onclick="handleCall(${call.id})" style="background: #f8f9fa; padding: 15px; margin: 10px 0; border-left: 5px solid ${priorityColor}; border-radius: 5px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.background='#e9ecef'" onmouseout="this.style.background='#f8f9fa'">
-                                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
-                                            <strong>Call #${call.id}</strong>
-                                            <span style="background: ${priorityColor}; color: ${call.priority === 'medium' ? 'black' : 'white'}; padding: 3px 10px; border-radius: 3px; font-size: 12px; font-weight: bold;">${priorityText}</span>
-                                        </div>
-                                        <p style="margin: 5px 0; font-size: 14px;">${call.text}</p>
-                                        <p style="margin: 5px 0; font-size: 12px; color: #666;">Service: ${call.service}</p>
-                                    </div>
-                                `;
-                            }).join('') || '<p style="color: #999; text-align: center; padding: 40px 0;">No calls in queue</p>'}
-                        </div>
-                    </div>
-                    
-                    <!-- Stats Panel -->
-                    <div style="width: 250px; background: white; padding: 20px; border-radius: 10px; border: 2px solid #28a745;">
-                        <h3 style="margin-bottom: 15px;">📊 Performance</h3>
-                        
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px;">
-                            <div style="font-size: 14px; color: #666;">Time Remaining</div>
-                            <div id="multitaskingTimer" style="font-size: 32px; font-weight: bold; color: #007bff;">2:00</div>
-                        </div>
-                        
-                        <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 10px;">
-                            <div style="font-size: 14px; color: #666;">Calls Handled</div>
-                            <div style="font-size: 28px; font-weight: bold; color: #007bff;">${multitaskingState.callsHandled}</div>
-                        </div>
-                        
-                        <div style="background: #d4edda; padding: 15px; border-radius: 5px; margin-bottom: 10px;">
-                            <div style="font-size: 14px; color: #155724;">✓ Correct Priority</div>
-                            <div style="font-size: 28px; font-weight: bold; color: #28a745;">${multitaskingState.correctPicks}</div>
-                        </div>
-                        
-                        <div style="background: #f8d7da; padding: 15px; border-radius: 5px;">
-                            <div style="font-size: 14px; color: #721c24;">✗ Wrong Priority</div>
-                            <div style="font-size: 28px; font-weight: bold; color: #dc3545;">${multitaskingState.incorrectPicks}</div>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }
-        
-        function handleCall(callId) {
-            const call = multitaskingState.callQueue.find(c => c.id === callId);
-            if (!call) return;
-            
-            // Check if this was the highest priority call
-            const priorities = { high: 3, medium: 2, low: 1 };
-            const callPriority = priorities[call.priority];
-            const highestPriority = Math.max(...multitaskingState.callQueue.map(c => priorities[c.priority]));
-            
-            const correct = callPriority === highestPriority;
-            
-            if (correct) {
-                multitaskingState.correctPicks++;
-            } else {
-                multitaskingState.incorrectPicks++;
-            }
-            
-            multitaskingState.callsHandled++;
-            
-            // Remove call from queue
-            multitaskingState.callQueue = multitaskingState.callQueue.filter(c => c.id !== callId);
-            
-            // Visual feedback
-            const callElements = document.querySelectorAll('.call-item');
-            callElements.forEach(el => {
-                if (el.textContent.includes(`Call #${callId}`)) {
-                    el.style.background = correct ? '#d4edda' : '#f8d7da';
-                    setTimeout(() => {
-                        renderMultitaskingUI();
-                    }, 300);
-                }
-            });
-        }
-        
-        function finishMultitasking() {
-            clearInterval(multitaskingState.addCallsInterval);
-            clearInterval(multitaskingState.timerInterval);
-            
-            const totalPicks = multitaskingState.correctPicks + multitaskingState.incorrectPicks;
-            const accuracy = totalPicks > 0 ? Math.round((multitaskingState.correctPicks / totalPicks) * 100) : 0;
-            
-            const content = document.getElementById('moduleContent');
-            content.innerHTML = `
-                <div class="score-display">
-                    <h3>Multitasking Results</h3>
-                    <h2>${accuracy}% Accuracy</h2>
-                    <p>Calls handled: ${multitaskingState.callsHandled}</p>
-                </div>
-                
-                <div style="background: white; padding: 20px; border-radius: 10px; margin: 20px 0;">
-                    <h3 style="margin-bottom: 15px;">Performance Breakdown:</h3>
-                    
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
-                        <div style="background: #d4edda; padding: 15px; border-radius: 5px; text-align: center;">
-                            <div style="font-size: 48px; font-weight: bold; color: #28a745;">${multitaskingState.correctPicks}</div>
-                            <div style="color: #155724;">Correct Priority Picks</div>
-                        </div>
-                        
-                        <div style="background: #f8d7da; padding: 15px; border-radius: 5px; text-align: center;">
-                            <div style="font-size: 48px; font-weight: bold; color: #dc3545;">${multitaskingState.incorrectPicks}</div>
-                            <div style="color: #721c24;">Wrong Priority Picks</div>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 5px;">
-                        <p><strong>Key Skill:</strong> Always handle HIGH priority (life-threatening) calls before MEDIUM or LOW priority calls.</p>
-                    </div>
-                </div>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="showMultitasking()">Practice Again</button>
-                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
-                </div>
-            `;
-            
-            // Save score
-            if (auth.currentUser) {
-                db.collection('users').doc(auth.currentUser.uid)
-                  .collection('criticallScores').add({
-                    module: 'multitasking',
-                    accuracy: accuracy,
-                    callsHandled: multitaskingState.callsHandled,
-                    correctPicks: multitaskingState.correctPicks,
-                    incorrectPicks: multitaskingState.incorrectPicks,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                  });
-            }
-        }
-        
+        // Multitasking functions -> js/modules/multitasking.js (multitaskingModule) -
+        // it renders its own instructions/start screen, so openModule() calls
+        // multitaskingModule.render() directly, same as every other migrated module.
+
         // Decision Making functions -> js/modules/decision-making.js (decisionMakingModule)
     </script>
 </body>

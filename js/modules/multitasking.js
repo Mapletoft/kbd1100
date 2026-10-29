@@ -45,6 +45,13 @@ const multitaskingModule = {
     gameInterval: null,
     mathQuestionInterval: null,
     
+    // questionCount is intentionally unused: real CritiCall multitasking is
+    // a fixed-duration live simulation (simultaneous interrupts while
+    // working a queue), not a fixed-question-count module like the rest of
+    // the test. The simulation always runs the full 10 minutes set in
+    // startSimulation() below; the test engine's own per-module timeLimit
+    // (js/test-engine.js config.modules) is set slightly longer than that
+    // as a safety margin, not a second independent duration to keep in sync.
     render(container, questionCount, onComplete) {
         this.container = container;
         this.onComplete = onComplete;
@@ -104,7 +111,8 @@ const multitaskingModule = {
             mathQuestionActive: false,
             mathQuestion: null,
             mathCorrect: 0,
-            mathTotal: 0
+            mathTotal: 0,
+            maxPossiblePoints: 0
         };
         
         // Generate initial 6 calls
@@ -178,6 +186,13 @@ const multitaskingModule = {
             penalized: false
         };
         this.state.callQueue.push(newCall);
+
+        // Track the best score achievable for this exact mix of calls (base
+        // points, plus the fast-response bonus where it's achievable) as
+        // the denominator for the final percentage - a flat "10 points per
+        // call" average was unfair to anyone who happened to get mostly
+        // medium/low priority calls, which are worth fewer points.
+        this.state.maxPossiblePoints += newCall.points + (newCall.priority === 'high' ? 5 : 0);
     },
     
     scheduleMathQuestion() {
@@ -589,9 +604,11 @@ const multitaskingModule = {
             ? (this.state.mathCorrect / this.state.mathTotal) * 100 
             : 100;
         
-        // Score is based on points earned
-        const maxPossibleScore = this.state.callsCompleted * 10; // Assuming average of 10 points per call
-        const scorePercentage = Math.min(100, (this.state.score / maxPossibleScore) * 100);
+        // Score is based on points earned vs. the best achievable score for
+        // the actual mix of calls this student saw (see addNewCall).
+        const scorePercentage = this.state.maxPossiblePoints > 0
+            ? Math.max(0, Math.min(100, (this.state.score / this.state.maxPossiblePoints) * 100))
+            : 100;
         
         const finalResults = {
             moduleId: 'multitasking',

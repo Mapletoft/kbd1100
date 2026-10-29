@@ -220,90 +220,145 @@ const readingComprehensionModule = {
 };
 
 // ===== MEMORY RECALL MODULE =====
+// Difficulty tiers merged in from criticall.html's old inline practice-only
+// version: "easy" is the original flat 10-scenario pool (5 items/3
+// questions each), "medium" and "hard" are longer/denser scenarios (6-8
+// items, 5-6 questions each) carried over unchanged from that version.
 const memoryRecallModule = {
     name: "Memory Recall",
-    questionBank: [
-        {
-            items: ["Badge 423", "Unit 7", "Oak Street", "10-4", "Engine 2"],
-            questions: [
-                { q: "What badge number was shown?", a: "423" },
-                { q: "What unit number was mentioned?", a: "7" },
-                { q: "What street name appeared?", a: "Oak Street" }
-            ]
-        },
-        {
-            items: ["Code 3", "Maple Ave", "Badge 156", "Squad 9", "10-23"],
-            questions: [
-                { q: "What code was displayed?", a: "Code 3" },
-                { q: "What avenue was shown?", a: "Maple Ave" },
-                { q: "What was the badge number?", a: "156" }
-            ]
-        },
-        {
-            items: ["Officer Johnson", "Unit 12", "Pine Street", "Badge 789", "Code 2"],
-            questions: [
-                { q: "What was the officer's name?", a: "Johnson" },
-                { q: "What was the unit number?", a: "12" },
-                { q: "What badge number appeared?", a: "789" }
-            ]
-        },
-        {
-            items: ["10-20 at Main St", "Badge 342", "Squad 5", "Engine 8", "Ladder 3"],
-            questions: [
-                { q: "What street was mentioned in 10-20?", a: "Main St" },
-                { q: "What badge number was shown?", a: "342" },
-                { q: "What squad number appeared?", a: "5" }
-            ]
-        },
-        {
-            items: ["Suspect: Male, 6'2\"", "Weapon: Handgun", "Vehicle: Blue Sedan", "Plate: ABC 1234", "Direction: Northbound"],
-            questions: [
-                { q: "What was the suspect's height?", a: "6'2\"" },
-                { q: "What color was the vehicle?", a: "Blue" },
-                { q: "What direction was the suspect heading?", a: "Northbound" }
-            ]
-        },
-        {
-            items: ["Time: 14:35", "Location: 789 Elm St", "Caller: James Park", "Badge 567", "Unit 15"],
-            questions: [
-                { q: "What was the time?", a: "14:35" },
-                { q: "What was the location?", a: "789 Elm St" },
-                { q: "Who was the caller?", a: "James Park" }
-            ]
-        },
-        {
-            items: ["Vehicle: Red Truck", "Plate: XYZ 789", "Speed: 85 MPH", "Direction: Eastbound", "Highway 401"],
-            questions: [
-                { q: "What color was the vehicle?", a: "Red" },
-                { q: "What was the license plate?", a: "XYZ 789" },
-                { q: "Which highway was mentioned?", a: "Highway 401" }
-            ]
-        },
-        {
-            items: ["Apartment 5C", "Building: Maple Towers", "Victim: Lisa Wong", "Age: 34", "Injury: Arm"],
-            questions: [
-                { q: "What apartment number?", a: "5C" },
-                { q: "What was the building name?", a: "Maple Towers" },
-                { q: "What was the victim's age?", a: "34" }
-            ]
-        },
-        {
-            items: ["Code 1", "Officer Davis", "Backup Requested", "Badge 891", "Intersection: King & Queen"],
-            questions: [
-                { q: "What code was used?", a: "Code 1" },
-                { q: "Which officer requested backup?", a: "Davis" },
-                { q: "What was the intersection?", a: "King & Queen" }
-            ]
-        },
-        {
-            items: ["Suspect: Female, 5'6\"", "Clothing: Black Hoodie", "Last seen: 7-Eleven", "Time: 23:45", "On Foot"],
-            questions: [
-                { q: "What was the suspect wearing?", a: "Black Hoodie" },
-                { q: "Where was suspect last seen?", a: "7-Eleven" },
-                { q: "What time?", a: "23:45" }
-            ]
-        }
-    ],
+    questionBank: {
+        easy: [
+            {
+                items: ["Badge 423", "Unit 7", "Oak Street", "10-4", "Engine 2"],
+                questions: [
+                    { q: "What badge number was shown?", a: "423" },
+                    { q: "What unit number was mentioned?", a: "7" },
+                    { q: "What street name appeared?", a: "Oak Street" }
+                ]
+            },
+            {
+                items: ["Code 3", "Maple Ave", "Badge 156", "Squad 9", "10-23"],
+                questions: [
+                    { q: "What code was displayed?", a: "Code 3" },
+                    { q: "What avenue was shown?", a: "Maple Ave" },
+                    { q: "What was the badge number?", a: "156" }
+                ]
+            },
+            {
+                items: ["Officer Johnson", "Unit 12", "Pine Street", "Badge 789", "Code 2"],
+                questions: [
+                    { q: "What was the officer's name?", a: "Johnson" },
+                    { q: "What was the unit number?", a: "12" },
+                    { q: "What badge number appeared?", a: "789" }
+                ]
+            },
+            {
+                items: ["10-20 at Main St", "Badge 342", "Squad 5", "Engine 8", "Ladder 3"],
+                questions: [
+                    { q: "What street was mentioned in 10-20?", a: "Main St" },
+                    { q: "What badge number was shown?", a: "342" },
+                    { q: "What squad number appeared?", a: "5" }
+                ]
+            },
+            {
+                items: ["Suspect: Male, 6'2\"", "Weapon: Handgun", "Vehicle: Blue Sedan", "Plate: ABC 1234", "Direction: Northbound"],
+                questions: [
+                    { q: "What was the suspect's height?", a: "6'2\"" },
+                    { q: "What color was the vehicle?", a: "Blue" },
+                    { q: "What direction was the suspect heading?", a: "Northbound" }
+                ]
+            },
+            {
+                items: ["Time: 14:35", "Location: 789 Elm St", "Caller: James Park", "Badge 567", "Unit 15"],
+                questions: [
+                    { q: "What was the time?", a: "14:35" },
+                    { q: "What was the location?", a: "789 Elm St" },
+                    { q: "Who was the caller?", a: "James Park" }
+                ]
+            },
+            {
+                items: ["Vehicle: Red Truck", "Plate: XYZ 789", "Speed: 85 MPH", "Direction: Eastbound", "Highway 401"],
+                questions: [
+                    { q: "What color was the vehicle?", a: "Red" },
+                    { q: "What was the license plate?", a: "XYZ 789" },
+                    { q: "Which highway was mentioned?", a: "Highway 401" }
+                ]
+            },
+            {
+                items: ["Apartment 5C", "Building: Maple Towers", "Victim: Lisa Wong", "Age: 34", "Injury: Arm"],
+                questions: [
+                    { q: "What apartment number?", a: "5C" },
+                    { q: "What was the building name?", a: "Maple Towers" },
+                    { q: "What was the victim's age?", a: "34" }
+                ]
+            },
+            {
+                items: ["Code 1", "Officer Davis", "Backup Requested", "Badge 891", "Intersection: King & Queen"],
+                questions: [
+                    { q: "What code was used?", a: "Code 1" },
+                    { q: "Which officer requested backup?", a: "Davis" },
+                    { q: "What was the intersection?", a: "King & Queen" }
+                ]
+            },
+            {
+                items: ["Suspect: Female, 5'6\"", "Clothing: Black Hoodie", "Last seen: 7-Eleven", "Time: 23:45", "On Foot"],
+                questions: [
+                    { q: "What was the suspect wearing?", a: "Black Hoodie" },
+                    { q: "Where was suspect last seen?", a: "7-Eleven" },
+                    { q: "What time?", a: "23:45" }
+                ]
+            }
+        ],
+        medium: [
+            {
+                items: ["Suspect: Male, 6'2\"", "Weapon: Handgun", "Vehicle: Blue Sedan", "Plate: ABC 1234", "Direction: Northbound", "Last Seen: 5th & Main"],
+                questions: [
+                    { q: "What was the suspect's height?", a: "6'2\"" },
+                    { q: "What type of weapon was mentioned?", a: "Handgun" },
+                    { q: "What color was the vehicle?", a: "Blue" },
+                    { q: "What was the license plate number?", a: "ABC 1234" },
+                    { q: "Which direction was the suspect heading?", a: "Northbound" }
+                ]
+            },
+            {
+                items: ["DOB: 03/15/1985", "Lic#: D532-8877-2341", "Height: 5'9\"", "Eyes: Brown", "Hair: Black", "Weight: 180 lbs"],
+                questions: [
+                    { q: "What was the date of birth?", a: "03/15/1985" },
+                    { q: "What was the license number?", a: "D532-8877-2341" },
+                    { q: "What was the eye color?", a: "Brown" },
+                    { q: "What was the person's height?", a: "5'9\"" },
+                    { q: "What was the weight listed?", a: "180 lbs" }
+                ]
+            }
+        ],
+        hard: [
+            {
+                items: ["Call#: 2024-7893", "Time: 14:37", "Caller: Martinez, J.", "Location: 4521 Elmwood Dr, Apt 3B", "DOB: 11/22/1978", "Lic#: M582-3344-9871", "Responding: Units 7, 12, Engine 4", "Code: 10-52 with 10-18"],
+                questions: [
+                    { q: "What was the call number?", a: "2024-7893" },
+                    { q: "What time was the call received?", a: "14:37" },
+                    { q: "What was the complete address including apartment?", a: "4521 Elmwood Dr, Apt 3B" },
+                    { q: "What was the caller's date of birth?", a: "11/22/1978" },
+                    { q: "List all responding units (separated by commas)", a: "7, 12, Engine 4" },
+                    { q: "What codes were mentioned?", a: "10-52 with 10-18" }
+                ]
+            },
+            {
+                items: ["Incident#: 2024-15673", "Complainant: Rodriguez-Smith, M.", "Address: 8934 Pinecrest Blvd #215", "Vehicle: 2019 Toyota Camry, Gray", "VIN: 4T1BF1FK3KU123456", "Suspect: White Male, 5'11\", 175lbs", "Clothing: Blue hoodie, jeans", "Time: 09:15 - 09:42"],
+                questions: [
+                    { q: "What was the incident number?", a: "2024-15673" },
+                    { q: "What was the complainant's full name?", a: "Rodriguez-Smith, M." },
+                    { q: "What was the complete address?", a: "8934 Pinecrest Blvd #215" },
+                    { q: "What was the vehicle VIN?", a: "4T1BF1FK3KU123456" },
+                    { q: "Describe the suspect's clothing", a: "Blue hoodie, jeans" },
+                    { q: "What was the time frame of the incident?", a: "09:15 - 09:42" }
+                ]
+            }
+        ]
+    },
+    memorizeSecondsByDifficulty: { easy: 15, medium: 20, hard: 30 },
+    difficulty: 'easy',
+    memorizeSeconds: 15,
     selectedScenario: null,
     currentQuestion: 0,
     currentRound: 0,
@@ -316,7 +371,16 @@ const memoryRecallModule = {
         total: 0
     },
 
-    init(questionCount) {
+    // questionCount sets the number of rounds (previously ignored - always
+    // ran a hardcoded 5 regardless of what the caller asked for).
+    // difficulty picks which tier of questionBank to draw from; the full
+    // graded test always calls render() with just 3 args, so it falls back
+    // to 'easy' - the practice hub's difficulty picker (criticall.html)
+    // passes it explicitly as a 4th argument.
+    init(questionCount, difficulty) {
+        this.difficulty = (difficulty && this.questionBank[difficulty]) ? difficulty : 'easy';
+        this.memorizeSeconds = this.memorizeSecondsByDifficulty[this.difficulty];
+        this.totalRounds = questionCount || 5;
         this.currentRound = 0;
         this.usedScenarios = [];
         this.currentQuestion = 0;
@@ -326,32 +390,34 @@ const memoryRecallModule = {
     },
 
     selectNewScenario() {
+        const pool = this.questionBank[this.difficulty];
+
         // Get scenarios that haven't been used yet
-        const availableScenarios = this.questionBank.filter((scenario, index) => 
+        const availableScenarios = pool.filter((scenario, index) =>
             !this.usedScenarios.includes(index)
         );
-        
+
         // If we've used all scenarios, reset
         if (availableScenarios.length === 0) {
             this.usedScenarios = [];
             this.selectNewScenario();
             return;
         }
-        
+
         // Pick a random available scenario
         const randomIndex = Math.floor(Math.random() * availableScenarios.length);
         this.selectedScenario = availableScenarios[randomIndex];
-        
+
         // Mark this scenario as used
-        const originalIndex = this.questionBank.indexOf(this.selectedScenario);
+        const originalIndex = pool.indexOf(this.selectedScenario);
         this.usedScenarios.push(originalIndex);
-        
+
         // Update total questions count
         this.results.total += this.selectedScenario.questions.length;
     },
 
-    render(container, questionCount, onComplete) {
-        this.init(questionCount);
+    render(container, questionCount, onComplete, difficulty) {
+        this.init(questionCount, difficulty);
         this.onComplete = onComplete;
         this.container = container;
         this.showMemoryItems();
@@ -366,7 +432,7 @@ const memoryRecallModule = {
                 <h3>🧠 Memorize the following information</h3>
                 <div class="memory-timer-display">
                     <p style="font-size: 32px; font-weight: bold; color: #667eea;">
-                        Time remaining: <span id="memoryTimer">15</span>s
+                        Time remaining: <span id="memoryTimer">${this.memorizeSeconds}</span>s
                     </p>
                 </div>
                 <div class="memory-items-display">
@@ -400,7 +466,7 @@ const memoryRecallModule = {
             </style>
         `;
 
-        let timeLeft = 15;
+        let timeLeft = this.memorizeSeconds;
         this.memoryTimer = setInterval(() => {
             timeLeft--;
             const timerEl = document.getElementById('memoryTimer');
