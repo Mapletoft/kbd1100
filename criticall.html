@@ -394,72 +394,72 @@
         </div>
         
         <div class="module-grid" id="moduleGrid">
-            <div class="module-card" onclick="openModule('dataEntry')">
+            <div class="module-card" id="module-dataEntry" onclick="openModule('dataEntry')">
                 <h3>📝 Data Entry</h3>
                 <p>Listen to emergency calls and accurately record caller information, location, and incident type.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('callSummarization')">
+
+            <div class="module-card" id="module-callSummarization" onclick="openModule('callSummarization')">
                 <h3>🎯 Call Summarization</h3>
                 <p>Analyze emergency scenarios and determine appropriate services and priority levels.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('memoryRecall')">
+
+            <div class="module-card" id="module-memoryRecall" onclick="openModule('memoryRecall')">
                 <h3>🧠 Memory Recall</h3>
                 <p>Memorize and recall critical information from emergency scenarios.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('mapReading')">
+
+            <div class="module-card" id="module-mapReading" onclick="openModule('mapReading')">
                 <h3>🗺️ Map Reading</h3>
                 <p>Navigate city streets and determine optimal routes for emergency response.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('readingComprehension')">
+
+            <div class="module-card" id="module-readingComprehension" onclick="openModule('readingComprehension')">
                 <h3>📘 Reading Comprehension</h3>
                 <p>Read passages and answer questions about policies, procedures, and call details.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('spelling')">
+
+            <div class="module-card" id="module-spelling" onclick="openModule('spelling')">
                 <h3>✏️ Spelling</h3>
                 <p>Identify correctly spelled words commonly used in emergency dispatch.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('sentenceClarity')">
+
+            <div class="module-card" id="module-sentenceClarity" onclick="openModule('sentenceClarity')">
                 <h3>🗣️ Sentence Clarity</h3>
                 <p>Select the clearest and most grammatically correct way to communicate information.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('mathematics')">
+
+            <div class="module-card" id="module-mathematics" onclick="openModule('mathematics')">
                 <h3>➕ Mathematics</h3>
                 <p>Solve real-world math problems including time calculations and basic arithmetic.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('splitAttention')">
+
+            <div class="module-card" id="module-splitAttention" onclick="openModule('splitAttention')">
                 <h3>👁️ Split Attention</h3>
                 <p>Type accurately while monitoring multiple displays for target numbers.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('listeningSkills')">
+
+            <div class="module-card" id="module-listeningSkills" onclick="openModule('listeningSkills')">
                 <h3>🎧 Listening Skills</h3>
                 <p>Listen to emergency calls and answer detailed comprehension questions.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('vinLicense')">
+
+            <div class="module-card" id="module-vinLicense" onclick="openModule('vinLicense')">
                 <h3>🚗 VIN/License Entry</h3>
                 <p>Enter VINs and license numbers accurately, extract date of birth from licenses.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('crossReference')">
+
+            <div class="module-card" id="module-crossReference" onclick="openModule('crossReference')">
                 <h3>🔍 Cross-Reference</h3>
                 <p>Spot discrepancies between caller information and database records.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('multitasking')">
+
+            <div class="module-card" id="module-multitasking" onclick="openModule('multitasking')">
                 <h3>🎮 Multitasking</h3>
                 <p>Handle multiple emergency calls simultaneously while prioritizing urgency.</p>
             </div>
-            
-            <div class="module-card" onclick="openModule('decisionMaking')">
+
+            <div class="module-card" id="module-decisionMaking" onclick="openModule('decisionMaking')">
                 <h3>🎯 Decision Making</h3>
                 <p>Prioritize emergency calls by severity - people over property, in-progress over after-the-fact.</p>
             </div>
@@ -528,6 +528,22 @@
                 fullTestCard.querySelector('h3').textContent = '🔒 Full CritiCall Test';
                 fullTestCard.querySelector('p').textContent = 'Unlocks later this semester.';
             }
+
+            // Lock individual module cards per the teacher's per-module
+            // toggles (teacher.html -> Course Access -> CritiCall Modules).
+            CRITICALL_MODULE_IDS.forEach(id => {
+                const card = document.getElementById(`module-${id}`);
+                if (!card) return;
+                const unlocked = settings.criticallModules && settings.criticallModules[id];
+                if (!unlocked) {
+                    card.classList.add('coming-soon');
+                    card.removeAttribute('onclick');
+                    const titleEl = card.querySelector('h3');
+                    const descEl = card.querySelector('p');
+                    if (titleEl) titleEl.textContent = '🔒 ' + titleEl.textContent.trim();
+                    if (descEl) descEl.textContent = 'Unlocks later this semester.';
+                }
+            });
         });
 
         // Data Entry Audio Files Database

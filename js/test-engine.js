@@ -15,11 +15,13 @@ const CritiCallTestEngine = {
             { id: 'multitasking', name: 'Multitasking', timeLimit: 610, questionCount: 12 }
         ],
         
-        // Module weights for overall scoring
-        // SIMPLIFIED SYSTEM: Accuracy (70%) + Speed Bonus (30%)
-        // This rewards both correct answers AND completing modules faster
+        // Module weights for the overall score. Real CritiCall never gives
+        // credit for finishing early - this is a pure accuracy-weighted
+        // average across modules, renormalized in calculateOverallScore()
+        // over whichever modules were actually completed. Typing speed for
+        // the KPM-based modules is its own separate pass/fail gate (see
+        // passingScores.speed below), not blended into this weighting.
         weights: {
-            // Accuracy Component (70% of total score) - All modules weighted by importance
             accuracy: {
                 decisionMaking: 0.25,      // Most critical - emergency response decisions
                 multitasking: 0.18,        // High importance - juggling priorities
@@ -27,38 +29,37 @@ const CritiCallTestEngine = {
                 crossReference: 0.12,      // Important - accuracy in data verification
                 mapReading: 0.10,          // Moderate - navigation skills
                 readingComprehension: 0.10, // Moderate - understanding procedures
-                dataEntry: 0.05,           // Lower - but gets speed bonus separately
+                dataEntry: 0.05,           // Lower weight in the composite, but still gated on its own
                 mathematics: 0.03,         // Lower - basic calculations
                 spelling: 0.02             // Lowest - spell check exists
-            },
-            // Speed Bonus (30% of total score) - All modules contribute
-            // Faster completion = higher score (rewards efficiency)
-            speed: {
-                decisionMaking: 0.20,      // Critical to respond quickly
-                multitasking: 0.18,        // Speed matters in emergencies
-                dataEntry: 0.15,           // Fast typing is important
-                crossReference: 0.12,      // Quick verification needed
-                memoryRecall: 0.12,        // Faster recall = better dispatcher
-                mapReading: 0.10,          // Route planning speed
-                readingComprehension: 0.08, // Must process info quickly
-                mathematics: 0.03,         // Basic calculations
-                spelling: 0.02             // Quick recognition
             }
         },
-        
-        // Minimum passing scores per module (based on real CritiCall standards)
+
+        // Minimum passing scores per module, checked independently (both
+        // must be met where both apply - matching real CritiCall, where
+        // speed and accuracy are separate minimums, not substitutes for
+        // each other).
         passingScores: {
-            dataEntry: 60,           // KPH-based
-            decisionMaking: 70,      // % accuracy
-            spelling: 70,            // % accuracy
-            mathematics: 60,         // % accuracy
-            readingComprehension: 65, // % accuracy
-            memoryRecall: 65,        // % accuracy
-            mapReading: 60,          // % accuracy
-            crossReference: 70,      // % accuracy + KPH
-            multitasking: 65         // % accuracy + KPH
+            accuracy: {
+                dataEntry: 80,           // % accuracy - must be accurate, not just fast
+                decisionMaking: 70,      // % accuracy
+                spelling: 70,            // % accuracy
+                mathematics: 60,         // % accuracy
+                readingComprehension: 65, // % accuracy
+                memoryRecall: 65,        // % accuracy
+                mapReading: 60,          // % accuracy
+                crossReference: 80,      // % accuracy - must be accurate, not just fast
+                multitasking: 70         // % accuracy
+            },
+            // Net KPM (keystrokes already factored for accuracy - see
+            // completeModule) required for the typing-flavored modules.
+            speed: {
+                dataEntry: 60,
+                crossReference: 70,
+                multitasking: 65
+            }
         },
-        
+
         overallPassingScore: 70
     },
 
@@ -268,28 +269,41 @@ const CritiCallTestEngine = {
         results.moduleId = module.id;
         results.moduleName = module.name;
         
-        // Calculate KPH if applicable
-        if (['dataEntry', 'crossReference', 'multitasking'].includes(module.id)) {
-            if (results.totalKeystrokes) {
-                results.kpm = Math.round((results.totalKeystrokes / timeUsed) * 60);
-                results.kph = results.kpm * 60;
-            }
+        const SPEED_MODULES = ['dataEntry', 'crossReference', 'multitasking'];
+
+        // Raw and net KPM/KPH for the typing-flavored modules. Net speed
+        // subtracts for errors (the same "net WPM" convention real typing
+        // tests use), approximated here from the module's own reported
+        // accuracy since modules don't separately track which keystrokes
+        // were correct vs. wrong.
+        if (SPEED_MODULES.includes(module.id) && results.totalKeystrokes) {
+            results.rawKpm = Math.round((results.totalKeystrokes / timeUsed) * 60);
+            const accuracyFraction = (typeof results.accuracy === 'number' ? results.accuracy : 0) / 100;
+            results.kpm = Math.round(results.rawKpm * accuracyFraction);
+            results.kph = results.kpm * 60;
         }
-        
+
         // Calculate WPM if applicable
         if (['dataEntry', 'callSummarization'].includes(module.id)) {
             if (results.totalWords) {
                 results.wpm = Math.round((results.totalWords / timeUsed) * 60);
             }
         }
-        
-        // Determine pass/fail for module
-        const passingScore = this.config.passingScores[module.id];
-        if (['dataEntry', 'crossReference', 'multitasking'].includes(module.id)) {
-            results.passed = results.kpm >= passingScore;
-        } else {
-            results.passed = results.accuracy >= passingScore;
+
+        // Determine pass/fail: accuracy is always required. The
+        // typing-flavored modules additionally require their own net-speed
+        // minimum - both gates checked independently, so neither speed nor
+        // accuracy alone can carry a module that fails the other.
+        const accuracyRequired = this.config.passingScores.accuracy[module.id];
+        const accuracyOk = typeof results.accuracy === 'number' && results.accuracy >= accuracyRequired;
+
+        let speedOk = true;
+        if (SPEED_MODULES.includes(module.id)) {
+            const speedRequired = this.config.passingScores.speed[module.id];
+            speedOk = typeof results.kpm === 'number' && results.kpm >= speedRequired;
         }
+
+        results.passed = accuracyOk && speedOk;
         
         // Store results
         this.state.moduleResults[module.id] = results;
@@ -354,78 +368,38 @@ const CritiCallTestEngine = {
         this.showResults(testSubmission);
     },
 
-    // Calculate overall weighted score
+    // Calculate overall score: a pure accuracy-weighted average across
+    // completed modules. No speed bonus - real CritiCall never rewards
+    // rushing, and typing speed is already its own separate pass/fail gate
+    // per module (see completeModule). Weights are renormalized over only
+    // the modules actually completed, so a missing module scales the
+    // remaining weights up instead of silently deflating the total.
     calculateOverallScore() {
         const results = this.state.moduleResults;
-        
-        // ACCURACY COMPONENT (70% of total score)
-        let accuracyTotal = 0;
+
+        let weightedTotal = 0;
+        let weightUsed = 0;
         for (let module in this.config.weights.accuracy) {
-            if (results[module] && typeof results[module].accuracy !== 'undefined') {
+            if (results[module] && typeof results[module].accuracy === 'number') {
                 const weight = this.config.weights.accuracy[module];
-                accuracyTotal += results[module].accuracy * weight;
+                weightedTotal += results[module].accuracy * weight;
+                weightUsed += weight;
             }
         }
-        const accuracyScore = accuracyTotal; // This is 0-100
-        const accuracyComponent = accuracyScore * 0.70; // 70% of total
-        
-        // SPEED BONUS COMPONENT (30% of total score)
-        // Calculate speed score based on time used vs time allowed
-        let speedTotal = 0;
-        let speedModuleCount = 0;
-        
-        for (let module in this.config.weights.speed) {
-            if (results[module] && results[module].timeUsed) {
-                const moduleConfig = this.config.modules.find(m => m.id === module);
-                if (moduleConfig) {
-                    const weight = this.config.weights.speed[module];
-                    const timeAllowed = moduleConfig.timeLimit;
-                    const timeUsed = results[module].timeUsed;
-                    
-                    // Speed score: faster = better (100 = instant, decreases as time used increases)
-                    // If finished in 50% of time = 90 points, 100% of time = 70 points, over time = lower
-                    const timeRatio = timeUsed / timeAllowed;
-                    let speedScore;
-                    
-                    if (timeRatio <= 0.5) {
-                        // Finished in half the time or less = 90-100 points
-                        speedScore = 100 - (timeRatio * 20);
-                    } else if (timeRatio <= 1.0) {
-                        // Finished in time = 70-90 points (linear scale)
-                        speedScore = 90 - ((timeRatio - 0.5) * 40);
-                    } else {
-                        // Went over time = 40-70 points
-                        speedScore = Math.max(40, 70 - ((timeRatio - 1.0) * 30));
-                    }
-                    
-                    speedTotal += speedScore * weight;
-                    speedModuleCount++;
-                }
-            }
-        }
-        
-        const speedScore = speedModuleCount > 0 ? speedTotal : 70; // Default to 70 if no speed data
-        const speedComponent = speedScore * 0.30; // 30% of total
-        
-        // TOTAL SCORE
-        const totalScore = accuracyComponent + speedComponent;
-        const passed = totalScore >= this.config.overallPassingScore;
-        
+        const overallScore = weightUsed > 0 ? weightedTotal / weightUsed : 0;
+        const passed = overallScore >= this.config.overallPassingScore;
+
         // Check if passed all individual modules
-        let allModulesPassed = true;
+        let allModulesPassed = Object.keys(results).length > 0;
         for (let module in results) {
             if (!results[module].passed) {
                 allModulesPassed = false;
                 break;
             }
         }
-        
+
         return {
-            overallScore: Math.round(totalScore),
-            accuracyScore: Math.round(accuracyScore),
-            speedScore: Math.round(speedScore),
-            accuracyComponent: Math.round(accuracyComponent),
-            speedComponent: Math.round(speedComponent),
+            overallScore: Math.round(overallScore),
             passed: passed && allModulesPassed,
             allModulesPassed: allModulesPassed
         };
@@ -480,14 +454,15 @@ const CritiCallTestEngine = {
                 
                 let stats = statsDoc.exists ? statsDoc.data() : {
                     totalAttempts: 0,
-                    uniqueStudents: new Set(),
+                    uniqueStudentIds: {}, // map of uid -> true; Firestore can't store a Set
                     totalScore: 0,
                     passCount: 0,
                     moduleAverages: {}
                 };
-                
+                if (!stats.uniqueStudentIds) stats.uniqueStudentIds = {};
+
                 stats.totalAttempts++;
-                stats.uniqueStudents.add(testData.userId);
+                stats.uniqueStudentIds[testData.userId] = true;
                 stats.totalScore += testData.overallScore;
                 if (testData.passed) stats.passCount++;
                 
@@ -501,7 +476,7 @@ const CritiCallTestEngine = {
                 }
                 
                 stats.lastUpdated = firebase.firestore.Timestamp.now();
-                stats.uniqueStudentCount = stats.uniqueStudents.size;
+                stats.uniqueStudentCount = Object.keys(stats.uniqueStudentIds).length;
                 
                 transaction.set(statsRef, stats);
             });
@@ -536,21 +511,14 @@ const CritiCallTestEngine = {
             </div>
             
             <div class="score-breakdown">
-                <h3>Score Components</h3>
-                <div class="components">
-                    <div class="component">
-                        <span class="component-label">Accuracy (70%):</span>
-                        <span class="component-value">${testData.accuracyScore}/100</span>
-                    </div>
-                    <div class="component">
-                        <span class="component-label">Speed Bonus (30%):</span>
-                        <span class="component-value">${testData.speedScore}/100</span>
-                    </div>
-                    <div class="component" style="background: #f8f9fa; border: 2px solid #667eea;">
-                        <span class="component-label" style="font-weight: bold;">Final Score:</span>
-                        <span class="component-value" style="font-size: 28px; color: #667eea;">${testData.overallScore}%</span>
-                    </div>
-                </div>
+                <h3>How This Score Works</h3>
+                <p style="color: #666; max-width: 640px; margin: 0 auto 10px; text-align: center;">
+                    Your overall score is a weighted average of your accuracy across every module -
+                    there's no credit for finishing early. Each module below also has its own
+                    pass/fail result: timing-based modules (Data Entry, Cross Reference,
+                    Multitasking) require BOTH accurate work AND meeting a separate speed
+                    minimum, checked independently - just like the real CritiCall test.
+                </p>
             </div>
             
             <div class="module-results">
@@ -574,9 +542,9 @@ const CritiCallTestEngine = {
                 const statusIcon = result.passed ? '✓' : '✗';
                 const statusClass = result.passed ? 'pass' : 'fail';
                 
-                let scoreDisplay = `${Math.round(result.accuracy)}%`;
-                if (result.kpm) scoreDisplay += ` (${result.kpm} KPM)`;
-                if (result.wpm) scoreDisplay += ` (${result.wpm} WPM)`;
+                let scoreDisplay = `${Math.round(result.accuracy)}% accuracy`;
+                if (typeof result.kpm === 'number') scoreDisplay += ` · ${result.kpm} net KPM`;
+                if (result.wpm) scoreDisplay += ` · ${result.wpm} WPM`;
                 
                 let details = '';
                 if (result.correctAnswers !== undefined) {

@@ -156,6 +156,14 @@
         gap: 15px;
     }
 
+    .access-subhead {
+        margin: 20px 0 5px 0;
+        padding-top: 15px;
+        border-top: 1px solid #d7e3ff;
+        color: #003d7a;
+        font-size: 15px;
+    }
+
     .toggle-row {
         display: flex;
         align-items: center;
@@ -224,6 +232,11 @@
             <span>📋 CritiCall Full Test</span>
           </label>
         </div>
+
+        <h4 class="access-subhead">CritiCall Modules</h4>
+        <p class="access-hint">Only matters once "CritiCall Practice" above is turned on — controls which module cards are clickable inside the practice hub.</p>
+        <div class="access-toggles" id="criticallModuleToggles"></div>
+
         <span id="accessSaveStatus" class="access-status"></span>
       </div>
 
@@ -277,15 +290,50 @@
     /***************
      * COURSE ACCESS CONTROLS
      ***************/
-    const ACCESS_FIELDS = Object.keys(DEFAULT_COURSE_SETTINGS);
+    // criticallModules is a nested map, handled separately below - every
+    // other setting is a flat boolean with its own toggle-<field> checkbox.
+    const ACCESS_FIELDS = Object.keys(DEFAULT_COURSE_SETTINGS).filter(f => f !== 'criticallModules');
+
+    const CRITICALL_MODULE_LABELS = {
+      dataEntry: '📝 Data Entry',
+      callSummarization: '🎯 Call Summarization',
+      memoryRecall: '🧠 Memory Recall',
+      mapReading: '🗺️ Map Reading',
+      readingComprehension: '📘 Reading Comprehension',
+      spelling: '✏️ Spelling',
+      sentenceClarity: '🗣️ Sentence Clarity',
+      mathematics: '➕ Mathematics',
+      splitAttention: '👁️ Split Attention',
+      listeningSkills: '🎧 Listening Skills',
+      vinLicense: '🚗 VIN/License Entry',
+      crossReference: '🔍 Cross-Reference',
+      multitasking: '🎮 Multitasking',
+      decisionMaking: '🎯 Decision Making'
+    };
 
     async function loadAccessPanel() {
       const settings = await getCourseSettings();
+
       ACCESS_FIELDS.forEach(field => {
         document.getElementById(`toggle-${field}`).checked = !!settings[field];
       });
       ACCESS_FIELDS.forEach(field => {
         document.getElementById(`toggle-${field}`).addEventListener('change', onAccessToggleChange);
+      });
+
+      // Build the CritiCall module checkboxes fresh each load so the
+      // "checked" state always reflects what's actually in Firestore.
+      const moduleContainer = document.getElementById('criticallModuleToggles');
+      moduleContainer.innerHTML = CRITICALL_MODULE_IDS.map(id => `
+        <label class="toggle-row">
+          <input type="checkbox" id="toggle-module-${id}" data-module-id="${id}" />
+          <span>${CRITICALL_MODULE_LABELS[id] || id}</span>
+        </label>
+      `).join('');
+
+      CRITICALL_MODULE_IDS.forEach(id => {
+        document.getElementById(`toggle-module-${id}`).checked = !!(settings.criticallModules && settings.criticallModules[id]);
+        document.getElementById(`toggle-module-${id}`).addEventListener('change', onModuleToggleChange);
       });
     }
 
@@ -302,6 +350,28 @@
         status.textContent = `✓ Saved (students will see this next time they load the page)`;
       } catch (err) {
         console.error('Failed to save course setting:', err);
+        status.textContent = '✗ Failed to save — try again';
+        e.target.checked = !e.target.checked;
+      }
+      setTimeout(() => { status.textContent = ''; }, 4000);
+    }
+
+    // Saves into the nested criticallModules map. set(..., {merge:true})
+    // deep-merges nested objects, so this only touches this one module's
+    // key and leaves every other module's flag untouched.
+    async function onModuleToggleChange(e) {
+      const moduleId = e.target.dataset.moduleId;
+      const status = document.getElementById('accessSaveStatus');
+      status.textContent = 'Saving...';
+      try {
+        await db.collection('courseSettings').doc('KBD1100').set({
+          criticallModules: { [moduleId]: e.target.checked },
+          updatedAt: firebase.firestore.Timestamp.now(),
+          updatedBy: auth.currentUser.email
+        }, { merge: true });
+        status.textContent = `✓ Saved (students will see this next time they load the page)`;
+      } catch (err) {
+        console.error('Failed to save module setting:', err);
         status.textContent = '✗ Failed to save — try again';
         e.target.checked = !e.target.checked;
       }
