@@ -62,10 +62,17 @@ const CritiCallTestEngine = {
             },
             // Net KPM (keystrokes already factored for accuracy - see
             // completeModule) required for the typing-flavored modules.
+            // multitasking is NOT here - it was never really a typing-speed
+            // module (real CritiCall multitasking grades correct call
+            // handling under simultaneous interruption, not sustained KPM),
+            // and js/modules/multitasking.js has never tracked keystrokes to
+            // support a speed gate anyway. It used to be listed in
+            // SPEED_MODULES below with a speed requirement here, which meant
+            // its pass check always evaluated to false - nobody could ever
+            // pass it, regardless of performance.
             speed: {
                 dataEntry: 60,
-                crossReference: 70,
-                multitasking: 65
+                crossReference: 70
             }
         },
 
@@ -280,7 +287,7 @@ const CritiCallTestEngine = {
         results.moduleId = module.id;
         results.moduleName = module.name;
         
-        const SPEED_MODULES = ['dataEntry', 'crossReference', 'multitasking'];
+        const SPEED_MODULES = ['dataEntry', 'crossReference'];
 
         // Raw and net KPM/KPH for the typing-flavored modules. Net speed
         // subtracts for errors (the same "net WPM" convention real typing
