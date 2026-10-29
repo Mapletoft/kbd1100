@@ -9,7 +9,7 @@ const COURSE_SETTINGS_DOC_ID = 'KBD1100';
 // once criticallPracticeUnlocked is true (the hub-level master switch) -
 // they control which individual module cards are clickable within it.
 const CRITICALL_MODULE_IDS = [
-    'dataEntry', 'callSummarization', 'memoryRecall', 'mapReading',
+    'audioDataEntry', 'callSummarization', 'memoryRecall', 'mapReading',
     'readingComprehension', 'spelling', 'sentenceClarity', 'mathematics',
     'splitAttention', 'listeningSkills', 'vinLicense', 'crossReference',
     'multitasking', 'decisionMaking'

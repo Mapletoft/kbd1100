@@ -5,6 +5,7 @@ const CritiCallTestEngine = {
     config: {
         modules: [
             { id: 'dataEntry', name: 'Data Entry', timeLimit: 300, questionCount: 12 },
+            { id: 'audioDataEntry', name: 'Audio Data Entry', timeLimit: 360, questionCount: 6 },
             { id: 'decisionMaking', name: 'Decision Making', timeLimit: 1800, questionCount: 35 },
             { id: 'spelling', name: 'Spelling', timeLimit: 600, questionCount: 50 },
             { id: 'mathematics', name: 'Mathematics', timeLimit: 900, questionCount: 25 },
@@ -12,9 +13,11 @@ const CritiCallTestEngine = {
             { id: 'memoryRecall', name: 'Memory Recall', timeLimit: 900, questionCount: 5 },
             { id: 'mapReading', name: 'Map Reading', timeLimit: 900, questionCount: 12 },
             { id: 'crossReference', name: 'Cross Reference', timeLimit: 600, questionCount: 15 },
-            { id: 'multitasking', name: 'Multitasking', timeLimit: 610, questionCount: 12 }
+            { id: 'multitasking', name: 'Multitasking', timeLimit: 610, questionCount: 12 },
+            { id: 'callSummarization', name: 'Call Summarization', timeLimit: 900, questionCount: 10 },
+            { id: 'listeningSkills', name: 'Listening Skills', timeLimit: 900, questionCount: 5 }
         ],
-        
+
         // Module weights for the overall score. Real CritiCall never gives
         // credit for finishing early - this is a pure accuracy-weighted
         // average across modules, renormalized in calculateOverallScore()
@@ -23,14 +26,17 @@ const CritiCallTestEngine = {
         // passingScores.speed below), not blended into this weighting.
         weights: {
             accuracy: {
-                decisionMaking: 0.25,      // Most critical - emergency response decisions
-                multitasking: 0.18,        // High importance - juggling priorities
-                memoryRecall: 0.15,        // Important - recall under pressure
-                crossReference: 0.12,      // Important - accuracy in data verification
-                mapReading: 0.10,          // Moderate - navigation skills
-                readingComprehension: 0.10, // Moderate - understanding procedures
-                dataEntry: 0.05,           // Lower weight in the composite, but still gated on its own
-                mathematics: 0.03,         // Lower - basic calculations
+                decisionMaking: 0.20,      // Most critical - emergency response decisions
+                multitasking: 0.15,        // High importance - juggling priorities
+                memoryRecall: 0.12,        // Important - recall under pressure
+                crossReference: 0.10,      // Important - accuracy in data verification
+                callSummarization: 0.10,   // Real-world dispatcher judgment from a live call
+                mapReading: 0.08,          // Moderate - navigation skills
+                readingComprehension: 0.08, // Moderate - understanding procedures
+                listeningSkills: 0.08,     // Comprehension under audio-only conditions
+                audioDataEntry: 0.05,      // Listening + accurate entry under pressure
+                dataEntry: 0.04,           // Lower weight in the composite, but still gated on its own
+                mathematics: 0.02,         // Lower - basic calculations
                 spelling: 0.02             // Lowest - spell check exists
             }
         },
@@ -42,6 +48,7 @@ const CritiCallTestEngine = {
         passingScores: {
             accuracy: {
                 dataEntry: 80,           // % accuracy - must be accurate, not just fast
+                audioDataEntry: 80,      // % accuracy - correctness of what was heard, not raw speed
                 decisionMaking: 70,      // % accuracy
                 spelling: 70,            // % accuracy
                 mathematics: 60,         // % accuracy
@@ -49,7 +56,9 @@ const CritiCallTestEngine = {
                 memoryRecall: 65,        // % accuracy
                 mapReading: 60,          // % accuracy
                 crossReference: 80,      // % accuracy - must be accurate, not just fast
-                multitasking: 70         // % accuracy
+                multitasking: 70,        // % accuracy
+                callSummarization: 70,   // % accuracy
+                listeningSkills: 65      // % accuracy
             },
             // Net KPM (keystrokes already factored for accuracy - see
             // completeModule) required for the typing-flavored modules.
@@ -148,6 +157,7 @@ const CritiCallTestEngine = {
     getModuleInstructions(moduleId) {
         const instructions = {
             dataEntry: 'Enter caller information accurately and quickly. You will be timed on both speed and accuracy.',
+            audioDataEntry: 'Listen to each emergency call once, then enter the caller\'s information accurately. Audio cannot be replayed.',
             decisionMaking: 'Read each scenario and determine which emergency services should respond and the priority level.',
             callSummarization: 'Listen to emergency calls and answer questions about key details. Audio plays only once.',
             mapReading: 'Using the map provided, determine the best route for emergency responders.',
@@ -156,7 +166,8 @@ const CritiCallTestEngine = {
             mathematics: 'Solve math problems related to emergency dispatch scenarios.',
             memoryRecall: 'Memorize information that will be shown briefly, then answer questions from memory.',
             crossReference: 'Compare information from different sources and identify discrepancies.',
-            multitasking: 'Handle multiple emergency calls simultaneously while maintaining accuracy.'
+            multitasking: 'Handle multiple emergency calls simultaneously while maintaining accuracy.',
+            listeningSkills: 'Listen to each emergency call once, then answer comprehension questions about it. No transcript is provided.'
         };
         return instructions[moduleId] || 'Complete the module to the best of your ability.';
     },

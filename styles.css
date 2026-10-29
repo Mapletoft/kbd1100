@@ -861,3 +861,186 @@ body {
     background: #ffebee;
     color: #f44336;
 }
+
+/* Shared CritiCall module styling (js/modules/audio-data-entry.js,
+   call-summarization.js, listening-skills.js, js/audio-player.js). These
+   modules render into both criticall.html (practice) and criticalltest.html
+   (graded test), so their look lives here once instead of being duplicated
+   per page. criticall.html's own <style> block already defines matching
+   rules that load after this file, so this has no visual effect there -
+   it only brings criticalltest.html's appearance in line with it. */
+
+.module-progress {
+    color: #666;
+    margin-bottom: 15px;
+}
+
+.score-display {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 30px;
+    border-radius: 15px;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.score-display h2 {
+    font-size: 48px;
+    margin: 20px 0;
+}
+
+.data-entry-form {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+    align-items: center;
+}
+
+.form-row label {
+    font-weight: bold;
+    padding: 10px;
+    background: #e9ecef;
+    border-radius: 5px;
+}
+
+.form-row input {
+    padding: 10px;
+    border: 2px solid #dee2e6;
+    border-radius: 5px;
+    font-size: 16px;
+}
+
+.form-row input:focus {
+    outline: none;
+    border-color: #007bff;
+}
+
+.incident-scenario {
+    background: #fff3cd;
+    border: 2px solid #ffc107;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.decision-section {
+    background: white;
+    border: 2px solid #007bff;
+    padding: 20px;
+    border-radius: 10px;
+    margin: 20px 0;
+}
+
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: #f8f9fa;
+    border-radius: 5px;
+}
+
+.checkbox-item input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.priority-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.priority-btn {
+    flex: 1;
+    padding: 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s;
+}
+
+.priority-btn.high { background: #dc3545; color: white; }
+.priority-btn.medium { background: #ffc107; color: black; }
+.priority-btn.low { background: #28a745; color: white; }
+
+.priority-btn.selected {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+
+/* Audio player widget (js/audio-player.js) */
+.audio-player-widget {
+    background: #f8f9fa;
+    padding: 25px;
+    border-radius: 10px;
+    margin: 20px 0;
+    text-align: center;
+}
+
+.audio-player-warning {
+    font-weight: bold;
+    color: #856404;
+    margin-bottom: 10px;
+}
+
+.audio-player-btn {
+    font-size: 16px;
+    padding: 12px 30px;
+}
+
+.audio-player-status {
+    color: #666;
+    font-size: 14px;
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.listening-options label {
+    display: block;
+    padding: 15px;
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    cursor: pointer;
+    margin: 12px 0;
+    transition: all 0.2s;
+}
+
+.listening-options label:hover {
+    border-color: #007bff;
+    background: #f5f5f5;
+}
+
+.listening-feedback {
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+    border: 2px solid;
+}
+
+.listening-feedback.correct {
+    background: #d4edda;
+    border-color: #28a745;
+}
+
+.listening-feedback.incorrect {
+    background: #f8d7da;
+    border-color: #dc3545;
+}

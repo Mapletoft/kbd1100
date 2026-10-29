@@ -11,6 +11,12 @@
     <script src="firebase-config.js"></script>
     <script src="js/course-settings.js"></script>
 
+    <!-- Shared CritiCall modules (also used by criticalltest.html) -->
+    <script src="js/audio-player.js"></script>
+    <script src="js/modules/audio-data-entry.js"></script>
+    <script src="js/modules/call-summarization.js"></script>
+    <script src="js/modules/listening-skills.js"></script>
+
     <style>
         .criticall-container {
             background: white;
@@ -394,8 +400,8 @@
         </div>
         
         <div class="module-grid" id="moduleGrid">
-            <div class="module-card" id="module-dataEntry" onclick="openModule('dataEntry')">
-                <h3>📝 Data Entry</h3>
+            <div class="module-card" id="module-audioDataEntry" onclick="openModule('audioDataEntry')">
+                <h3>🎧 Audio Data Entry</h3>
                 <p>Listen to emergency calls and accurately record caller information, location, and incident type.</p>
             </div>
 
@@ -546,112 +552,8 @@
             });
         });
 
-        // Data Entry Audio Files Database
-        const dataEntryScenarios = [
-            {
-                audioFile: "audio/data-entry/scenario1.mp3", // You'll add your actual audio files
-                answers: {
-                    callerName: "SARAH JOHNSTON",
-                    address: "1245 OAK STREET",
-                    incidentType: "Medical Emergency"
-                }
-            },
-            {
-                audioFile: "audio/data-entry/scenario2.mp3",
-                answers: {
-                    callerName: "MICHELLE CHEN",
-                    address: "789 MAPLE AVENUE",
-                    incidentType: "STRUCTURE FIRE"
-                }
-            },
-            {
-                audioFile: "audio/data-entry/scenario3.mp3",
-                answers: {
-                    callerName: "EMILY RODRIQUEZ",
-                    address: "456 PINE STREET",
-                    incidentType: "MVC"
-                }
-            }
-        ];
-        
-        // Call Summarization Scenarios
-        const callScenarios = [
-            {
-                scenario: "A 45-year-old male is experiencing severe chest pain and difficulty breathing. He is conscious but in obvious distress. His wife reports he has a history of heart problems.",
-                correctServices: ["ems"],
-                correctPriority: "high"
-            },
-            {
-                scenario: "Caller reports seeing smoke coming from a neighbor's garage. No flames visible yet, but the smell is getting stronger. No one appears to be home.",
-                correctServices: ["fire"],
-                correctPriority: "medium"
-            },
-            {
-                scenario: "A two-car collision at Main St and 5th Ave. Minor injuries reported, one vehicle is blocking the right lane. Both drivers are out of their vehicles.",
-                correctServices: ["police", "ems"],
-                correctPriority: "medium"
-            },
-            {
-                scenario: "Caller reports an unresponsive infant, not breathing. Mother is hysterical. Address is clear.",
-                correctServices: ["ems"],
-                correctPriority: "high"
-            },
-            {
-                scenario: "Neighbor reports a burglary in progress. Suspects are currently inside the residence. Homeowners are on vacation.",
-                correctServices: ["police"],
-                correctPriority: "high"
-            },
-            {
-                scenario: "Elderly woman fell in her bathroom. She is conscious and alert but cannot get up. No visible injuries but complaining of hip pain.",
-                correctServices: ["ems"],
-                correctPriority: "medium"
-            },
-            {
-                scenario: "Structure fire fully involved, multiple floors. Building is a commercial warehouse. All occupants have evacuated safely.",
-                correctServices: ["fire", "police"],
-                correctPriority: "high"
-            },
-            {
-                scenario: "Carbon monoxide alarm sounding in a residence. Family members are feeling dizzy and nauseous. They are outside now.",
-                correctServices: ["fire", "ems"],
-                correctPriority: "high"
-            },
-            {
-                scenario: "Suspicious person loitering near a school playground. School is currently in session. Individual is not responding to staff requests to leave.",
-                correctServices: ["police"],
-                correctPriority: "medium"
-            },
-            {
-                scenario: "Tree branch fell on power lines during storm. Sparking visible. Lines are across the roadway blocking both lanes.",
-                correctServices: ["fire", "police", "utilities"],
-                correctPriority: "high"
-            },
-            {
-                scenario: "Caller reports her medication was stolen from her vehicle overnight. Vehicle was parked in her driveway.",
-                correctServices: ["police"],
-                correctPriority: "low"
-            },
-            {
-                scenario: "Domestic disturbance. Neighbors report shouting and sounds of items breaking. Children's voices heard crying.",
-                correctServices: ["police"],
-                correctPriority: "high"
-            },
-            {
-                scenario: "Gas leak reported at a restaurant. Strong odor throughout the building. Building has been evacuated.",
-                correctServices: ["fire", "utilities"],
-                correctPriority: "high"
-            },
-            {
-                scenario: "Vehicle vs pedestrian accident. Pedestrian is conscious, sitting on curb. Visible leg injury. Driver remained on scene.",
-                correctServices: ["police", "ems"],
-                correctPriority: "high"
-            },
-            {
-                scenario: "Caller locked keys in car with infant inside. Weather is hot, approximately 85°F. Infant appears alert through window.",
-                correctServices: ["fire", "police"],
-                correctPriority: "high"
-            }
-        ];
+        // Audio Data Entry scenarios -> js/modules/audio-data-entry.js
+        // Call Summarization scenarios -> js/modules/call-summarization.js
         
         // Memory Recall Questions by Difficulty
         const memoryQuestions = {
@@ -1107,96 +1009,7 @@
         ];
         
         // Listening Skills - Audio scenarios with questions (you'll add audio files)
-        const listeningScenarios = [
-            {
-                audioFile: "audio/listening/listening1.mp3", // You'll add your audio file
-                scenario: "",
-                questions: [
-                    {
-                        q: "What is the address of the fire?",
-                        options: ["456 Elm Street", "456 Oak Street", "546 Elm Street", "4566 Elm Avenue"],
-                        correct: 0
-                    },
-                    {
-                        q: "Where are the flames visible?",
-                        options: ["First floor", "Second floor", "Basement", "Roof"],
-                        correct: 1
-                    },
-                    {
-                        q: "How many children are possibly trapped?",
-                        options: ["One", "Two", "Three", "Unknown"],
-                        correct: 1
-                    },
-                    {
-                        q: "What did the caller report seeing from the street?",
-                        options: ["Only flames", "Only smoke", "Flames and smoke", "People at windows"],
-                        correct: 2
-                    }
-                ]
-            },
-            {
-                audioFile: "audio/listening/listening2.mp3",
-                scenario: "",
-                questions: [
-                    {
-                        q: "Where did the collision occur?",
-                        options: ["Main and 4th", "Main and 5th", "Main and 6th", "5th and Oak"],
-                        correct: 1
-                    },
-                    {
-                        q: "What colour is the Honda?",
-                        options: ["Black", "White", "Silver", "Blue"],
-                        correct: 2
-                    },
-                    {
-                        q: "What is the condition of the Honda driver?",
-                        options: ["Conscious", "Unconscious", "Walked away", "Not mentioned"],
-                        correct: 1
-                    },
-                    {
-                        q: "What did the pickup driver do?",
-                        options: ["Remained at scene", "Walked away from scene", "Was transported", "Was unconscious"],
-                        correct: 1
-                    },
-                    {
-                        q: "How is traffic affected?",
-                        options: ["No impact", "Backed up one block", "Backed up several blocks", "Road closed"],
-                        correct: 2
-                    }
-                ]
-            },
-            {
-                audioFile: "audio/listening/listening3.mp3",
-                scenario: "",
-                questions: [
-                    {
-                        q: "What is the patient's age?",
-                        options: ["68", "78", "88", "87"],
-                        correct: 1
-                    },
-                    {
-                        q: "What is the main complaint?",
-                        options: ["Difficulty breathing", "Chest pain", "Abdominal pain", "Headache"],
-                        correct: 1
-                    },
-                    {
-                        q: "What is the apartment number?",
-                        options: ["3B", "4A", "4B", "5B"],
-                        correct: 2
-                    },
-                    {
-                        q: "What medical condition does the patient have?",
-                        options: ["Heart disease", "Diabetes", "Asthma", "Cancer"],
-                        correct: 1
-                    },
-                    {
-                        q: "Is the patient conscious?",
-                        options: ["Yes", "No", "Intermittent", "Not mentioned"],
-                        correct: 0
-                    }
-                ]
-            }
-        ];
+        // Listening Skills scenarios -> js/modules/listening-skills.js
         
         // VIN/License Entry - Generate license numbers with encoded DOB
         function generateLicenseNumber(lastName, birthYear, birthMonth, birthDay, isFemale) {
@@ -1403,11 +1216,17 @@
             document.body.style.overflow = 'hidden';
             
             switch(moduleName) {
-                case 'dataEntry':
-                    showDataEntry();
+                case 'audioDataEntry':
+                    document.getElementById('moduleTitle').textContent = '🎧 Audio Data Entry Practice';
+                    audioDataEntryModule.render(document.getElementById('moduleContent'), 5, (results) => {
+                        handlePracticeModuleComplete('audioDataEntry', 'Audio Data Entry', results);
+                    });
                     break;
                 case 'callSummarization':
-                    showCallSummarization();
+                    document.getElementById('moduleTitle').textContent = '🎯 Call Summarization Practice';
+                    callSummarizationModule.render(document.getElementById('moduleContent'), 8, (results) => {
+                        handlePracticeModuleComplete('callSummarization', 'Call Summarization', results);
+                    });
                     break;
                 case 'memoryRecall':
                     showMemoryRecall();
@@ -1431,7 +1250,10 @@
                     showSplitAttention();
                     break;
                 case 'listeningSkills':
-                    showListeningSkills();
+                    document.getElementById('moduleTitle').textContent = '🎧 Listening Skills Practice';
+                    listeningSkillsModule.render(document.getElementById('moduleContent'), 3, (results) => {
+                        handlePracticeModuleComplete('listeningSkills', 'Listening Skills', results);
+                    });
                     break;
                 case 'vinLicense':
                     showVinLicense();
@@ -1445,6 +1267,36 @@
                 case 'decisionMaking':
                     showDecisionMaking();
                     break;
+            }
+        }
+
+        // Shared results screen + Firestore write for the 3 modules ported
+        // to js/modules/*.js (audioDataEntry, callSummarization,
+        // listeningSkills) when practiced from this hub. The graded test
+        // (criticalltest.html) uses the same module's render() but supplies
+        // its own onComplete via test-engine.js instead of this function.
+        function handlePracticeModuleComplete(moduleId, moduleLabel, results) {
+            document.getElementById('moduleContent').innerHTML = `
+                <div class="score-display">
+                    <h3>${moduleLabel} Results</h3>
+                    <h2>${results.accuracy}%</h2>
+                    <p>${results.correctAnswers} out of ${results.totalQuestions} correct</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-primary" onclick="openModule('${moduleId}')">Practice Again</button>
+                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
+                </div>
+            `;
+
+            if (auth.currentUser) {
+                db.collection('users').doc(auth.currentUser.uid)
+                  .collection('criticallScores').add({
+                    module: moduleId,
+                    score: results.accuracy,
+                    correct: results.correctAnswers,
+                    total: results.totalQuestions,
+                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                  });
             }
         }
         
@@ -1475,309 +1327,15 @@
             }
         }
         
-        // DATA ENTRY MODULE
-        function showDataEntry() {
-            document.getElementById('moduleTitle').textContent = '📝 Data Entry Practice';
-            
-            // Reset audio play count for new scenario
-            audioPlayCount = 0;
-            
-            // For demo purposes, we'll use a random scenario
-            // In production, you'd cycle through them or let teacher select
-            const scenario = dataEntryScenarios[Math.floor(Math.random() * dataEntryScenarios.length)];
-            
-            const content = document.getElementById('moduleContent');
-            content.innerHTML = `
-                <div class="audio-container">
-                    <h3>🎧 Listen Carefully to the Emergency Call</h3>
-                    <p><strong>⚠ You can only play this audio ONCE - listen carefully and type as you hear the information!</strong></p>
-                    <audio id="emergencyAudio" class="audio-player" controls>
-                        <source src="${scenario.audioFile}" type="audio/mpeg">
-                        Your browser does not support the audio element.
-                    </audio>
-                    <p class="play-count">Audio status: <span id="playCount" style="font-weight: bold; color: #007bff;">Ready to play</span></p>
-                </div>
-                
-                <div class="data-entry-form">
-                    <h3>Enter the information from the call: MAKE SURE CAPS LOCK IS ON (IT'S HOW YOU'D ENTER IT IN CAD)</h3>
-                    <div class="form-row">
-                        <label>Caller Name:</label>
-                        <input type="text" id="callerName" placeholder="First and Last Name">
-                    </div>
-                    <div class="form-row">
-                        <label>Address/Location:</label>
-                        <input type="text" id="address" placeholder="Street address or location">
-                    </div>
-                    <div class="form-row">
-                        <label>Incident Type:</label>
-                        <input type="text" id="incidentType" placeholder="Type of emergency">
-                    </div>
-                </div>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-success" onclick="submitDataEntry()">Submit Entry</button>
-                </div>
-            `;
-            
-            // Track audio plays and disable after first play
-            const audio = document.getElementById('emergencyAudio');
-            let hasPlayed = false;
-            
-            audio.addEventListener('play', function() {
-                if (!hasPlayed) {
-                    audioPlayCount++;
-                    hasPlayed = true;
-                    document.getElementById('playCount').textContent = 'Played once (disabled)';
-                    document.getElementById('playCount').style.color = '#dc3545';
-                }
-            });
-            
-            audio.addEventListener('ended', function() {
-                // Disable audio controls after it finishes playing
-                audio.controls = false;
-                audio.style.opacity = '0.5';
-                document.getElementById('playCount').textContent = 'Audio completed (cannot replay)';
-            });
-            
-            // Also disable if they try to replay before it ends
-            audio.addEventListener('pause', function() {
-                if (hasPlayed) {
-                    audio.controls = false;
-                    audio.style.opacity = '0.5';
-                }
-            });
-            
-            // Store correct answers for checking
-            window.currentDataEntryAnswers = scenario.answers;
-        }
+        // AUDIO DATA ENTRY MODULE - moved to js/modules/audio-data-entry.js
+        // (shared with the graded test; see openModule('audioDataEntry')).
+        // Renamed from "Data Entry" to distinguish it from the separate
+        // text-based on-screen Data Entry module used by the graded test
+        // (js/modules/data-entry.js) - these are two different real
+        // CritiCall skill categories that happened to share a casual name.
         
-        function submitDataEntry() {
-            const userAnswers = {
-                callerName: document.getElementById('callerName').value.trim(),
-                address: document.getElementById('address').value.trim(),
-                incidentType: document.getElementById('incidentType').value.trim()
-            };
-            
-            const correctAnswers = window.currentDataEntryAnswers;
-            let score = 0;
-            let feedback = [];
-            
-            // Check Caller Name (case-insensitive, flexible matching)
-            if (userAnswers.callerName.toLowerCase() === correctAnswers.callerName.toLowerCase()) {
-                score += 33.33;
-                feedback.push('✓ Caller Name: Correct');
-            } else {
-                feedback.push('✗ Caller Name: Incorrect (Correct: ' + correctAnswers.callerName + ')');
-            }
-            
-            // Check Address (case-insensitive, flexible matching)
-            if (userAnswers.address.toLowerCase() === correctAnswers.address.toLowerCase()) {
-                score += 33.33;
-                feedback.push('✓ Address: Correct');
-            } else {
-                feedback.push('✗ Address: Incorrect (Correct: ' + correctAnswers.address + ')');
-            }
-            
-            // Check Incident Type (case-insensitive, flexible matching)
-            if (userAnswers.incidentType.toLowerCase() === correctAnswers.incidentType.toLowerCase()) {
-                score += 33.34;
-                feedback.push('✓ Incident Type: Correct');
-            } else {
-                feedback.push('✗ Incident Type: Incorrect (Correct: ' + correctAnswers.incidentType + ')');
-            }
-            
-            // Display results
-            const content = document.getElementById('moduleContent');
-            content.innerHTML = `
-                <div class="score-display">
-                    <h3>Data Entry Results</h3>
-                    <h2>${Math.round(score)}%</h2>
-                    <p>Audio played ${audioPlayCount} time(s)</p>
-                </div>
-                <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px;">
-                    <h3>Detailed Feedback:</h3>
-                    ${feedback.map(f => `<p style="margin: 10px 0; font-size: 16px;">${f}</p>`).join('')}
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="showDataEntry()">Try Another Scenario</button>
-                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
-                </div>
-            `;
-            
-            // Save score to Firebase
-            if (auth.currentUser) {
-                db.collection('users').doc(auth.currentUser.uid)
-                  .collection('criticallScores').add({
-                    module: 'dataEntry',
-                    score: Math.round(score),
-                    audioPlays: audioPlayCount,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                  });
-            }
-        }
-        
-        // CALL SUMMARIZATION MODULE
-        function showCallSummarization() {
-            document.getElementById('moduleTitle').textContent = '🎯 Call Summarization Practice';
-            currentQuestion = 0;
-            correctAnswers = 0;
-            totalQuestions = callScenarios.length;
-            
-            showNextCallScenario();
-        }
-        
-        function showNextCallScenario() {
-            if (currentQuestion >= callScenarios.length) {
-                showCallSummarizationResults();
-                return;
-            }
-            
-            const scenario = callScenarios[currentQuestion];
-            const content = document.getElementById('moduleContent');
-            
-            content.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
-                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
-                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
-                    </div>
-                </div>
-                
-                <div class="incident-scenario">
-                    <h3>📞 Emergency Call</h3>
-                    <p style="font-size: 16px; line-height: 1.6;">${scenario.scenario}</p>
-                </div>
-                
-                <div class="decision-section">
-                    <h3>Select Appropriate Services:</h3>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="service-police" value="police">
-                            <label for="service-police">🚔 Police</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="service-fire" value="fire">
-                            <label for="service-fire">🚒 Fire Department</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="service-ems" value="ems">
-                            <label for="service-ems">🚑 EMS/Medical</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="service-utilities" value="utilities">
-                            <label for="service-utilities">⚡ Utilities</label>
-                        </div>
-                    </div>
-                    
-                    <h3 style="margin-top: 20px;">Select Priority Level:</h3>
-                    <div class="priority-buttons">
-                        <button class="priority-btn high" onclick="selectPriority('high')">HIGH<br><small>Life-threatening / Immediate danger</small></button>
-                        <button class="priority-btn medium" onclick="selectPriority('medium')">MEDIUM<br><small>Urgent but not life-threatening</small></button>
-                        <button class="priority-btn low" onclick="selectPriority('low')">LOW<br><small>Non-urgent / Routine</small></button>
-                    </div>
-                </div>
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-success" onclick="submitCallDecision()">Submit Decision</button>
-                </div>
-            `;
-        }
-        
-        function selectPriority(priority) {
-            // Remove selection from all buttons
-            document.querySelectorAll('.priority-btn').forEach(btn => {
-                btn.classList.remove('selected');
-            });
-            
-            // Add selection to clicked button
-            event.target.classList.add('selected');
-            selectedPriority = priority;
-        }
-        
-        function submitCallDecision() {
-            const scenario = callScenarios[currentQuestion];
-            
-            // Get selected services
-            selectedServices = [];
-            if (document.getElementById('service-police').checked) selectedServices.push('police');
-            if (document.getElementById('service-fire').checked) selectedServices.push('fire');
-            if (document.getElementById('service-ems').checked) selectedServices.push('ems');
-            if (document.getElementById('service-utilities').checked) selectedServices.push('utilities');
-            
-            // Check if user made selections
-            if (selectedServices.length === 0 || !selectedPriority) {
-                alert('Please select at least one service and a priority level.');
-                return;
-            }
-            
-            // Check if answer is correct
-            const servicesCorrect = arraysEqual(selectedServices.sort(), scenario.correctServices.sort());
-            const priorityCorrect = selectedPriority === scenario.correctPriority;
-            
-            if (servicesCorrect && priorityCorrect) {
-                correctAnswers++;
-            }
-            
-            // Show feedback
-            let feedback = '<div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px;">';
-            feedback += '<h3>Feedback:</h3>';
-            feedback += `<p><strong>Services:</strong> ${servicesCorrect ? '✓ Correct' : '✗ Incorrect'}</p>`;
-            if (!servicesCorrect) {
-                feedback += `<p style="margin-left: 20px;">Correct services: ${scenario.correctServices.join(', ')}</p>`;
-            }
-            feedback += `<p><strong>Priority:</strong> ${priorityCorrect ? '✓ Correct' : '✗ Incorrect'}</p>`;
-            if (!priorityCorrect) {
-                feedback += `<p style="margin-left: 20px;">Correct priority: ${scenario.correctPriority}</p>`;
-            }
-            feedback += '</div>';
-            
-            document.getElementById('moduleContent').innerHTML += feedback;
-            
-            // Add continue button
-            setTimeout(() => {
-                const continueBtn = document.createElement('div');
-                continueBtn.style.textAlign = 'center';
-                continueBtn.style.marginTop = '20px';
-                continueBtn.innerHTML = '<button class="btn btn-primary" onclick="nextCallQuestion()">Continue to Next Call</button>';
-                document.getElementById('moduleContent').appendChild(continueBtn);
-            }, 500);
-        }
-        
-        function nextCallQuestion() {
-            currentQuestion++;
-            selectedPriority = null;
-            selectedServices = [];
-            showNextCallScenario();
-        }
-        
-        function showCallSummarizationResults() {
-            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
-            const content = document.getElementById('moduleContent');
-            
-            content.innerHTML = `
-                <div class="score-display">
-                    <h3>Call Summarization Results</h3>
-                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
-                    <p>${percentage}% Correct</p>
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="showCallSummarization()">Practice Again</button>
-                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
-                </div>
-            `;
-            
-            // Save score to Firebase
-            if (auth.currentUser) {
-                db.collection('users').doc(auth.currentUser.uid)
-                  .collection('criticallScores').add({
-                    module: 'callSummarization',
-                    score: percentage,
-                    correct: correctAnswers,
-                    total: totalQuestions,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                  });
-            }
-        }
+        // CALL SUMMARIZATION MODULE - moved to js/modules/call-summarization.js
+        // (shared with the graded test; see openModule('callSummarization')).
         
         // MEMORY RECALL MODULE
         function showMemoryRecall() {
@@ -3068,196 +2626,9 @@
             }
         }
         
-        // LISTENING SKILLS MODULE
-        function showListeningSkills() {
-            document.getElementById('moduleTitle').textContent = '🎧 Listening Skills Practice';
-            currentQuestion = 0;
-            correctAnswers = 0;
-            totalQuestions = 0;
-            
-            // Calculate total questions
-            listeningScenarios.forEach(scenario => {
-                totalQuestions += scenario.questions.length;
-            });
-            
-            showNextListeningScenario(0, 0);
-        }
-        
-        function showNextListeningScenario(scenarioIndex, questionIndex) {
-            if (scenarioIndex >= listeningScenarios.length) {
-                showListeningResults();
-                return;
-            }
-            
-            const scenario = listeningScenarios[scenarioIndex];
-            
-            if (questionIndex === 0) {
-                // Show audio first
-                const content = document.getElementById('moduleContent');
-                content.innerHTML = `
-                    <div style="background: #fff3cd; padding: 20px; border-radius: 10px; border: 2px solid #ffc107; margin-bottom: 20px;">
-                        <h3>⚠ Important Instructions:</h3>
-                        <p><strong>You can only play the audio ONCE.</strong> Listen carefully and take notes if needed.</p>
-                    </div>
-                    
-                    <div class="audio-container">
-                        <h3>🎧 Listen to the Emergency Call</h3>
-                        <p style="color: #666; margin: 10px 0;">Audio Scenario ${scenarioIndex + 1} of ${listeningScenarios.length}</p>
-                        <audio id="listeningAudio" class="audio-player" controls>
-                            <source src="${scenario.audioFile}" type="audio/mpeg">
-                            Your browser does not support the audio element.
-                        </audio>
-                        <p class="play-count">Status: <span id="audioStatus" style="font-weight: bold; color: #007bff;">Ready to play</span></p>
-                        
-                        <div style="background: white; padding: 15px; border-radius: 5px; margin-top: 20px;">
-                            <p><strong></strong></p>
-                            <p style="font-style: italic; color: #666;">${scenario.scenario}</p>
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center; margin-top: 20px;">
-                        <button class="btn btn-success" id="beginQuestionsBtn" onclick="startListeningQuestions(${scenarioIndex})">Begin Questions</button>
-                        <p style="color: #666; font-size: 14px; margin-top: 10px;">Make sure you've listened to the audio before clicking this button</p>
-                    </div>
-                `;
-                
-                // Track audio plays
-                const audio = document.getElementById('listeningAudio');
-                let hasPlayed = false;
-                
-                audio.addEventListener('play', function() {
-                    if (!hasPlayed) {
-                        hasPlayed = true;
-                        document.getElementById('audioStatus').textContent = 'Playing...';
-                        document.getElementById('audioStatus').style.color = '#28a745';
-                    }
-                });
-                
-                audio.addEventListener('ended', function() {
-                    audio.controls = false;
-                    audio.style.opacity = '0.5';
-                    document.getElementById('audioStatus').textContent = 'Audio completed (cannot replay)';
-                    document.getElementById('audioStatus').style.color = '#dc3545';
-                    document.getElementById('beginQuestionsBtn').style.background = 'linear-gradient(135deg, #28a745 0%, #20a038 100%)';
-                    document.getElementById('beginQuestionsBtn').style.animation = 'pulse 1s infinite';
-                });
-                
-                // Also disable if they try to replay
-                audio.addEventListener('pause', function() {
-                    if (hasPlayed) {
-                        audio.controls = false;
-                        audio.style.opacity = '0.5';
-                    }
-                });
-            } else {
-                // Show question
-                showListeningQuestion(scenarioIndex, questionIndex);
-            }
-        }
-        
-        function startListeningQuestions(scenarioIndex) {
-            showListeningQuestion(scenarioIndex, 0);
-        }
-        
-        function showListeningQuestion(scenarioIndex, questionIndex) {
-            const scenario = listeningScenarios[scenarioIndex];
-            const question = scenario.questions[questionIndex];
-            
-            const content = document.getElementById('moduleContent');
-            content.innerHTML = `
-                <div style="margin-bottom: 20px;">
-                    <p style="color: #666;">Question ${currentQuestion + 1} of ${totalQuestions}</p>
-                    <div style="background: #e0e0e0; height: 10px; border-radius: 5px; overflow: hidden;">
-                        <div style="background: #007bff; height: 100%; width: ${((currentQuestion + 1) / totalQuestions) * 100}%; transition: width 0.3s;"></div>
-                    </div>
-                </div>
-                
-                <div style="background: #e3f2fd; padding: 20px; border-radius: 10px; margin: 20px 0; border: 2px solid #2196f3;">
-                    <h3 style="color: #1976d2;">${question.q}</h3>
-                </div>
-                
-                ${question.options.map((opt, i) => `
-                    <div style="margin: 12px 0;">
-                        <label style="display: block; padding: 15px; background: white; border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer; transition: all 0.3s;" onmouseover="this.style.borderColor='#007bff'; this.style.background='#f5f5f5'" onmouseout="this.style.borderColor='#e0e0e0'; this.style.background='white'">
-                            <input type="radio" name="listeningAnswer" value="${i}" style="margin-right: 12px; width: 20px; height: 20px;">
-                            <span style="font-size: 16px;">${opt}</span>
-                        </label>
-                    </div>
-                `).join('')}
-                
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-success" onclick="submitListeningAnswer(${scenarioIndex}, ${questionIndex})">Submit Answer</button>
-                </div>
-            `;
-        }
-        
-        function submitListeningAnswer(scenarioIndex, questionIndex) {
-            const selected = document.querySelector('input[name="listeningAnswer"]:checked');
-            
-            if (!selected) {
-                alert('Please select an answer before submitting.');
-                return;
-            }
-            
-            const scenario = listeningScenarios[scenarioIndex];
-            const question = scenario.questions[questionIndex];
-            const userAnswer = parseInt(selected.value);
-            const correct = userAnswer === question.correct;
-            
-            if (correct) {
-                correctAnswers++;
-            }
-            
-            // Show feedback
-            const feedback = document.createElement('div');
-            feedback.style.cssText = 'background: ' + (correct ? '#d4edda' : '#f8d7da') + '; padding: 15px; border-radius: 10px; margin-top: 15px; border: 2px solid ' + (correct ? '#28a745' : '#dc3545');
-            feedback.innerHTML = `
-                <p style="font-size: 18px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
-                ${!correct ? `<p style="margin: 10px 0 0 0;">Correct answer: ${question.options[question.correct]}</p>` : ''}
-            `;
-            document.getElementById('moduleContent').appendChild(feedback);
-            
-            // Move to next question
-            currentQuestion++;
-            setTimeout(() => {
-                questionIndex++;
-                if (questionIndex >= scenario.questions.length) {
-                    scenarioIndex++;
-                    questionIndex = 0;
-                }
-                showNextListeningScenario(scenarioIndex, questionIndex);
-            }, 1500);
-        }
-        
-        function showListeningResults() {
-            const percentage = Math.round((correctAnswers / totalQuestions) * 100);
-            const content = document.getElementById('moduleContent');
-            
-            content.innerHTML = `
-                <div class="score-display">
-                    <h3>Listening Skills Results</h3>
-                    <h2>${correctAnswers} out of ${totalQuestions}</h2>
-                    <p>${percentage}% Correct</p>
-                </div>
-                <div style="text-align: center; margin-top: 20px;">
-                    <button class="btn btn-primary" onclick="showListeningSkills()">Practice Again</button>
-                    <button class="btn btn-danger" onclick="closeModule()">Exit Module</button>
-                </div>
-            `;
-            
-            // Save score to Firebase
-            if (auth.currentUser) {
-                db.collection('users').doc(auth.currentUser.uid)
-                  .collection('criticallScores').add({
-                    module: 'listeningSkills',
-                    score: percentage,
-                    correct: correctAnswers,
-                    total: totalQuestions,
-                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                  });
-            }
-        }
-        
+        // LISTENING SKILLS MODULE - moved to js/modules/listening-skills.js
+        // (shared with the graded test; see openModule('listeningSkills')).
+
         // VIN/LICENSE ENTRY MODULE
         function showVinLicense() {
             document.getElementById('moduleTitle').textContent = '🚗 VIN/License Entry Practice';
