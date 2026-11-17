@@ -240,7 +240,10 @@ const mapReadingModule = {
     state: null,
     container: null,
     onComplete: null,
-    
+    // Set to true by js/test-engine.js for the graded test - see
+    // js/modules/audio-data-entry.js for the fuller explanation.
+    testMode: false,
+
     init(questionCount) {
         // Select 3 random maps from the 4 available
         const shuffledMaps = this.shuffleArray([...this.mapBank]);
@@ -396,10 +399,12 @@ const mapReadingModule = {
                         <h4>Question:</h4>
                         <p>${question.question}</p>
                     </div>
-                    <div class="feedback-section">
-                        <h4>Correct Answer:</h4>
-                        <p>${question.options[question.correct]}</p>
-                    </div>
+                    ${!this.testMode ? `
+                        <div class="feedback-section">
+                            <h4>Correct Answer:</h4>
+                            <p>${question.options[question.correct]}</p>
+                        </div>
+                    ` : ''}
                 </div>
                 
                 <div class="module-actions">
@@ -460,6 +465,11 @@ const mapReadingModule = {
 };
 
 // CROSS REFERENCE MODULE - Full implementation
+// Previously reported a totalKeystrokes/kpm/kph "typing speed" - that number
+// was actually just the character length of the data displayed on screen,
+// not anything the student typed (this module is pure click-to-select, no
+// typing at all). Removed, along with its matching speed gate in
+// js/test-engine.js - accuracy is the only honest thing to grade here.
 const crossReferenceModule = {
     name: "Cross Reference",
     questionBank: [
@@ -741,19 +751,25 @@ const crossReferenceModule = {
     currentScenario: 0,
     results: {
         correct: 0,
-        total: 0,
-        totalKeystrokes: 0,
-        startTime: null
+        total: 0
     },
+    // Set to true by js/test-engine.js for the graded test - see
+    // js/modules/audio-data-entry.js for the fuller explanation.
+    testMode: false,
+    // Real CritiCall fires cross-reference checks as timed interrupts while
+    // you're busy with something else, not a calm standalone page - this
+    // per-scenario deadline is the closest a standalone module gets to that
+    // without a cross-module interrupt engine. Slightly longer than Decision
+    // Making's 15s since there's more data to actually compare here.
+    secondsPerScenario: 20,
+    timerInterval: null,
 
     init(questionCount) {
         this.selectedScenarios = getRandomQuestions(this.questionBank, questionCount);
         this.currentScenario = 0;
         this.results = {
             correct: 0,
-            total: questionCount,
-            totalKeystrokes: 0,
-            startTime: Date.now()
+            total: questionCount
         };
     },
 
@@ -781,15 +797,12 @@ const crossReferenceModule = {
         const scenarioNum = this.currentScenario + 1;
         const total = this.selectedScenarios.length;
 
-        // Count keystrokes for data review
-        const callerText = JSON.stringify(scenario.callerInfo);
-        const dbText = JSON.stringify(scenario.databaseInfo);
-        this.results.totalKeystrokes += callerText.length + dbText.length;
-
         this.container.innerHTML = `
             <div class="cross-reference-module">
                 <div class="progress-indicator">
-                    <p>Scenario ${scenarioNum} of ${total}</p>
+                    <p>Scenario ${scenarioNum} of ${total}
+                        <span id="crCountdown" style="float: right; font-weight: bold; color: #dc3545;">⏱ ${this.secondsPerScenario}s</span>
+                    </p>
                     <div class="progress-bar-slim">
                         <div class="progress-fill" style="width: ${(scenarioNum / total) * 100}%"></div>
                     </div>
@@ -900,6 +913,31 @@ const crossReferenceModule = {
                 }
             </style>
         `;
+
+        this.startScenarioTimer();
+    },
+
+    startScenarioTimer() {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+
+        let secondsLeft = this.secondsPerScenario;
+        this.timerInterval = setInterval(() => {
+            secondsLeft--;
+            const el = this.container.querySelector('#crCountdown');
+            if (el) el.textContent = `⏱ ${Math.max(0, secondsLeft)}s`;
+
+            if (secondsLeft <= 0) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+                this.handleTimeExpired();
+            }
+        }, 1000);
+    },
+
+    // Missing the deadline gets zero credit, same as the real test.
+    handleTimeExpired() {
+        const scenario = this.selectedScenarios[this.currentScenario];
+        this.showFeedback(false, scenario, null, true);
     },
 
     formatFieldName(key) {
@@ -922,6 +960,11 @@ const crossReferenceModule = {
     },
 
     selectDiscrepancy(selectedField) {
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
+        }
+
         const scenario = this.selectedScenarios[this.currentScenario];
         const correct = selectedField === scenario.discrepancy;
 
@@ -932,36 +975,43 @@ const crossReferenceModule = {
         this.showFeedback(correct, scenario, selectedField);
     },
 
-    showFeedback(correct, scenario, selectedField) {
+    showFeedback(correct, scenario, selectedField, timedOut) {
         const statusClass = correct ? 'success' : 'warning';
         const statusIcon = correct ? '✓' : '✗';
 
         this.container.innerHTML = `
             <div class="scenario-feedback ${statusClass}">
                 <div class="feedback-header">
-                    <h2>${statusIcon} ${correct ? 'Correct!' : 'Incorrect'}</h2>
+                    <h2>${timedOut ? '⏱ Time Expired' : (statusIcon + ' ' + (correct ? 'Correct!' : 'Incorrect'))}</h2>
+                    ${timedOut ? '<p>No response in time counts as incorrect - same as the real test.</p>' : ''}
                 </div>
 
                 <div class="feedback-details">
-                    <div class="feedback-section">
-                        <h4>Correct Answer:</h4>
-                        <p><strong>${scenario.discrepancy === 'none' ? 'All fields match' : this.formatFieldName(scenario.discrepancy)}</strong></p>
-                    </div>
-
-                    ${!correct ? `
+                    ${!this.testMode ? `
                         <div class="feedback-section">
-                            <h4>You Selected:</h4>
-                            <p>${selectedField === 'none' ? 'All fields match' : this.formatFieldName(selectedField)}</p>
+                            <h4>Correct Answer:</h4>
+                            <p><strong>${scenario.discrepancy === 'none' ? 'All fields match' : this.formatFieldName(scenario.discrepancy)}</strong></p>
                         </div>
-                    ` : ''}
 
-                    ${scenario.discrepancy !== 'none' ? `
-                        <div class="feedback-section explanation">
-                            <h4>The Discrepancy:</h4>
-                            <p>Caller: <strong>${scenario.callerInfo[scenario.discrepancy]}</strong></p>
-                            <p>Database: <strong>${scenario.databaseInfo[scenario.discrepancy]}</strong></p>
+                        ${!correct && selectedField ? `
+                            <div class="feedback-section">
+                                <h4>You Selected:</h4>
+                                <p>${selectedField === 'none' ? 'All fields match' : this.formatFieldName(selectedField)}</p>
+                            </div>
+                        ` : ''}
+
+                        ${scenario.discrepancy !== 'none' ? `
+                            <div class="feedback-section explanation">
+                                <h4>The Discrepancy:</h4>
+                                <p>Caller: <strong>${scenario.callerInfo[scenario.discrepancy]}</strong></p>
+                                <p>Database: <strong>${scenario.databaseInfo[scenario.discrepancy]}</strong></p>
+                            </div>
+                        ` : ''}
+                    ` : `
+                        <div class="feedback-section">
+                            <p><strong>${correct ? '✓ Correct' : '✗ Incorrect'}</strong></p>
                         </div>
-                    ` : ''}
+                    `}
                 </div>
 
                 <div class="module-actions">
@@ -979,23 +1029,14 @@ const crossReferenceModule = {
     },
 
     finish() {
-        const endTime = Date.now();
-        const timeUsed = (endTime - this.results.startTime) / 1000;
         const accuracy = (this.results.correct / this.results.total) * 100;
-
-        // Calculate KPH
-        const kpm = Math.round((this.results.totalKeystrokes / timeUsed) * 60);
-        const kph = kpm * 60;
 
         const finalResults = {
             moduleId: 'crossReference',
             accuracy: accuracy,
             correctAnswers: this.results.correct,
             totalQuestions: this.results.total,
-            score: accuracy,
-            totalKeystrokes: this.results.totalKeystrokes,
-            kph: kph,
-            kpm: kpm
+            score: accuracy
         };
 
         if (this.onComplete) {

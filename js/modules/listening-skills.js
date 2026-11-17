@@ -85,6 +85,9 @@ const listeningSkillsModule = {
     currentScenarioIndex: 0,
     currentQuestionIndex: 0,
     results: { correct: 0, totalQuestions: 0 },
+    // Set to true by js/test-engine.js for the graded test - see
+    // js/modules/audio-data-entry.js for the fuller explanation.
+    testMode: false,
 
     init(questionCount) {
         this.selectedScenarios = pickRandomScenarios(listeningSkillsScenarios, questionCount);
@@ -189,7 +192,7 @@ const listeningSkillsModule = {
         feedback.className = `listening-feedback ${correct ? 'correct' : 'incorrect'}`;
         feedback.innerHTML = `
             <p style="font-size: 18px; margin: 0;"><strong>${correct ? '✓ Correct!' : '✗ Incorrect'}</strong></p>
-            ${!correct ? `<p style="margin: 10px 0 0 0;">Correct answer: ${question.options[question.correct]}</p>` : ''}
+            ${!correct && !this.testMode ? `<p style="margin: 10px 0 0 0;">Correct answer: ${question.options[question.correct]}</p>` : ''}
         `;
         this.container.appendChild(feedback);
         this.container.querySelector('#lsSubmitBtn').disabled = true;

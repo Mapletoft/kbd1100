@@ -2,7 +2,33 @@
 // Reading Comprehension and Memory Recall
 // (Map Reading, Cross Reference, Multitasking are in map-cross-multi.js)
 
+// Same street-type canonicalization used by js/modules/audio-data-entry.js
+// (duplicated rather than shared, matching this codebase's existing
+// pattern of modules having no shared-util file) - Memory Recall's bank
+// includes a few address-style answers (e.g. "4521 Elmwood Dr, Apt 3B")
+// that would otherwise fail a correct answer written as "Drive" instead
+// of "Dr". Applied as a whole-word replace before isAnswerCorrect's
+// existing punctuation/space stripping.
+const MEMORY_STREET_TYPE_ALIASES = {
+    street: 'st', avenue: 'ave', court: 'ct', drive: 'dr', road: 'rd',
+    boulevard: 'blvd', lane: 'ln', place: 'pl', terrace: 'ter',
+    parkway: 'pkwy', circle: 'cir', crescent: 'cres', trail: 'trl'
+};
+
+function applyMemoryStreetAbbreviations(str) {
+    let result = str;
+    for (const [full, abbr] of Object.entries(MEMORY_STREET_TYPE_ALIASES)) {
+        result = result.replace(new RegExp(`\\b${full}\\b`, 'gi'), abbr);
+    }
+    return result;
+}
+
 // ===== READING COMPREHENSION MODULE =====
+// Real CritiCall pairs each short passage with exactly ONE question before
+// moving on - it's a speed-reading check, not a reading-test-style set of
+// 2-3 questions per passage. One random question is picked per selected
+// passage in init() below (the question bank itself is untouched, so
+// nothing is lost - just not all exercised in a single attempt).
 const readingComprehensionModule = {
     name: "Reading Comprehension",
     selectedPassages: [],
@@ -11,13 +37,19 @@ const readingComprehensionModule = {
         correct: 0,
         total: 0
     },
+    // Set to true by js/test-engine.js for the graded test - see
+    // js/modules/audio-data-entry.js for the fuller explanation.
+    testMode: false,
 
     init(questionCount) {
         this.selectedPassages = getRandomQuestions(QuestionBankPart2.readingComprehension, questionCount);
+        this.selectedPassages.forEach(passage => {
+            passage.selectedQuestion = passage.questions[Math.floor(Math.random() * passage.questions.length)];
+        });
         this.currentPassage = 0;
         this.results = {
             correct: 0,
-            total: 0
+            total: this.selectedPassages.length
         };
     },
 
@@ -85,37 +117,24 @@ const readingComprehensionModule = {
     },
 
     startQuestions() {
-        this.currentQuestion = 0;
-        this.passageResults = {
-            correct: 0,
-            total: this.selectedPassages[this.currentPassage].questions.length
-        };
         this.showQuestion();
     },
 
     showQuestion() {
         const passage = this.selectedPassages[this.currentPassage];
-        
-        if (this.currentQuestion >= passage.questions.length) {
-            this.nextPassage();
-            return;
-        }
-
-        const question = passage.questions[this.currentQuestion];
-        const questionNum = this.currentQuestion + 1;
-        const total = passage.questions.length;
+        const question = passage.selectedQuestion;
 
         this.container.innerHTML = `
             <div class="reading-question-module">
                 <div class="progress-indicator">
-                    <p>Question ${questionNum} of ${total}</p>
+                    <p>Passage ${this.currentPassage + 1} of ${this.selectedPassages.length}</p>
                 </div>
 
                 <div class="question-content">
                     <h4>${question.question}</h4>
                     <div class="answer-options">
                         ${question.options.map((option, index) => `
-                            <button onclick="readingComprehensionModule.selectAnswer('${option.replace(/'/g, "\\'")}')" 
+                            <button onclick="readingComprehensionModule.selectAnswer('${option.replace(/'/g, "\\'")}')"
                                     class="answer-option">
                                 ${option}
                             </button>
@@ -156,15 +175,13 @@ const readingComprehensionModule = {
 
     selectAnswer(selectedAnswer) {
         const passage = this.selectedPassages[this.currentPassage];
-        const question = passage.questions[this.currentQuestion];
+        const question = passage.selectedQuestion;
         const correctAnswer = question.options[question.correct];
         const correct = selectedAnswer === correctAnswer;
 
         if (correct) {
-            this.passageResults.correct++;
             this.results.correct++;
         }
-        this.results.total++;
 
         this.showQuestionFeedback(correct, question, correctAnswer);
     },
@@ -176,25 +193,22 @@ const readingComprehensionModule = {
                     <h2>${correct ? '✓ Correct!' : '! Incorrect'}</h2>
                 </div>
 
-                <div class="feedback-details">
-                    <div class="feedback-section">
-                        <h4>Correct Answer:</h4>
-                        <p>${correctAnswer}</p>
+                ${!this.testMode ? `
+                    <div class="feedback-details">
+                        <div class="feedback-section">
+                            <h4>Correct Answer:</h4>
+                            <p>${correctAnswer}</p>
+                        </div>
                     </div>
-                </div>
+                ` : ''}
 
                 <div class="module-actions">
-                    <button onclick="readingComprehensionModule.nextQuestion()" class="primary-btn">
-                        ${this.currentQuestion < this.selectedPassages[this.currentPassage].questions.length - 1 ? 'Next Question →' : 'Continue →'}
+                    <button onclick="readingComprehensionModule.nextPassage()" class="primary-btn">
+                        Continue →
                     </button>
                 </div>
             </div>
         `;
-    },
-
-    nextQuestion() {
-        this.currentQuestion++;
-        this.showQuestion();
     },
 
     nextPassage() {
@@ -359,6 +373,9 @@ const memoryRecallModule = {
     memorizeSecondsByDifficulty: { easy: 15, medium: 20, hard: 30 },
     difficulty: 'easy',
     memorizeSeconds: 15,
+    // Set to true by js/test-engine.js for the graded test - see
+    // js/modules/audio-data-entry.js for the fuller explanation.
+    testMode: false,
     selectedScenario: null,
     currentQuestion: 0,
     currentRound: 0,
@@ -571,7 +588,7 @@ const memoryRecallModule = {
     },
 
     isAnswerCorrect(userAnswer, correctAnswer) {
-        const normalize = (str) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normalize = (str) => applyMemoryStreetAbbreviations(str).toLowerCase().replace(/[^a-z0-9]/g, '');
         return normalize(userAnswer) === normalize(correctAnswer);
     },
 
@@ -582,12 +599,14 @@ const memoryRecallModule = {
                     <h2>${correct ? '✓ Correct!' : '! Incorrect'}</h2>
                 </div>
 
-                <div class="feedback-details">
-                    <div class="feedback-section">
-                        <h4>Correct Answer:</h4>
-                        <p><strong>${question.a}</strong></p>
+                ${!this.testMode ? `
+                    <div class="feedback-details">
+                        <div class="feedback-section">
+                            <h4>Correct Answer:</h4>
+                            <p><strong>${question.a}</strong></p>
+                        </div>
                     </div>
-                </div>
+                ` : ''}
 
                 <div class="module-actions">
                     <button onclick="memoryRecallModule.nextQuestion()" class="primary-btn">

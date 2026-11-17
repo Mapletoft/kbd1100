@@ -55,6 +55,9 @@ const mathematicsModule = {
                 </div>
 
                 <div class="math-problem">
+                    <p style="text-align: center; color: #856404; background: #fff3cd; border: 1px solid #ffc107; border-radius: 6px; padding: 8px; margin-bottom: 15px;">
+                        ⚠ No calculator allowed - solve using mental math or paper, same as the real test.
+                    </p>
                     <div class="problem-box">
                         <h3>Problem ${problemNum}</h3>
                         <p class="problem-text">${problem.question}</p>
@@ -158,7 +161,7 @@ const mathematicsModule = {
             const parts = timeStr.split(':');
             const hours = parseInt(parts[0]);
             const mins = parseInt(parts[1].replace(/[^0-9]/g, ''));
-            
+
             if (variant === 1) {
                 return `${hours}:${String(mins + 15).padStart(2, '0')}${timeStr.includes('AM') ? ' AM' : timeStr.includes('PM') ? ' PM' : ''}`;
             } else if (variant === 2) {
@@ -167,6 +170,23 @@ const mathematicsModule = {
                 return `${hours}:${String(Math.max(0, mins - 10)).padStart(2, '0')}${timeStr.includes('AM') ? ' AM' : timeStr.includes('PM') ? ' PM' : ''}`;
             }
         }
+
+        // Duration-style answers like "4 hours 15 minutes" - previously fell
+        // through to a single hardcoded "(wrong)" suffix for every variant,
+        // producing 3 identical wrong buttons for any such answer.
+        const durationMatch = timeStr.match(/(\d+)\s*hours?\s*(\d+)\s*minutes?/i);
+        if (durationMatch) {
+            const hours = parseInt(durationMatch[1]);
+            const mins = parseInt(durationMatch[2]);
+            if (variant === 1) {
+                return `${hours} hours ${mins + 15} minutes`;
+            } else if (variant === 2) {
+                return `${hours + 1} hours ${mins} minutes`;
+            } else {
+                return `${hours} hours ${Math.max(0, mins - 10)} minutes`;
+            }
+        }
+
         return timeStr + ' (wrong)';
     },
 

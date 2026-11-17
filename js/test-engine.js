@@ -62,17 +62,16 @@ const CritiCallTestEngine = {
             },
             // Net KPM (keystrokes already factored for accuracy - see
             // completeModule) required for the typing-flavored modules.
-            // multitasking is NOT here - it was never really a typing-speed
-            // module (real CritiCall multitasking grades correct call
-            // handling under simultaneous interruption, not sustained KPM),
-            // and js/modules/multitasking.js has never tracked keystrokes to
-            // support a speed gate anyway. It used to be listed in
-            // SPEED_MODULES below with a speed requirement here, which meant
-            // its pass check always evaluated to false - nobody could ever
-            // pass it, regardless of performance.
+            // Only dataEntry actually types anything - multitasking and
+            // crossReference used to be listed here too, both with the same
+            // underlying problem: neither module's own code ever tracked
+            // real keystrokes, so their "speed" numbers were either always
+            // zero (multitasking - nobody could ever pass) or computed from
+            // the character length of data shown on screen rather than
+            // anything the student typed (crossReference - pure
+            // click-to-select, no typing at all). Both are accuracy-only now.
             speed: {
-                dataEntry: 60,
-                crossReference: 70
+                dataEntry: 60
             }
         },
 
@@ -165,14 +164,14 @@ const CritiCallTestEngine = {
         const instructions = {
             dataEntry: 'Enter caller information accurately and quickly. You will be timed on both speed and accuracy.',
             audioDataEntry: 'Listen to each emergency call once, then enter the caller\'s information accurately. Audio cannot be replayed.',
-            decisionMaking: 'Read each scenario and determine which emergency services should respond and the priority level.',
+            decisionMaking: 'Read each scenario and determine which emergency services should respond and the priority level. You have 15 seconds per scenario - missing the deadline counts as incorrect.',
             callSummarization: 'Listen to emergency calls and answer questions about key details. Audio plays only once.',
             mapReading: 'Using the map provided, determine the best route for emergency responders.',
             readingComprehension: 'Read passages about emergency procedures and answer comprehension questions.',
-            spelling: 'Select the correctly spelled word from the options provided.',
-            mathematics: 'Solve math problems related to emergency dispatch scenarios.',
+            spelling: 'Listen to each word read aloud once, then type its spelling. No multiple choice, and no replaying the audio.',
+            mathematics: 'Solve math problems related to emergency dispatch scenarios. No calculator allowed.',
             memoryRecall: 'Memorize information that will be shown briefly, then answer questions from memory.',
-            crossReference: 'Compare information from different sources and identify discrepancies.',
+            crossReference: 'Compare information from different sources and identify discrepancies. You have 20 seconds per scenario - missing the deadline counts as incorrect.',
             multitasking: 'Handle multiple emergency calls simultaneously while maintaining accuracy.',
             listeningSkills: 'Listen to each emergency call once, then answer comprehension questions about it. No transcript is provided.'
         };
@@ -199,6 +198,12 @@ const CritiCallTestEngine = {
         // Modules will be loaded from separate files
         // For now, placeholder that will be replaced with actual module
         if (window[`${moduleId}Module`] && window[`${moduleId}Module`].render) {
+            // Tell the module it's running in the graded test, not untimed
+            // practice - modules that reveal the correct answer after each
+            // question (fine for practice) check this flag and withhold it
+            // here, since leaking answers mid-test would undermine the
+            // whole point of grading it.
+            window[`${moduleId}Module`].testMode = true;
             window[`${moduleId}Module`].render(
                 document.getElementById('moduleContent'),
                 module.questionCount,
@@ -287,7 +292,7 @@ const CritiCallTestEngine = {
         results.moduleId = module.id;
         results.moduleName = module.name;
         
-        const SPEED_MODULES = ['dataEntry', 'crossReference'];
+        const SPEED_MODULES = ['dataEntry'];
 
         // Raw and net KPM/KPH for the typing-flavored modules. Net speed
         // subtracts for errors (the same "net WPM" convention real typing
@@ -533,9 +538,10 @@ const CritiCallTestEngine = {
                 <p style="color: #666; max-width: 640px; margin: 0 auto 10px; text-align: center;">
                     Your overall score is a weighted average of your accuracy across every module -
                     there's no credit for finishing early. Each module below also has its own
-                    pass/fail result: timing-based modules (Data Entry, Cross Reference,
-                    Multitasking) require BOTH accurate work AND meeting a separate speed
-                    minimum, checked independently - just like the real CritiCall test.
+                    pass/fail result: Data Entry additionally requires meeting a separate net
+                    typing-speed minimum, checked independently of accuracy - just like the real
+                    CritiCall test. Decision Making and Cross Reference instead put you under a
+                    hard per-item countdown, matching how those categories work on the real test.
                 </p>
             </div>
             

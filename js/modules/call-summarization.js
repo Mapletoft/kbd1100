@@ -37,6 +37,9 @@ const callSummarizationModule = {
     selectedScenarios: [],
     currentScenario: 0,
     results: { correct: 0, total: 0, individualResults: [] },
+    // Set to true by js/test-engine.js for the graded test - see
+    // js/modules/audio-data-entry.js for the fuller explanation.
+    testMode: false,
 
     init(questionCount) {
         this.selectedScenarios = pickRandomScenarios(callSummarizationScenarios, questionCount);
@@ -132,9 +135,9 @@ const callSummarizationModule = {
             <div style="background: white; padding: 20px; border-radius: 10px; margin-top: 20px;">
                 <h3>Feedback:</h3>
                 <p><strong>Services:</strong> ${servicesCorrect ? '✓ Correct' : '✗ Incorrect'}</p>
-                ${!servicesCorrect ? `<p style="margin-left: 20px;">Correct services: ${scenario.correctServices.join(', ')}</p>` : ''}
+                ${!servicesCorrect && !this.testMode ? `<p style="margin-left: 20px;">Correct services: ${scenario.correctServices.join(', ')}</p>` : ''}
                 <p><strong>Priority:</strong> ${priorityCorrect ? '✓ Correct' : '✗ Incorrect'}</p>
-                ${!priorityCorrect ? `<p style="margin-left: 20px;">Correct priority: ${scenario.correctPriority}</p>` : ''}
+                ${!priorityCorrect && !this.testMode ? `<p style="margin-left: 20px;">Correct priority: ${scenario.correctPriority}</p>` : ''}
             </div>
             <div style="text-align: center; margin-top: 20px;">
                 <button class="btn btn-primary" id="csContinueBtn">Continue to Next Call</button>

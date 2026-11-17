@@ -9,6 +9,16 @@ const decisionMakingModule = {
         total: 0,
         details: []
     },
+    // Set to true by js/test-engine.js for the graded test - see
+    // js/modules/audio-data-entry.js for the fuller explanation.
+    testMode: false,
+    // Real CritiCall fires decision-making prompts as ~15-second interrupts
+    // while you're busy with something else - a hard deadline with zero
+    // credit if you miss it, not an untimed page you can sit on. This is
+    // the closest a standalone module (no cross-module interrupt engine)
+    // can get to that pressure: the same hard per-scenario countdown.
+    secondsPerScenario: 15,
+    timerInterval: null,
 
     init(questionCount) {
         // Get random scenarios from question bank
@@ -48,7 +58,9 @@ const decisionMakingModule = {
         this.container.innerHTML = `
             <div class="decision-making-module">
                 <div class="progress-indicator">
-                    <p>Scenario ${scenarioNum} of ${total}</p>
+                    <p>Scenario ${scenarioNum} of ${total}
+                        <span id="dmCountdown" style="float: right; font-weight: bold; color: #dc3545;">⏱ ${this.secondsPerScenario}s</span>
+                    </p>
                     <div class="progress-bar-slim">
                         <div class="progress-fill" style="width: ${(scenarioNum / total) * 100}%"></div>
                     </div>
@@ -173,6 +185,46 @@ const decisionMakingModule = {
         `;
 
         this.selectedPriorityValue = null;
+        this.startScenarioTimer();
+    },
+
+    startScenarioTimer() {
+        if (this.timerInterval) clearInterval(this.timerInterval);
+
+        let secondsLeft = this.secondsPerScenario;
+        this.timerInterval = setInterval(() => {
+            secondsLeft--;
+            const el = this.container.querySelector('#dmCountdown');
+            if (el) el.textContent = `⏱ ${Math.max(0, secondsLeft)}s`;
+
+            if (secondsLeft <= 0) {
+                clearInterval(this.timerInterval);
+                this.timerInterval = null;
+                this.handleTimeExpired();
+            }
+        }, 1000);
+    },
+
+    // Missing the deadline gets zero credit, same as the real test - no
+    // partial credit, no "it's fine, try again" for an interrupt you didn't
+    // answer in time.
+    handleTimeExpired() {
+        const scenario = this.selectedScenarios[this.currentScenario];
+        const checkboxes = this.container.querySelectorAll('.service-check:checked');
+        const selectedServices = Array.from(checkboxes).map(cb => cb.value);
+
+        this.results.details.push({
+            scenario: scenario.scenario,
+            userServices: selectedServices,
+            correctServices: scenario.services,
+            userPriority: this.selectedPriorityValue,
+            correctPriority: scenario.priority,
+            correct: false,
+            timedOut: true,
+            explanation: scenario.explanation
+        });
+
+        this.showFeedback(false, scenario, selectedServices, true);
     },
 
     selectPriority(priority) {
@@ -202,6 +254,11 @@ const decisionMakingModule = {
         if (!this.selectedPriorityValue) {
             alert('Please select a priority level.');
             return;
+        }
+
+        if (this.timerInterval) {
+            clearInterval(this.timerInterval);
+            this.timerInterval = null;
         }
 
         const scenario = this.selectedScenarios[this.currentScenario];
@@ -239,35 +296,40 @@ const decisionMakingModule = {
         return true;
     },
 
-    showFeedback(correct, scenario, selectedServices) {
+    showFeedback(correct, scenario, selectedServices, timedOut) {
         const statusClass = correct ? 'success' : 'warning';
         const statusIcon = correct ? '✓' : '!';
+        const servicesMatch = this.arraysEqual(selectedServices.sort(), scenario.services.sort());
+        const priorityMatch = this.selectedPriorityValue === scenario.priority;
 
         this.container.innerHTML = `
             <div class="scenario-feedback ${statusClass}">
                 <div class="feedback-header">
-                    <h2>${statusIcon} ${correct ? 'Correct!' : 'Review Your Answer'}</h2>
+                    <h2>${timedOut ? '⏱ Time Expired' : (statusIcon + ' ' + (correct ? 'Correct!' : 'Review Your Answer'))}</h2>
+                    ${timedOut ? '<p>No response in time counts as incorrect - same as the real test.</p>' : ''}
                 </div>
 
                 <div class="feedback-details">
                     <div class="feedback-section">
-                        <h4>Correct Services:</h4>
-                        <p><strong>${scenario.services.join(', ')}</strong></p>
-                        ${!this.arraysEqual(selectedServices.sort(), scenario.services.sort()) ? 
-                            `<p class="your-answer">Your answer: ${selectedServices.join(', ')}</p>` : ''}
+                        <h4>Services:</h4>
+                        <p><strong>${servicesMatch ? '✓ Correct' : '✗ Incorrect'}</strong></p>
+                        ${!servicesMatch && !this.testMode ?
+                            `<p>Correct answer: ${scenario.services.join(', ')}</p><p class="your-answer">Your answer: ${selectedServices.length ? selectedServices.join(', ') : '(none selected)'}</p>` : ''}
                     </div>
 
                     <div class="feedback-section">
-                        <h4>Correct Priority:</h4>
-                        <p><strong>${scenario.priority}</strong></p>
-                        ${this.selectedPriorityValue !== scenario.priority ? 
-                            `<p class="your-answer">Your answer: ${this.selectedPriorityValue}</p>` : ''}
+                        <h4>Priority:</h4>
+                        <p><strong>${priorityMatch ? '✓ Correct' : '✗ Incorrect'}</strong></p>
+                        ${!priorityMatch && !this.testMode ?
+                            `<p>Correct answer: ${scenario.priority}</p><p class="your-answer">Your answer: ${this.selectedPriorityValue || '(none selected)'}</p>` : ''}
                     </div>
 
-                    <div class="feedback-section explanation">
-                        <h4>Explanation:</h4>
-                        <p>${scenario.explanation}</p>
-                    </div>
+                    ${!this.testMode ? `
+                        <div class="feedback-section explanation">
+                            <h4>Explanation:</h4>
+                            <p>${scenario.explanation}</p>
+                        </div>
+                    ` : ''}
                 </div>
 
                 <div class="module-actions">
