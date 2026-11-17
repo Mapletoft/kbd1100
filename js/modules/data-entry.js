@@ -1,5 +1,25 @@
 // Data Entry Module - Randomized question selection
 
+// Same street-type canonicalization used by js/modules/audio-data-entry.js
+// and js/modules/additional-modules.js (duplicated rather than shared,
+// matching this codebase's existing pattern) - every scenario here has a
+// full-word street type ("Maple Street", "Queen Street East"), and this
+// module had never been exposed in the practice hub, so nobody had hit the
+// "St" vs "Street" mismatch here yet the way it surfaced in Audio Data Entry.
+const DATA_ENTRY_STREET_TYPE_ALIASES = {
+    street: 'st', avenue: 'ave', court: 'ct', drive: 'dr', road: 'rd',
+    boulevard: 'blvd', lane: 'ln', place: 'pl', terrace: 'ter',
+    parkway: 'pkwy', circle: 'cir', crescent: 'cres', trail: 'trl'
+};
+
+function applyDataEntryStreetAbbreviations(str) {
+    let result = str;
+    for (const [full, abbr] of Object.entries(DATA_ENTRY_STREET_TYPE_ALIASES)) {
+        result = result.replace(new RegExp(`\\b${full}\\b`, 'gi'), abbr);
+    }
+    return result;
+}
+
 const dataEntryModule = {
     name: "Data Entry",
     questionBank: null, // Will be loaded from QuestionBank
@@ -13,6 +33,13 @@ const dataEntryModule = {
         startTime: null,
         individualResults: []
     },
+    // Set to true by js/test-engine.js, which is the ONLY place this module
+    // ever runs (no practice-hub card exists for it) - see
+    // js/modules/audio-data-entry.js for the fuller explanation of why this
+    // matters. This module had been missed when that flag was rolled out
+    // everywhere else, since that pass only touched modules wired into
+    // criticall.html's switch statement.
+    testMode: false,
 
     // Initialize module with random scenario selection
     init(questionCount) {
@@ -161,7 +188,7 @@ const dataEntryModule = {
             feedback.push({ field: 'Phone', correct: false, expected: scenario.phone, got: userInputs.phone });
         }
 
-        if (this.compareFields(userInputs.address, scenario.address)) {
+        if (this.compareAddress(userInputs.address, scenario.address)) {
             fieldsCorrect++;
             feedback.push({ field: 'Address', correct: true, expected: scenario.address });
         } else {
@@ -229,6 +256,21 @@ const dataEntryModule = {
         return normalize(user) === normalize(correct);
     },
 
+    // Same as compareFields, but canonicalizes street-type words first so
+    // "St"/"Street", "Ave"/"Avenue", etc. are treated as equivalent.
+    compareAddress(user, correct) {
+        const normalize = (str) => {
+            return applyDataEntryStreetAbbreviations(str)
+                .toLowerCase()
+                .replace(/\s+/g, ' ')
+                .replace(/-/g, '')
+                .replace(/\./g, '')
+                .trim();
+        };
+
+        return normalize(user) === normalize(correct);
+    },
+
     // Show feedback for current scenario
     showFeedback(feedback, score) {
         const isCorrect = score === 100;
@@ -243,9 +285,9 @@ const dataEntryModule = {
                 <div class="feedback-item ${className}">
                     <span class="feedback-icon">${icon}</span>
                     <span class="feedback-field">${item.field}:</span>
-                    ${item.correct ? 
+                    ${item.correct ?
                         '<span class="feedback-status">Correct</span>' :
-                        `<span class="feedback-status">Expected: <strong>${item.expected}</strong></span>`
+                        (this.testMode ? '<span class="feedback-status">Incorrect</span>' : `<span class="feedback-status">Expected: <strong>${item.expected}</strong></span>`)
                     }
                 </div>
             `;

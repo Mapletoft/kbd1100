@@ -15,7 +15,8 @@ const CritiCallTestEngine = {
             { id: 'crossReference', name: 'Cross Reference', timeLimit: 600, questionCount: 15 },
             { id: 'multitasking', name: 'Multitasking', timeLimit: 610, questionCount: 12 },
             { id: 'callSummarization', name: 'Call Summarization', timeLimit: 900, questionCount: 10 },
-            { id: 'listeningSkills', name: 'Listening Skills', timeLimit: 900, questionCount: 5 }
+            { id: 'listeningSkills', name: 'Listening Skills', timeLimit: 900, questionCount: 5 },
+            { id: 'sentenceClarity', name: 'Sentence Clarity', timeLimit: 600, questionCount: 15 }
         ],
 
         // Module weights for the overall score. Real CritiCall never gives
@@ -37,7 +38,8 @@ const CritiCallTestEngine = {
                 audioDataEntry: 0.05,      // Listening + accurate entry under pressure
                 dataEntry: 0.04,           // Lower weight in the composite, but still gated on its own
                 mathematics: 0.02,         // Lower - basic calculations
-                spelling: 0.02             // Lowest - spell check exists
+                spelling: 0.02,            // Lowest - spell check exists
+                sentenceClarity: 0.02      // Lowest tier, same as spelling - a real CritiCall category
             }
         },
 
@@ -58,7 +60,8 @@ const CritiCallTestEngine = {
                 crossReference: 80,      // % accuracy - must be accurate, not just fast
                 multitasking: 70,        // % accuracy
                 callSummarization: 70,   // % accuracy
-                listeningSkills: 65      // % accuracy
+                listeningSkills: 65,     // % accuracy
+                sentenceClarity: 70      // % accuracy - matches real CritiCall's cited threshold
             },
             // Net KPM (keystrokes already factored for accuracy - see
             // completeModule) required for the typing-flavored modules.
@@ -173,7 +176,8 @@ const CritiCallTestEngine = {
             memoryRecall: 'Memorize information that will be shown briefly, then answer questions from memory.',
             crossReference: 'Compare information from different sources and identify discrepancies. You have 20 seconds per scenario - missing the deadline counts as incorrect.',
             multitasking: 'Handle multiple emergency calls simultaneously while maintaining accuracy.',
-            listeningSkills: 'Listen to each emergency call once, then answer comprehension questions about it. No transcript is provided.'
+            listeningSkills: 'Listen to each emergency call once, then answer comprehension questions about it. No transcript is provided.',
+            sentenceClarity: 'Pick the clearer, more concise of two statements - this tests report-writing clarity, not grammar trivia.'
         };
         return instructions[moduleId] || 'Complete the module to the best of your ability.';
     },
