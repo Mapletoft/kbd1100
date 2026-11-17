@@ -131,6 +131,20 @@
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     }
 
+    .detail-btn {
+        padding: 6px 14px;
+        background: #0056b3;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+    .detail-btn:hover {
+        background: #003d7a;
+    }
+
     .access-panel {
         background: #f5f8ff;
         border: 2px solid #d7e3ff;
@@ -241,6 +255,50 @@
       </div>
 
       <div class="toolbar">
+        <h3 style="margin: 0; flex: 1; color: #003d7a;">📋 CritiCall Full Test Results</h3>
+        <span id="criticallCount" class="pill"></span>
+      </div>
+      <div class="table-container" style="margin-bottom: 25px;">
+        <table id="criticallTable">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Attempt</th>
+              <th>Overall Score</th>
+              <th>Result</th>
+              <th>Modules Passed</th>
+              <th>Date</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="toolbar">
+        <h3 style="margin: 0; flex: 1; color: #003d7a;">⏱️ Timed Test Results</h3>
+        <span id="timedTestCount" class="pill"></span>
+      </div>
+      <div class="table-container" style="margin-bottom: 25px;">
+        <table id="timedTestsTable">
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Name</th>
+              <th>Length</th>
+              <th>WPM</th>
+              <th>Accuracy</th>
+              <th>Grading Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="toolbar">
+        <h3 style="margin: 0; color: #003d7a;">📘 Skill Building Progress</h3>
         <input id="filterText" type="text" placeholder="Filter by email, name, or exercise..." />
         <button id="refresh">🔄 Refresh</button>
         <span id="count" class="pill"></span>
@@ -280,11 +338,17 @@
         return;
       }
       await loadProgress();
+      await loadCriticallResults();
+      await loadTimedTestResults();
       await loadAccessPanel();
     });
 
     document.getElementById('signOut').onclick = () => auth.signOut().then(() => location.href='index.html');
-    document.getElementById('refresh').onclick = () => loadProgress();
+    document.getElementById('refresh').onclick = () => {
+      loadProgress();
+      loadCriticallResults();
+      loadTimedTestResults();
+    };
     document.getElementById('filterText').addEventListener('input', () => renderRows(window.__rows || []));
 
     /***************
@@ -501,6 +565,180 @@ function formatStatus(status) {
     if (status === 'completed') return '✅ Completed';
     if (status === 'in_progress') return '🔄 In Progress';
     return status;
+}
+
+/***************
+ * CRITICALL FULL TEST RESULTS
+ * testSubmissions/{uid}/tests/{testId}, written by js/test-engine.js
+ ***************/
+async function loadCriticallResults() {
+    const snap = await db.collectionGroup('tests').get();
+
+    const rows = snap.docs
+        .filter(d => d.ref.path.startsWith('testSubmissions/'))
+        .map(d => {
+            const data = d.data();
+            const pathParts = d.ref.path.split('/'); // testSubmissions/{uid}/tests/{testId}
+            const uid = pathParts[1];
+            const modules = data.modules || {};
+            const moduleList = Object.values(modules);
+            return {
+                uid,
+                testId: d.id,
+                email: data.studentEmail || '',
+                attemptNumber: data.attemptNumber ?? '',
+                overallScore: data.overallScore ?? '',
+                passed: !!data.passed,
+                modulesPassed: moduleList.filter(m => m.passed).length,
+                modulesTotal: moduleList.length,
+                timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : null,
+                modules
+            };
+        });
+
+    const uniqueUids = [...new Set(rows.map(r => r.uid))];
+    const profiles = {};
+    await Promise.all(uniqueUids.map(async uid => {
+        const p = await db.collection('users').doc(uid).get();
+        profiles[uid] = p.exists ? p.data() : {};
+    }));
+    rows.forEach(r => {
+        const p = profiles[r.uid] || {};
+        if (!r.email) r.email = p.email || '';
+        const fn = (p.firstName || '').trim();
+        const ln = (p.lastName || '').trim();
+        r.name = (fn || ln) ? `${fn} ${ln}`.trim() : '';
+    });
+
+    window.__criticallRows = rows;
+    renderCriticallRows(rows);
+}
+
+function renderCriticallRows(rows) {
+    const tbody = document.querySelector('#criticallTable tbody');
+    tbody.innerHTML = '';
+
+    const sorted = [...rows].sort((a, b) => (b.timestamp?.getTime?.() || 0) - (a.timestamp?.getTime?.() || 0));
+
+    for (const r of sorted) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${escapeHtml(r.email || '')}</td>
+            <td>${escapeHtml(r.name || 'Not Set')}</td>
+            <td>#${r.attemptNumber}</td>
+            <td>${r.overallScore}%</td>
+            <td>${r.passed ? '✅ Pass' : '❌ Fail'}</td>
+            <td>${r.modulesPassed}/${r.modulesTotal}</td>
+            <td>${r.timestamp ? r.timestamp.toLocaleString() : ''}</td>
+            <td><button class="detail-btn" type="button">Details</button></td>
+        `;
+        tbody.appendChild(tr);
+
+        const detailRow = document.createElement('tr');
+        detailRow.hidden = true;
+        detailRow.innerHTML = `<td colspan="8">${buildModuleBreakdownHTML(r.modules)}</td>`;
+        tbody.appendChild(detailRow);
+
+        tr.querySelector('.detail-btn').addEventListener('click', () => {
+            detailRow.hidden = !detailRow.hidden;
+        });
+    }
+
+    document.getElementById('criticallCount').textContent = `${sorted.length} attempt${sorted.length === 1 ? '' : 's'}`;
+}
+
+function buildModuleBreakdownHTML(modules) {
+    const entries = Object.entries(modules);
+    if (!entries.length) return '<em>No module data for this attempt.</em>';
+
+    return `
+        <table style="width: 100%; background: #f9f9f9;">
+            <thead>
+                <tr><th>Module</th><th>Accuracy</th><th>Speed</th><th>Result</th><th>Time Used</th></tr>
+            </thead>
+            <tbody>
+                ${entries.map(([moduleId, m]) => `
+                    <tr>
+                        <td>${escapeHtml(m.moduleName || moduleId)}</td>
+                        <td>${typeof m.accuracy === 'number' ? Math.round(m.accuracy) + '%' : ''}</td>
+                        <td>${typeof m.kpm === 'number' ? m.kpm + ' net KPM' : (typeof m.wpm === 'number' ? m.wpm + ' WPM' : '—')}</td>
+                        <td>${m.passed ? '✅' : '❌'}</td>
+                        <td>${typeof m.timeUsed === 'number' ? Math.floor(m.timeUsed / 60) + 'm ' + (m.timeUsed % 60) + 's' : ''}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
+    `;
+}
+
+/***************
+ * TIMED TEST RESULTS
+ * users/{uid}/timedTests/{testId}, written by typing.html
+ ***************/
+async function loadTimedTestResults() {
+    const snap = await db.collectionGroup('timedTests').get();
+
+    const rows = snap.docs.map(d => {
+        const data = d.data();
+        const pathParts = d.ref.path.split('/'); // users/{uid}/timedTests/{testId}
+        const uid = pathParts[1];
+        return {
+            uid,
+            duration: data.duration,
+            wpm: data.wpm,
+            accuracy: data.accuracy,
+            forGrade: !!data.forGrade,
+            submitted: !!data.submitted,
+            timestamp: data.timestamp?.toDate ? data.timestamp.toDate() : null
+        };
+    });
+
+    const uniqueUids = [...new Set(rows.map(r => r.uid))];
+    const profiles = {};
+    await Promise.all(uniqueUids.map(async uid => {
+        const p = await db.collection('users').doc(uid).get();
+        profiles[uid] = p.exists ? p.data() : {};
+    }));
+    rows.forEach(r => {
+        const p = profiles[r.uid] || {};
+        r.email = p.email || '';
+        const fn = (p.firstName || '').trim();
+        const ln = (p.lastName || '').trim();
+        r.name = (fn || ln) ? `${fn} ${ln}`.trim() : '';
+    });
+
+    window.__timedTestRows = rows;
+    renderTimedTestRows(rows);
+}
+
+function renderTimedTestRows(rows) {
+    const tbody = document.querySelector('#timedTestsTable tbody');
+    tbody.innerHTML = '';
+
+    const sorted = [...rows].sort((a, b) => (b.timestamp?.getTime?.() || 0) - (a.timestamp?.getTime?.() || 0));
+
+    for (const r of sorted) {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+            <td>${escapeHtml(r.email || '')}</td>
+            <td>${escapeHtml(r.name || 'Not Set')}</td>
+            <td>${formatTestDuration(r.duration)}</td>
+            <td>${r.wpm ?? ''}</td>
+            <td>${r.accuracy != null ? r.accuracy + '%' : ''}</td>
+            <td>${r.forGrade ? '✅ Submitted for grade' : (r.submitted ? '🔒 Locked' : '— practice only')}</td>
+            <td>${r.timestamp ? r.timestamp.toLocaleString() : ''}</td>
+        `;
+        tbody.appendChild(tr);
+    }
+
+    document.getElementById('timedTestCount').textContent = `${sorted.length} test${sorted.length === 1 ? '' : 's'}`;
+}
+
+function formatTestDuration(d) {
+    if (d === 0.5) return '30 sec';
+    if (d === 3) return '3 min (gradable length)';
+    if (typeof d === 'number') return `${d} min`;
+    return d || '';
 }
 
     function escapeHtml(s) {
